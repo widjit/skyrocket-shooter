@@ -7,10 +7,10 @@
 **S**hooters **K**nown **I**ntercepter **A**TAK **R**apid **K**nowledge **T**ool
 
 [![License: Apache 2.0](https://img.shields.io/badge/License-Apache_2.0-blue.svg)](LICENSE)
-![ATAK](https://img.shields.io/badge/ATAK-4.8-green.svg)
+![ATAK](https://img.shields.io/badge/ATAK--CIV-4.6.0%2B-green.svg)
 ![Status](https://img.shields.io/badge/phases-1--3_complete-orange.svg)
 
-SKIARKT is an ATAK 4.8 plugin for planning counter-small-UAS (C-sUAS) point defense. Operators use it to lay out
+SKIARKT is an ATAK-CIV plugin for planning counter-small-UAS (C-sUAS) point defense. Operators use it to lay out
 exclusion zones, sensors and effectors on the ATAK map. The plugin shows terrain-masked sensor coverage, models RF
 jammer effectiveness, works out safe intercept altitudes, and shares the whole plan with other ATAK / WinTAK users
 as Cursor-on-Target (CoT).
@@ -68,7 +68,7 @@ The ATAK SDK is proprietary and is **not** included in this repository. Gradle l
 
 | Priority | Source | How |
 |---|---|---|
-| 1 | ATAK-CIV 4.8 SDK jar | Copy `main.jar` to `sdk/main.jar` (download from [tak.gov](https://tak.gov)) |
+| 1 | ATAK-CIV SDK jar | Copy `main.jar` to `sdk/main.jar`. The 4.6.0.5 SDK is public on [GitHub](https://github.com/deptofdefense/AndroidTacticalAssaultKit-CIV/releases); newer SDKs come from [tak.gov](https://tak.gov) |
 | 2 | TAK Maven AAR | `-PatakSdkMaven=true -PtakRepoUrl=... -PtakRepoUser=... -PtakRepoPassword=...` |
 | 3 | Bundled `:atak-sdk-stubs` | Default. Contains only the API signatures, so the project compiles and tests run without tak.gov access |
 
@@ -76,17 +76,26 @@ Build field or release APKs against the real SDK (option 1 or 2), not the stubs.
 
 ---
 
-## Sideloading onto ATAK 4.8
-1. Install ATAK 4.8 on the device. The plugin's `plugin-api` must match the ATAK version.
-2. Install the APK:
-   ```bash
-   adb install -r app/build/outputs/apk/debug/app-debug.apk
-   ```
-3. In ATAK, open **Settings → Tool Preferences → Plugins** (or the **Plugins** tool). Find **SKY ROCKET SHOOTER (SKIARKT)** and tap **Load**.
-4. Tap the SKIARKT toolbar icon to open the side panel.
-5. Logs: `adb logcat | grep -i skiarkt`
+## Running on ATAK-CIV
 
-The debug signing key only works on developer / sideload-friendly ATAK builds.
+> **Version lock:** ATAK only loads a plugin whose `plugin-api` exactly matches the running ATAK (for example `com.atakmap.app@4.6.0.CIV`).
+> The default build targets **4.6.0**. To target a different version, build against that version's SDK `main.jar` and pass `-PatakVersion=X.Y.Z`.
+
+### Option A: Developer ATAK-CIV 4.6.0.5 (tested)
+1. Download `atak-civ-sdk-4.6.0.5.zip` from the [ATAK-CIV GitHub release](https://github.com/deptofdefense/AndroidTacticalAssaultKit-CIV/releases).
+   Extract `atak-civ/atak.apk` (developer build) and `atak-civ/main.jar` (copy to `sdk/main.jar`).
+2. Uninstall any Play Store ATAK on the device, since it uses the same package name. Then run `adb install -r -g atak.apk`.
+3. Run `./gradlew assembleDebug` and then `adb install -r app/build/outputs/apk/debug/app-debug.apk`.
+4. In ATAK, go to **☰ → Plugins**. If the list is empty, tap the sync arrows. Tick **SKY ROCKET SHOOTER (SKIARKT)** and choose **Load**.
+5. Open **☰ → SKY ROCKET SHOOTER** to open the side panel. Logs: `adb logcat | grep -i skiarkt`
+
+Screenshots from the emulator test are in [docs/screenshots](docs/screenshots).
+
+### Option B: Play Store ATAK-CIV (5.x)
+Play Store builds load only plugins that are **signed by TAK.gov** and built for the **same version**:
+1. Create a free account at [tak.gov](https://tak.gov) and download the ATAK-CIV SDK that matches the device's ATAK version.
+2. Put its `main.jar` in `sdk/` and build with `./gradlew assembleRelease -PatakVersion=5.x.x`. Fix any API drift.
+3. Submit the plugin to the TAK.gov third-party plugin signing pipeline, then install the signed APK.
 
 **WinTAK:** this APK runs on ATAK (Android) only. WinTAK works with SKIARKT through the shared CoT types below.
 
@@ -96,7 +105,7 @@ The debug signing key only works on developer / sideload-friendly ATAK builds.
 Play Store ATAK-CIV and ATAK-MIL / GOV builds load **only** plugins signed through the TAK Product Center third-party
 signing pipeline. To deploy SKIARKT on those builds:
 1. Request plugin signing at [tak.gov](https://tak.gov).
-2. Build against the official ATAK 4.8 SDK, not the stubs.
+2. Build against the official ATAK SDK that matches the target version, not the stubs.
 3. Submit the release APK and follow your organization's accreditation process.
 
 See [SECURITY.md](SECURITY.md).
@@ -130,7 +139,7 @@ See [SECURITY.md](SECURITY.md).
 │       ├── overlay/             map rendering
 │       ├── tools/               draw + placement map tools
 │       └── ui/                  side-panel sections
-├── atak-sdk-stubs/              compile-only ATAK 4.8 API mirror
+├── atak-sdk-stubs/              compile-only ATAK API mirror
 ├── assets/                      branding (icon, logos)
 ├── keystores/                   local signing keys (git-ignored)
 └── sdk/                         drop the ATAK SDK here (git-ignored)

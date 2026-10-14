@@ -3,8 +3,10 @@
     SKY ROCKET SHOOTER - ATAK plugin descriptor (CivTAK SDK 4.6+ transapps plugin model).
     name: SKY ROCKET SHOOTER (SKIARKT)   version: 1.0.0
     ATAK instantiates each extension below reflectively via its (Context) constructor.
+    NOTE: <plugin> must have NO attributes - ATAK's parser rejects name/version here
+    (verified on ATAK-CIV 4.6.0.5). Name/version come from AndroidManifest/strings.
 -->
-<plugin name="SKY ROCKET SHOOTER (SKIARKT)" version="1.0.0">
+<plugin>
     <extension
         type="transapps.maps.plugin.lifecycle.Lifecycle"
         impl="com.skiarkt.shooter.plugin.PluginLifecycle"

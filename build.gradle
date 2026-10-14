@@ -5,10 +5,13 @@ plugins {
 }
 
 ext {
-    // ATAK host version this plugin is built against. Must match the ATAK
-    // install on the target device (CIV / MIL / GOV flavours share the API).
-    atakVersion = '4.8.0'
-    atakApiVersion = 'com.atakmap.app@4.8.0.CIV'
+    // ATAK host version this plugin is built against. Must EXACTLY match the
+    // major.minor.patch + flavour of the ATAK install on the device, or ATAK
+    // refuses to load the plugin. Default = public CivTAK SDK 4.6.0.5 (GitHub).
+    // Override for another host, e.g. ./gradlew assembleDebug -PatakVersion=5.4.0 -PatakFlavor=CIV
+    atakVersion = project.findProperty('atakVersion') ?: '4.6.0'
+    atakFlavor = project.findProperty('atakFlavor') ?: 'CIV'
+    atakApiVersion = "com.atakmap.app@${atakVersion}.${atakFlavor}"
     pluginVersionName = '1.0.0'
     pluginVersionCode = 1
 }
