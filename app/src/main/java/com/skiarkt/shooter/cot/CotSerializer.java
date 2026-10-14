@@ -308,9 +308,9 @@ public final class CotSerializer {
             p.aglMeters = pd(skiarkt, "agl", p.aglMeters);
             p.maxEngagementDistMeters = pd(skiarkt, "maxEng", p.maxEngagementDistMeters);
             GeoPos pos = GeoPos.fromCotString(skiarkt.getAttribute("pos"));
-            if (pos == null && ev.getPoint() != null) {
-                double hae = ev.getPoint().getHae();
-                pos = new GeoPos(ev.getPoint().getLat(), ev.getPoint().getLon(),
+            if (pos == null && ev.getCotPoint() != null) {
+                double hae = ev.getCotPoint().getHae();
+                pos = new GeoPos(ev.getCotPoint().getLat(), ev.getCotPoint().getLon(),
                         hae >= CotTypes.COT_UNKNOWN ? Double.NaN : hae);
             }
             p.position = pos != null ? pos : new GeoPos();

@@ -1,13 +1,16 @@
 <?xml version="1.0" encoding="utf-8"?>
 <!--
-    SKY ROCKET SHOOTER - ATAK 4.8 plugin descriptor.
+    SKY ROCKET SHOOTER - ATAK plugin descriptor (CivTAK SDK 4.6+ transapps plugin model).
     name: SKY ROCKET SHOOTER (SKIARKT)   version: 1.0.0
-    ATAK instantiates the IPlugin implementation below via its
-    (IServiceController) constructor.
+    ATAK instantiates each extension below reflectively via its (Context) constructor.
 -->
 <plugin name="SKY ROCKET SHOOTER (SKIARKT)" version="1.0.0">
     <extension
-        type="gov.tak.api.plugin.IPlugin"
+        type="transapps.maps.plugin.lifecycle.Lifecycle"
         impl="com.skiarkt.shooter.plugin.PluginLifecycle"
+        singleton="true" />
+    <extension
+        type="transapps.maps.plugin.tool.ToolDescriptor"
+        impl="com.skiarkt.shooter.plugin.PointDefenseTool"
         singleton="true" />
 </plugin>

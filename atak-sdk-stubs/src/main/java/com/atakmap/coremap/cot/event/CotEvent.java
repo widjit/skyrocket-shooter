@@ -1,4 +1,4 @@
-/* Compile-only stub mirroring the ATAK 4.8 SDK API. Replaced by the host ATAK app at runtime. */
+/* Compile-only stub mirroring the CivTAK 4.6 SDK API. Replaced by the host ATAK app at runtime. */
 package com.atakmap.coremap.cot.event;
 
 import com.atakmap.coremap.maps.time.CoordinatedTime;
@@ -34,7 +34,7 @@ public class CotEvent {
     public void setStart(CoordinatedTime start) { this.start = start; }
     public CoordinatedTime getStale() { return stale; }
     public void setStale(CoordinatedTime stale) { this.stale = stale; }
-    public CotPoint getPoint() { return point; }
+    public CotPoint getCotPoint() { return point; }
     public void setPoint(CotPoint point) { this.point = point; }
     public CotDetail getDetail() { return detail; }
     public void setDetail(CotDetail detail) { this.detail = detail; }
