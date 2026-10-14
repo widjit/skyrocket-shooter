@@ -1,0 +1,21 @@
+# Signing keys - never publish
+keystores/*
+!keystores/README.md
+local.properties
+.gradle/
+build/
+*/build/
+*.apk
+*.aab
+.idea/
+*.iml
+captures/
+.externalNativeBuild
+.cxx
+# ATAK SDK is proprietary - obtain from tak.gov
+sdk/*.aar
+sdk/*.jar
+
+# Auto-generated document previews
+*.pdf
+*.docx

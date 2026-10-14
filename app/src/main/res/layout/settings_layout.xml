@@ -1,0 +1,278 @@
+<?xml version="1.0" encoding="utf-8"?>
+<ScrollView xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent">
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="vertical"
+        android:padding="8dp">
+
+        <Button
+            android:id="@+id/btn_back"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="@string/btn_back"
+            android:textAllCaps="false" />
+
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="@string/settings_units"
+            android:textColor="@color/skiarkt_accent"
+            android:textStyle="bold" />
+
+        <RadioGroup
+            android:id="@+id/unit_group"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="horizontal">
+
+            <RadioButton
+                android:id="@+id/unit_feet"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="@string/settings_feet" />
+
+            <RadioButton
+                android:id="@+id/unit_meters"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="@string/settings_meters" />
+
+            <RadioButton
+                android:id="@+id/unit_km"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="@string/settings_km" />
+        </RadioGroup>
+
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:paddingTop="6dp"
+            android:text="@string/settings_precision"
+            android:textColor="@color/skiarkt_accent"
+            android:textStyle="bold" />
+
+        <RadioGroup
+            android:id="@+id/precision_group"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="horizontal">
+
+            <RadioButton
+                android:id="@+id/precision_0"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="@string/settings_precision_0" />
+
+            <RadioButton
+                android:id="@+id/precision_1"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="@string/settings_precision_1" />
+
+            <RadioButton
+                android:id="@+id/precision_2"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="@string/settings_precision_2" />
+        </RadioGroup>
+
+        <TextView
+            android:id="@+id/unit_preview"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:textColor="@color/skiarkt_text_dim" />
+
+        <TextView
+            android:id="@+id/heatmap_transparency_label"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:paddingTop="8dp"
+            android:textColor="@color/skiarkt_text" />
+
+        <SeekBar
+            android:id="@+id/heatmap_transparency"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:max="100" />
+
+        <TextView
+            android:id="@+id/zone_transparency_label"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:paddingTop="8dp"
+            android:textColor="@color/skiarkt_text" />
+
+        <SeekBar
+            android:id="@+id/zone_transparency"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:max="100" />
+
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:paddingTop="10dp"
+            android:text="@string/settings_rf_header"
+            android:textColor="@color/skiarkt_accent"
+            android:textStyle="bold" />
+
+        <TextView
+            android:id="@+id/rf_frequency_label"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:paddingTop="4dp"
+            android:text="@string/settings_rf_frequency"
+            android:textColor="@color/skiarkt_text_dim" />
+
+        <EditText
+            android:id="@+id/rf_frequency"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:inputType="numberDecimal"
+            android:textColor="@color/skiarkt_text" />
+
+        <TextView
+            android:id="@+id/rf_threshold_label"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:paddingTop="4dp"
+            android:text="@string/settings_rf_threshold"
+            android:textColor="@color/skiarkt_text_dim" />
+
+        <EditText
+            android:id="@+id/rf_threshold"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:inputType="numberDecimal|numberSigned"
+            android:textColor="@color/skiarkt_text" />
+
+        <TextView
+            android:id="@+id/rf_terrain_loss_label"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:paddingTop="4dp"
+            android:text="@string/settings_rf_terrain_loss"
+            android:textColor="@color/skiarkt_text_dim" />
+
+        <EditText
+            android:id="@+id/rf_terrain_loss"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:inputType="numberDecimal"
+            android:textColor="@color/skiarkt_text" />
+
+        <TextView
+            android:id="@+id/los_range_step_label"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:paddingTop="4dp"
+            
+            android:textColor="@color/skiarkt_text_dim" />
+
+        <EditText
+            android:id="@+id/los_range_step"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:inputType="numberDecimal"
+            android:textColor="@color/skiarkt_text" />
+
+        <TextView
+            android:id="@+id/los_angular_step_label"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:paddingTop="4dp"
+            android:text="@string/settings_los_angular_step"
+            android:textColor="@color/skiarkt_text_dim" />
+
+        <EditText
+            android:id="@+id/los_angular_step"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:inputType="numberDecimal"
+            android:textColor="@color/skiarkt_text" />
+
+        <TextView
+            android:id="@+id/los_target_agl_label"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:paddingTop="4dp"
+            
+            android:textColor="@color/skiarkt_text_dim" />
+
+        <EditText
+            android:id="@+id/los_target_agl"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:inputType="numberDecimal"
+            android:textColor="@color/skiarkt_text" />
+
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:paddingTop="10dp"
+            android:text="@string/settings_plan_header"
+            android:textColor="@color/skiarkt_accent"
+            android:textStyle="bold" />
+
+        <EditText
+            android:id="@+id/plan_name"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:hint="@string/settings_plan_name"
+            android:inputType="text" />
+
+        <EditText
+            android:id="@+id/plan_author"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:hint="@string/settings_plan_author"
+            android:inputType="textPersonName" />
+
+        <EditText
+            android:id="@+id/plan_classification"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:hint="@string/settings_plan_classification"
+            android:inputType="textCapCharacters" />
+
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="@string/settings_cot_stale"
+            android:textColor="@color/skiarkt_text_dim" />
+
+        <EditText
+            android:id="@+id/cot_stale_days"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:inputType="number" />
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="horizontal"
+            android:paddingTop="8dp">
+
+            <Button
+                android:id="@+id/btn_settings_reset"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:text="@string/settings_reset"
+                android:textAllCaps="false" />
+
+            <Button
+                android:id="@+id/btn_settings_save"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:text="@string/settings_save"
+                android:textAllCaps="false" />
+        </LinearLayout>
+    </LinearLayout>
+</ScrollView>

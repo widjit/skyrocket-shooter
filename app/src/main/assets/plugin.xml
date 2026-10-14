@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+    SKY ROCKET SHOOTER - ATAK 4.8 plugin descriptor.
+    name: SKY ROCKET SHOOTER (SKIARKT)   version: 1.0.0
+    ATAK instantiates the IPlugin implementation below via its
+    (IServiceController) constructor.
+-->
+<plugin name="SKY ROCKET SHOOTER (SKIARKT)" version="1.0.0">
+    <extension
+        type="gov.tak.api.plugin.IPlugin"
+        impl="com.skiarkt.shooter.plugin.PluginLifecycle"
+        singleton="true" />
+</plugin>

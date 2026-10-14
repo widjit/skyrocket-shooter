@@ -1,0 +1,180 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="app_name">SKY ROCKET SHOOTER (SKIARKT)</string>
+    <string name="app_desc">Counter-sUAS point / base defense planning: exclusion zones, sensors, kinetic and non-kinetic effectors, threat corridors, gap analysis, engagement timeline, MSA and PACE.</string>
+
+    <string name="plan_summary_fmt">%1$s  |  %2$s  |  %3$d items</string>
+    <string name="btn_back">\u2190 Back</string>
+    <string name="btn_save_plan">Save Plan</string>
+    <string name="btn_share_plan">Share Plan (CoT)</string>
+    <string name="btn_new_plan">New Plan</string>
+
+    <string name="section_exclusion_zones">Exclusion Zones</string>
+    <string name="section_sensors">Sensors</string>
+    <string name="section_non_kinetic">Non-Kinetic Effectors</string>
+    <string name="section_kinetic">Kinetic Effectors</string>
+    <string name="section_defended_assets">Defended Assets</string>
+    <string name="section_threat_corridors">Threat Corridors</string>
+    <string name="section_gap_analysis">Gap Analysis</string>
+    <string name="section_timeline">Engagement Timeline</string>
+    <string name="section_msa">MSA</string>
+    <string name="section_pace">PACE Plan</string>
+    <string name="section_settings">Settings</string>
+
+    <string name="desc_exclusion_zones">Draw building / structure footprints and set their height AGL. Effectors may not engage through these volumes.</string>
+    <string name="desc_sensors">Place radar, camera and EO/IR sensors with AGL, range, beam width and terrain-aware coverage.</string>
+    <string name="desc_non_kinetic">Place RF effectors and render terrain-aware jamming effectiveness heat maps.</string>
+    <string name="desc_kinetic">Place kinetic effectors; model fragmentation along the full munition path (3D cylinder) and compute minimum intercept altitude over exclusion zones.</string>
+    <string name="desc_defended_assets">Outline the assets being defended and assign priorities.</string>
+    <string name="desc_threat_corridors">Define likely sUAS ingress corridors with width, speed and altitude.</string>
+    <string name="desc_gap_analysis">Identify detection and engagement coverage gaps around defended assets and along corridors.</string>
+    <string name="desc_timeline">Detect-to-defeat timeline and engagement sequence per corridor, with best-effector designation and friendly-fire deconfliction.</string>
+    <string name="desc_msa">Minimum Safe Altitude / Minimum Safe Area calculations for every kinetic effector.</string>
+    <string name="desc_pace">Primary / Alternate / Contingency / Emergency plan and decision-maker briefing export.</string>
+    <string name="desc_settings">Units, precision, transparency and plan metadata.</string>
+
+    <string name="section_phase_fmt">Planned for roadmap phase %1$d</string>
+    <string name="section_no_items">No items placed yet.</string>
+    <string name="section_analysis_summary">Analysis will run over the %1$d items in the active plan.</string>
+
+    <string name="settings_units">Units</string>
+    <string name="settings_feet">Feet</string>
+    <string name="settings_meters">Meters</string>
+    <string name="settings_km">Kilometers</string>
+    <string name="settings_precision">Precision</string>
+    <string name="settings_precision_0">Whole</string>
+    <string name="settings_precision_1">Tenths</string>
+    <string name="settings_precision_2">Hundredths</string>
+    <string name="settings_preview_fmt">1000 m displays as %1$s</string>
+    <string name="settings_heatmap_transparency_fmt">RF heat map transparency: %1$d%%</string>
+    <string name="settings_zone_transparency_fmt">Zone fill transparency: %1$d%%</string>
+    <string name="settings_plan_header">Plan</string>
+    <string name="settings_plan_name">Plan name</string>
+    <string name="settings_plan_author">Author</string>
+    <string name="settings_plan_classification">Classification</string>
+    <string name="settings_cot_stale">CoT stale time (days)</string>
+    <string name="settings_save">Save</string>
+    <string name="settings_reset">Reset Defaults</string>
+
+    <string name="msg_new_plan">New plan created</string>
+    <string name="msg_no_storage">Plan storage unavailable</string>
+    <string name="msg_saved">Saved %1$s</string>
+    <string name="msg_save_failed">Save failed: %1$s</string>
+    <string name="msg_shared">Sent %1$d CoT events</string>
+
+    <!-- Exclusion zones (Phase 2) -->
+    <string name="ez_new">Draw New Zone</string>
+    <string name="ez_list_header">Zones</string>
+    <string name="ez_list_empty">No exclusion zones yet. Tap \"Draw New Zone\" and tap the map to place vertices.</string>
+    <string name="ez_list_item_fmt">%1$s \u2014 %2$s AGL, %3$d vertices</string>
+    <string name="ez_draw_hint_polygon">Draw mode: tap the map to add vertices. Pan / zoom still work. Tap the first vertex or Close Polygon to finish.</string>
+    <string name="ez_draw_hint_line">Ingress line: tap the start point, then the end point.</string>
+    <string name="ez_draw_count_fmt">Vertices: %1$d</string>
+    <string name="ez_undo">Undo</string>
+    <string name="ez_close_polygon">Close Polygon</string>
+    <string name="ez_cancel_draw">Exit Draw Mode</string>
+    <string name="ez_draw_unavailable">Map events unavailable; cannot enter draw mode</string>
+    <string name="ez_self_intersect_warning">Warning: polygon edges cross each other. Analysis treats it as drawn; consider redrawing.</string>
+    <string name="ez_edit_title_new">New Exclusion Zone</string>
+    <string name="ez_edit_title">Edit Exclusion Zone</string>
+    <string name="ez_label">Label</string>
+    <string name="ez_height_fmt">Height AGL (%1$s)</string>
+    <string name="ez_fill_color">Fill color</string>
+    <string name="ez_fill_opacity_fmt">Fill opacity: %1$d%%</string>
+    <string name="ez_stroke_color">Stroke color</string>
+    <string name="ez_stroke_width_fmt">Stroke width: %1$d px</string>
+    <string name="ez_stroke_dashed">Dashed perimeter</string>
+    <string name="ez_remarks">Remarks</string>
+    <string name="ez_geometry_fmt">%1$d vertices, perimeter %2$s</string>
+    <string name="ez_save">Save</string>
+    <string name="ez_share">Share CoT</string>
+    <string name="ez_delete">Delete</string>
+    <string name="ez_cancel">Cancel</string>
+    <string name="ez_redraw">Redraw Shape</string>
+    <string name="ez_invalid_height">Enter a height of 0 or more</string>
+    <string name="ez_saved_fmt">Saved %1$s</string>
+    <string name="ez_shared_fmt">Shared %1$s</string>
+    <string name="ez_share_failed">Share failed (save the zone first)</string>
+    <string name="ez_delete_title">Delete exclusion zone?</string>
+    <string name="ez_delete_msg_fmt">Delete \"%1$s\"? This cannot be undone.</string>
+    <string name="ez_deleted_fmt">Deleted %1$s</string>
+    <string name="ez_intercept_header">Minimum Intercept Altitude</string>
+    <string name="ez_intercept_source">Ingress path</string>
+    <string name="ez_intercept_drawn_line">Drawn line</string>
+    <string name="ez_intercept_draw_line">Draw Ingress Line</string>
+    <string name="ez_intercept_compute">Compute</string>
+    <string name="ez_intercept_spacing_fmt">Sample every (%1$s)</string>
+    <string name="ez_intercept_buffer_fmt">Safety buffer (%1$s)</string>
+    <string name="ez_intercept_show_map">Show result on map</string>
+    <string name="ez_intercept_need_path">Pick a threat corridor or draw an ingress line first</string>
+    <string name="ez_intercept_need_zones">No valid exclusion zones to analyse</string>
+    <string name="ez_intercept_none">Not computed yet</string>
+    <!-- Settings: RF / LOS (Phase 3) -->
+    <string name="settings_rf_header">RF &amp; Terrain LOS</string>
+    <string name="settings_rf_frequency">Drone jamming frequency (MHz)</string>
+    <string name="settings_rf_threshold">Global jam threshold (dBm received)</string>
+    <string name="settings_rf_terrain_loss">Terrain loss when no LOS (dB)</string>
+    <string name="settings_los_range_step_fmt">LOS sweep range step (%1$s)</string>
+    <string name="settings_los_angular_step">LOS sweep angular step (deg)</string>
+    <string name="settings_los_target_agl_fmt">LOS target / drone proxy height AGL (%1$s)</string>
+
+    <!-- Shared point-item editor (Phase 3) -->
+    <string name="pt_place_hint">Placement mode: tap the map to place. Pan / zoom still work.</string>
+    <string name="pt_cancel_place">Cancel Placement</string>
+    <string name="pt_place_unavailable">Map events unavailable; cannot enter placement mode</string>
+    <string name="pt_label">Label</string>
+    <string name="pt_lat">Latitude (deg)</string>
+    <string name="pt_lon">Longitude (deg)</string>
+    <string name="pt_agl_fmt">Height AGL (%1$s)</string>
+    <string name="pt_max_engage_fmt">Max engagement distance (%1$s)</string>
+    <string name="pt_color">Color</string>
+    <string name="pt_opacity_fmt">Opacity: %1$d%%</string>
+    <string name="pt_remarks">Remarks</string>
+    <string name="pt_save">Save</string>
+    <string name="pt_cancel">Cancel</string>
+    <string name="pt_share">Share CoT</string>
+    <string name="pt_delete">Delete</string>
+    <string name="pt_move">Re-place on Map</string>
+    <string name="pt_invalid_fmt">Invalid value: %1$s</string>
+    <string name="pt_saved_fmt">Saved %1$s</string>
+    <string name="pt_shared_fmt">Shared %1$s</string>
+    <string name="pt_share_failed">Share failed</string>
+    <string name="pt_delete_title">Delete item?</string>
+    <string name="pt_delete_msg_fmt">Delete \"%1$s\"? This cannot be undone.</string>
+    <string name="pt_deleted_fmt">Deleted %1$s</string>
+    <string name="pt_stats_computing">Terrain analysis computing\u2026 (reopen to refresh)</string>
+
+    <!-- Sensors (Phase 3) -->
+    <string name="sn_new">Place New Sensor</string>
+    <string name="sn_list_header">Sensors</string>
+    <string name="sn_list_empty">No sensors yet. Tap \"Place New Sensor\" and tap the map.</string>
+    <string name="sn_list_item_fmt">%1$s \u2014 %2$s, %3$s, %4$s</string>
+    <string name="sn_edit_title_new">New Sensor</string>
+    <string name="sn_edit_title">Edit Sensor</string>
+    <string name="sn_type">Sensor type</string>
+    <string name="sn_range_fmt">Detection range (%1$s)</string>
+    <string name="sn_beam">Beam width (deg, 360 = omni)</string>
+    <string name="sn_azimuth">Azimuth (deg true, 0\u2013360)</string>
+    <string name="sn_stats_fmt">Terrain LOS to %1$s AGL target: %2$.0f%% of coverage visible (%3$.1f\u00B0 / %4$s steps)</string>
+    <string name="sn_stats_no_dted">No DTED coverage at this location; coverage drawn without terrain masking.</string>
+
+    <!-- Non-kinetic effectors (Phase 3) -->
+    <string name="nk_new">Place New RF Effector</string>
+    <string name="nk_list_header">RF Effectors</string>
+    <string name="nk_list_empty">No RF effectors yet. Tap \"Place New RF Effector\" and tap the map.</string>
+    <string name="nk_list_item_fmt">%1$s \u2014 %2$.1f dBm, %3$s</string>
+    <string name="nk_global_opacity_fmt">All heat maps opacity: %1$d%%</string>
+    <string name="nk_edit_title_new">New RF Effector</string>
+    <string name="nk_edit_title">Edit RF Effector</string>
+    <string name="nk_power">RF output power / EIRP (dBm)</string>
+    <string name="nk_use_global_threshold_fmt">Use global jam threshold (%1$.1f dBm)</string>
+    <string name="nk_threshold">Jam threshold for this effector (dBm)</string>
+    <string name="nk_use_global_freq_fmt">Use global frequency (%1$.1f MHz)</string>
+    <string name="nk_freq">Frequency for this effector (MHz)</string>
+    <string name="nk_color_effective">Effective color (rx \u2265 threshold)</string>
+    <string name="nk_color_marginal">Marginal color (within 10 dB below)</string>
+    <string name="nk_color_insufficient">Insufficient color</string>
+    <string name="nk_marker_color">Marker / ring color</string>
+    <string name="nk_opacity_fmt">Heat map opacity (this effector): %1$d%%</string>
+    <string name="nk_stats_fmt">Effective over %1$.0f%% of the engagement circle, marginal %2$.0f%%. Free-space range at threshold: %3$s.</string>
+</resources>

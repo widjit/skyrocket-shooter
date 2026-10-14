@@ -1,0 +1,33 @@
+pluginManagement {
+    repositories {
+        google()
+        mavenCentral()
+        gradlePluginPortal()
+    }
+}
+
+dependencyResolutionManagement {
+    repositoriesMode.set(RepositoriesMode.PREFER_SETTINGS)
+    repositories {
+        google()
+        mavenCentral()
+        // Optional private TAK Maven repository (only needed when building with -PatakSdkMaven=true).
+        if (providers.gradleProperty('takRepoUrl').isPresent()) {
+            maven {
+                url providers.gradleProperty('takRepoUrl').get()
+                if (providers.gradleProperty('takRepoUser').isPresent()) {
+                    credentials {
+                        username providers.gradleProperty('takRepoUser').get()
+                        password providers.gradleProperty('takRepoPassword').getOrElse('')
+                    }
+                }
+            }
+        }
+    }
+}
+
+rootProject.name = 'skiarkt_shooter'
+include ':app'
+// Compile-only mirror of the ATAK 4.8 SDK API surface used by this plugin.
+// Used automatically when the real ATAK SDK (sdk/main.jar) is not present.
+include ':atak-sdk-stubs'

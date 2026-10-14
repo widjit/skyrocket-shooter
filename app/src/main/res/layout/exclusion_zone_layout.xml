@@ -1,0 +1,224 @@
+<?xml version="1.0" encoding="utf-8"?>
+<ScrollView xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent">
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="vertical"
+        android:padding="8dp">
+
+        <Button
+            android:id="@+id/btn_back"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="@string/btn_back"
+            android:textAllCaps="false" />
+
+        <TextView
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="@string/section_exclusion_zones"
+            android:textColor="@color/skiarkt_accent"
+            android:textSize="17sp"
+            android:textStyle="bold" />
+
+        <!-- Draw-mode bar (visible only while the modal draw tool is active) -->
+        <LinearLayout
+            android:id="@+id/ez_draw_bar"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="6dp"
+            android:background="@color/skiarkt_header_bg"
+            android:orientation="vertical"
+            android:padding="6dp"
+            android:visibility="gone">
+
+            <TextView
+                android:id="@+id/ez_draw_hint"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:textColor="@color/skiarkt_text" />
+
+            <TextView
+                android:id="@+id/ez_draw_count"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:paddingTop="4dp"
+                android:textColor="@color/skiarkt_accent" />
+
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="horizontal">
+
+                <Button
+                    android:id="@+id/ez_btn_undo"
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="1"
+                    android:text="@string/ez_undo"
+                    android:textAllCaps="false" />
+
+                <Button
+                    android:id="@+id/ez_btn_close"
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="1.4"
+                    android:text="@string/ez_close_polygon"
+                    android:textAllCaps="false" />
+
+                <Button
+                    android:id="@+id/ez_btn_cancel_draw"
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="1.4"
+                    android:text="@string/ez_cancel_draw"
+                    android:textAllCaps="false" />
+            </LinearLayout>
+        </LinearLayout>
+
+        <!-- Normal list mode -->
+        <LinearLayout
+            android:id="@+id/ez_list_section"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="vertical">
+
+            <Button
+                android:id="@+id/ez_btn_new"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="6dp"
+                android:text="@string/ez_new"
+                android:textAllCaps="false" />
+
+            <TextView
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:paddingTop="8dp"
+                android:text="@string/ez_list_header"
+                android:textColor="@color/skiarkt_accent"
+                android:textStyle="bold" />
+
+            <TextView
+                android:id="@+id/ez_list_empty"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:text="@string/ez_list_empty"
+                android:textColor="@color/skiarkt_text_dim" />
+
+            <LinearLayout
+                android:id="@+id/ez_list"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="vertical" />
+
+            <!-- Intercept altitude calculator -->
+            <TextView
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:paddingTop="14dp"
+                android:text="@string/ez_intercept_header"
+                android:textColor="@color/skiarkt_accent"
+                android:textStyle="bold" />
+
+            <TextView
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:paddingTop="4dp"
+                android:text="@string/ez_intercept_source"
+                android:textColor="@color/skiarkt_text_dim" />
+
+            <Spinner
+                android:id="@+id/ez_intercept_source"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content" />
+
+            <Button
+                android:id="@+id/ez_btn_draw_line"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:text="@string/ez_intercept_draw_line"
+                android:textAllCaps="false" />
+
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="horizontal">
+
+                <LinearLayout
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="1"
+                    android:orientation="vertical">
+
+                    <TextView
+                        android:id="@+id/ez_spacing_label"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:textColor="@color/skiarkt_text_dim" />
+
+                    <EditText
+                        android:id="@+id/ez_spacing"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:inputType="numberDecimal"
+                        android:textColor="@color/skiarkt_text" />
+                </LinearLayout>
+
+                <LinearLayout
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="1"
+                    android:orientation="vertical">
+
+                    <TextView
+                        android:id="@+id/ez_buffer_label"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:textColor="@color/skiarkt_text_dim" />
+
+                    <EditText
+                        android:id="@+id/ez_buffer"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:inputType="numberDecimal"
+                        android:textColor="@color/skiarkt_text" />
+                </LinearLayout>
+            </LinearLayout>
+
+            <CheckBox
+                android:id="@+id/ez_show_on_map"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:text="@string/ez_intercept_show_map"
+                android:textColor="@color/skiarkt_text" />
+
+            <Button
+                android:id="@+id/ez_btn_compute"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:text="@string/ez_intercept_compute"
+                android:textAllCaps="false" />
+
+            <TextView
+                android:id="@+id/ez_intercept_result"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:paddingTop="4dp"
+                android:text="@string/ez_intercept_none"
+                android:textColor="@color/skiarkt_text"
+                android:textIsSelectable="true" />
+
+            <TextView
+                android:id="@+id/ez_intercept_profile"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:paddingTop="4dp"
+                android:textColor="@color/skiarkt_text_dim"
+                android:textSize="12sp" />
+        </LinearLayout>
+    </LinearLayout>
+</ScrollView>

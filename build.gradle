@@ -1,0 +1,14 @@
+// Top-level build file for the SKY ROCKET SHOOTER ATAK plugin.
+plugins {
+    id 'com.android.application' version '8.2.2' apply false
+    id 'com.android.library' version '8.2.2' apply false
+}
+
+ext {
+    // ATAK host version this plugin is built against. Must match the ATAK
+    // install on the target device (CIV / MIL / GOV flavours share the API).
+    atakVersion = '4.8.0'
+    atakApiVersion = 'com.atakmap.app@4.8.0.CIV'
+    pluginVersionName = '1.0.0'
+    pluginVersionCode = 1
+}

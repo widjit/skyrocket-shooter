@@ -1,0 +1,31 @@
+<?xml version="1.0" encoding="utf-8"?>
+<manifest xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools">
+
+    <application
+        android:allowBackup="false"
+        android:description="@string/app_desc"
+        android:icon="@mipmap/ic_launcher_skiarkt"
+        android:label="@string/app_name"
+        android:theme="@style/AppTheme"
+        tools:ignore="GoogleAppIndexingWarning">
+
+        <!-- ATAK plugin API this APK was built for; ATAK refuses mismatched plugins. -->
+        <meta-data
+            android:name="plugin-api"
+            android:value="${atakApiVersion}" />
+        <meta-data
+            android:name="app_desc"
+            android:value="@string/app_desc" />
+
+        <!-- Allows ATAK to discover this APK as a plugin (no real activity exists). -->
+        <activity
+            android:name="com.atakmap.app.component"
+            android:exported="true"
+            tools:ignore="MissingClass">
+            <intent-filter android:label="@string/app_name">
+                <action android:name="com.atakmap.app.component" />
+            </intent-filter>
+        </activity>
+    </application>
+</manifest>

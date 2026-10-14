@@ -1,0 +1,103 @@
+plugins {
+    id 'com.android.application'
+}
+
+// ---------------------------------------------------------------------------
+// ATAK SDK resolution: real SDK jar > TAK Maven AAR > bundled compile-only stubs
+// ---------------------------------------------------------------------------
+def atakSdkJar = rootProject.file('sdk/main.jar')
+def useMavenSdk = project.hasProperty('atakSdkMaven') && project.property('atakSdkMaven').toString().toBoolean()
+def atakSdkMode = atakSdkJar.exists() ? 'jar' : (useMavenSdk ? 'maven' : 'stubs')
+logger.lifecycle("SKY ROCKET SHOOTER: compiling against ATAK SDK via '${atakSdkMode}'")
+
+// Signing: override via local.properties (takDebugKeyFile, takDebugKeyFilePassword,
+// takDebugKeyAlias, takDebugKeyPassword); falls back to the committed debug keystore.
+def localProps = new Properties()
+def localPropsFile = rootProject.file('local.properties')
+if (localPropsFile.exists()) { localPropsFile.withInputStream { localProps.load(it) } }
+def prop = { String key, String dflt -> localProps.getProperty(key, dflt) }
+
+android {
+    namespace 'com.skiarkt.shooter'
+    compileSdk 34
+
+    defaultConfig {
+        applicationId 'com.skiarkt.shooter'
+        minSdk 21
+        targetSdk 34
+        versionCode rootProject.ext.pluginVersionCode
+        versionName rootProject.ext.pluginVersionName
+        manifestPlaceholders = [atakApiVersion: rootProject.ext.atakApiVersion]
+        buildConfigField 'String', 'ATAK_SDK_MODE', "\"${atakSdkMode}\""
+    }
+
+    signingConfigs {
+        debug {
+            storeFile rootProject.file(prop('takDebugKeyFile', 'keystores/debug.keystore'))
+            storePassword prop('takDebugKeyFilePassword', 'android')
+            keyAlias prop('takDebugKeyAlias', 'androiddebugkey')
+            keyPassword prop('takDebugKeyPassword', 'android')
+        }
+        release {
+            storeFile rootProject.file(prop('takReleaseKeyFile', 'keystores/debug.keystore'))
+            storePassword prop('takReleaseKeyFilePassword', 'android')
+            keyAlias prop('takReleaseKeyAlias', 'androiddebugkey')
+            keyPassword prop('takReleaseKeyPassword', 'android')
+        }
+    }
+
+    buildTypes {
+        debug {
+            signingConfig signingConfigs.debug
+            debuggable true
+        }
+        release {
+            signingConfig signingConfigs.release
+            minifyEnabled false
+            proguardFiles getDefaultProguardFile('proguard-android.txt'), 'proguard-rules.pro'
+        }
+    }
+
+    buildFeatures {
+        buildConfig true
+    }
+
+    compileOptions {
+        sourceCompatibility JavaVersion.VERSION_1_8
+        targetCompatibility JavaVersion.VERSION_1_8
+    }
+
+    lint {
+        abortOnError false
+        disable 'MissingClass'
+    }
+
+    testOptions {
+        unitTests.returnDefaultValues = true
+    }
+
+    packaging {
+        resources {
+            excludes += ['META-INF/LICENSE*', 'META-INF/NOTICE*', 'META-INF/DEPENDENCIES']
+        }
+    }
+}
+
+dependencies {
+    // The ATAK SDK is provided by the host ATAK app at runtime -> compileOnly, never packaged.
+    if (atakSdkMode == 'jar') {
+        compileOnly files(atakSdkJar)
+        testImplementation project(':atak-sdk-stubs')
+    } else if (atakSdkMode == 'maven') {
+        compileOnly "com.atakmap.app:ATAK:${rootProject.ext.atakVersion}.0:sdk@aar"
+        testImplementation project(':atak-sdk-stubs')
+    } else {
+        compileOnly project(':atak-sdk-stubs')
+        testImplementation project(':atak-sdk-stubs')
+    }
+
+    implementation 'com.google.code.gson:gson:2.10.1'
+    implementation 'org.apache.commons:commons-lang3:3.12.0'
+
+    testImplementation 'junit:junit:4.13.2'
+}

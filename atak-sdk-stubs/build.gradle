@@ -1,0 +1,17 @@
+// Compile-only stand-in for the ATAK 4.8 SDK. Class/method signatures mirror the
+// subset of the real SDK used by the plugin. NEVER packaged into the plugin APK.
+plugins {
+    id 'com.android.library'
+}
+
+android {
+    namespace 'com.atakmap.sdkstubs'
+    compileSdk 34
+    defaultConfig {
+        minSdk 21
+    }
+    compileOptions {
+        sourceCompatibility JavaVersion.VERSION_1_8
+        targetCompatibility JavaVersion.VERSION_1_8
+    }
+}
