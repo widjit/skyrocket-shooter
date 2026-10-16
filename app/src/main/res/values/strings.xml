@@ -7,6 +7,7 @@
     <string name="btn_back">\u2190 Back</string>
     <string name="btn_save_plan">Save Plan</string>
     <string name="btn_share_plan">Share Plan (CoT)</string>
+    <string name="btn_export_png">Export PNG</string>
     <string name="btn_new_plan">New Plan</string>
 
     <string name="section_exclusion_zones">Exclusion Zones</string>
@@ -61,6 +62,10 @@
     <string name="msg_saved">Saved %1$s</string>
     <string name="msg_save_failed">Save failed: %1$s</string>
     <string name="msg_shared">Sent %1$d CoT events</string>
+    <string name="msg_export_started">Exporting PNG\u2026</string>
+    <string name="msg_exported">Exported %1$s</string>
+    <string name="msg_exported_schematic">Exported %1$s (schematic: map view could not be captured)</string>
+    <string name="msg_export_failed">PNG export failed: %1$s</string>
 
     <!-- Exclusion zones (Phase 2) -->
     <string name="ez_new">Draw New Zone</string>

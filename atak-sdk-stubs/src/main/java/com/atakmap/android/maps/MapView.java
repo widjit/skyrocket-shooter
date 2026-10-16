@@ -18,6 +18,11 @@ public class MapView extends View {
         return instance;
     }
 
+    /** Inherited from AtakMapView in the real SDK. */
+    public com.atakmap.map.opengl.GLMapSurface getGLSurface() {
+        return null;
+    }
+
     public MapGroup getRootGroup() {
         return null;
     }

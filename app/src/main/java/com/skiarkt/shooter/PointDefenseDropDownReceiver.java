@@ -14,6 +14,7 @@ import com.atakmap.android.dropdown.DropDown;
 import com.atakmap.android.dropdown.DropDownReceiver;
 import com.atakmap.android.maps.MapView;
 import com.skiarkt.shooter.data.PointDefenseRepository;
+import com.skiarkt.shooter.export.PngExporter;
 import com.skiarkt.shooter.model.BasePlanItem;
 import com.skiarkt.shooter.model.ItemKind;
 import com.skiarkt.shooter.model.PointDefensePlan;
@@ -40,6 +41,8 @@ public class PointDefenseDropDownReceiver extends DropDownReceiver
     public static final String SHOW_PLUGIN = "com.skiarkt.shooter.SHOW_PLUGIN";
     /** Optional intent extra: open directly on a {@link FeatureSection} name. */
     public static final String EXTRA_SECTION = "section";
+    /** PNG exports go under the plugin storage dir. */
+    public static final String EXPORT_SUBDIR = "exports";
 
     private final Context pluginContext;
     private final SettingsManager settings;
@@ -121,6 +124,12 @@ public class PointDefenseDropDownReceiver extends DropDownReceiver
             @Override
             public void onClick(View v) {
                 sharePlan();
+            }
+        });
+        menu.findViewById(R.id.btn_export_png).setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                exportPng(v);
             }
         });
         menu.findViewById(R.id.btn_new_plan).setOnClickListener(new View.OnClickListener() {
@@ -258,6 +267,33 @@ public class PointDefenseDropDownReceiver extends DropDownReceiver
         } catch (IOException e) {
             toast(pluginContext.getString(R.string.msg_save_failed, e.getMessage()));
         }
+    }
+
+    private void exportPng(final View button) {
+        File dir = repository.getStorageDir();
+        if (dir == null) {
+            toast(pluginContext.getString(R.string.msg_no_storage));
+            return;
+        }
+        button.setEnabled(false);
+        toast(pluginContext.getString(R.string.msg_export_started));
+        // Deep copy: the image is composed on a background thread.
+        PointDefensePlan snapshot = repository.parseJson(repository.toJson());
+        new PngExporter(getMapView(), snapshot, settings.getUnitSystem(), settings.getPrecision(),
+                new File(dir, EXPORT_SUBDIR)).export(new PngExporter.Callback() {
+            @Override
+            public void onExported(File file, boolean usedMapCapture) {
+                button.setEnabled(true);
+                toast(pluginContext.getString(usedMapCapture ? R.string.msg_exported
+                        : R.string.msg_exported_schematic, file.getAbsolutePath()));
+            }
+
+            @Override
+            public void onFailed(String reason) {
+                button.setEnabled(true);
+                toast(pluginContext.getString(R.string.msg_export_failed, reason));
+            }
+        });
     }
 
     private void sharePlan() {

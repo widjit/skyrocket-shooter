@@ -39,6 +39,13 @@
                 android:textAllCaps="false" />
         </LinearLayout>
 
+        <Button
+            android:id="@+id/btn_export_png"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="@string/btn_export_png"
+            android:textAllCaps="false" />
+
         <LinearLayout
             android:id="@+id/section_list"
             android:layout_width="match_parent"
