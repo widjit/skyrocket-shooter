@@ -136,6 +136,55 @@ are still shown in the panel but mean nothing for a laser. Planned work:
 - Overlay: replace concentric frag rings with a beam-intensity gradient along the threat vector
   (complements the Phase 5 dynamic-frag-cylinder item for projectiles).
 
+## R8. Field-measured obstacle walls (laser range finder + basic trigonometry)  *(long-term)*
+
+Site survey tool: measure a tree line, building, or berm with a laser range finder (LRF), turn the
+readings into an object height, and draw it on the map as a **wall**. Effectors can shoot *in front
+of* a wall but **never through it**.
+
+### R8a. Height from LRF readings
+The observer position is the ATAK self-marker (GPS) or a point tapped on the map. Observer eye
+height `e` (default 1.7 m, editable) is added in modes 1 and 2 (mode 3 measures base and top
+directly, so it doesn't need it). Three input modes:
+
+| Mode | User enters | Height of object |
+|---|---|---|
+| Distance + distance | Horizontal ground distance to the base `D`, slant distance to the top `S` | `h = e + √(S² − D²)` |
+| Distance + angle | Horizontal ground distance `D`, inclination angle to the top `θ` | `h = e + D · tan θ` |
+| Two-shot (uneven ground) | Slant distance + angle to the base (`S₁`, `θ₁`) and to the top (`S₂`, `θ₂`) | `h = S₂ · sin θ₂ − S₁ · sin θ₁` |
+
+- Mode 1 matches the "ground distance, then distance to the top" workflow. Mode 3 is for sloped
+  ground where the base is above or below the observer.
+- Input checks: `S` must be larger than `D`; angles must be between −89° and +89°.
+- Show the result with a ± band from the LRF's stated accuracy (e.g. ±1 m), so the planner
+  knows how much to trust it.
+- Optional: drop the wall endpoint from the reading itself (observer + compass bearing + ground
+  distance) instead of tapping the map.
+
+### R8b. Drawing the wall
+- Draw a straight line (2 points) or a polyline (many points) on the map.
+- Each point has its own height, from an R8a measurement or typed in, so a tree line that rises
+  or dips is modelled point by point. The height between points is interpolated along the line.
+- Fields: label, kind (tree line / building / berm / other), height per point, safety margin
+  above the top (default 2 m), colour.
+- Shared as CoT (type `b-m-p-skiarkt-wall`) and saved with the plan like every other object.
+
+### R8c. "Never through it" engagement rule
+For each effector, a wall casts a **masking shadow** on the far side:
+- From the muzzle height `hₘ` over the wall top (`h_wall` + margin, at ground distance `d_w`), a
+  target at ground distance `r > d_w` behind the wall can only be engaged when its altitude is
+  above the clearance line: `alt_min(r) = hₘ + (h_wall + margin − hₘ) · r / d_w`.
+- Targets in front of the wall are unaffected (the "shoot before it" case).
+- The fragmentation radius is added to the margin, so the frag corridor clears the wall too.
+- Map overlay: a red "no-shoot below X" shadow behind each wall for each effector, and the
+  clearance altitude on tap.
+- Engagement timeline and best-effector logic skip any shot whose line crosses a wall below its
+  top. Violations are flagged.
+- This uses the same clearance check as protected-asset exclusion heights (never shoot through or
+  at a protected asset), so walls and exclusion zones share one masking engine.
+- Optional: the same walls block sensor line of sight (e.g. radar masked by a tree line), feeding
+  sensor gap analysis.
+
 ---
 
 ### Phase 5 core items (previously planned)
@@ -149,3 +198,5 @@ R2 (designators) → R4 (LGR) → R5 (masking).
 R3 (shapes) → R6 (buffers can use any shape).
 R1 is independent.
 R7 depends only on the Directed Energy type added in 1.0.5.
+R8 (walls) is independent for measurement and drawing. Its masking rule (R8c) shares the clearance
+engine with exclusion-zone heights and feeds the engagement timeline and R5 masking analysis.
