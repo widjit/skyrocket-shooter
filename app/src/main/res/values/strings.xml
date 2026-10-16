@@ -191,6 +191,7 @@
     <string name="ke_edit_title_new">New Kinetic Effector</string>
     <string name="ke_edit_title">Edit Kinetic Effector</string>
     <string name="ke_type_fmt">Type: %1$s</string>
+    <string name="ke_type_directed_energy">Directed Energy</string>
     <string name="ke_munition_fmt">Munition: %1$s</string>
     <string name="ke_detonation_fmt">Detonation: %1$s</string>
     <string name="ke_status_fmt">Status: %1$s</string>

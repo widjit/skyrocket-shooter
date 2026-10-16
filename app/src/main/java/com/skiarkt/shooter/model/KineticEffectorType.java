@@ -7,7 +7,8 @@ public enum KineticEffectorType {
     NET_GUN("Net Gun"),
     ROCKET("Rocket"),
     LASER_GUIDED_ROCKET("Laser-Guided Rocket"),
-    DRONE_INTERCEPTOR("Drone Interceptor");
+    DRONE_INTERCEPTOR("Drone Interceptor"),
+    DIRECTED_ENERGY("Directed Energy");
 
     public final String displayName;
 
