@@ -23,11 +23,20 @@ import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.CopyOnWriteArrayList;
+import java.util.concurrent.Executors;
+import java.util.concurrent.ScheduledExecutorService;
+import java.util.concurrent.ScheduledFuture;
+import java.util.concurrent.TimeUnit;
 
 /**
  * Singleton holding the active {@link PointDefensePlan}. Single source of truth for
  * the UI, overlays and analysis engines. Provides CRUD with change notification,
  * JSON persistence (local working copy) and CoT import/export (sharing).
+ *
+ * Persistence: once {@link #init} has been given a storage directory, the working plan is
+ * restored from {@link #AUTOSAVE_FILE_NAME} and every change is written back to it
+ * (debounced, off the calling thread). {@link #flushAutosave()} forces a synchronous write
+ * and is called when the plugin unloads.
  *
  * Thread-safety: mutators are synchronized; listeners are invoked on the calling
  * thread, so UI listeners should hop to the main thread if needed.
@@ -41,6 +50,10 @@ public final class PointDefenseRepository {
     }
 
     public static final String PLAN_FILE_EXTENSION = ".skiarktplan.json";
+    /** Working copy that survives ATAK restarts and plugin reloads. */
+    public static final String AUTOSAVE_FILE_NAME = "autosave.skiarkt.json";
+    private static final String TAG = "SkiarktRepository";
+    private static final long DEFAULT_AUTOSAVE_DELAY_MS = 1000;
 
     private static volatile PointDefenseRepository instance;
 
@@ -49,6 +62,11 @@ public final class PointDefenseRepository {
     private PointDefensePlan plan = new PointDefensePlan();
     private File storageDir;
     private int cotStaleDays = 30;
+
+    private final Object autosaveLock = new Object();
+    private ScheduledExecutorService autosaveExecutor;
+    private ScheduledFuture<?> pendingAutosave;
+    private long autosaveDelayMs = DEFAULT_AUTOSAVE_DELAY_MS;
 
     private PointDefenseRepository() {
     }
@@ -64,14 +82,107 @@ public final class PointDefenseRepository {
 
     /** For unit tests only: discard the singleton. */
     static void resetForTests() {
+        PointDefenseRepository old = instance;
+        if (old != null) old.shutdownAutosave();
         instance = null;
     }
 
-    public synchronized void init(File storageDir, int cotStaleDays) {
-        this.storageDir = storageDir;
-        this.cotStaleDays = cotStaleDays;
-        if (storageDir != null && !storageDir.exists() && !storageDir.mkdirs()) {
-            android.util.Log.w("SkiarktRepository", "Could not create " + storageDir);
+    /**
+     * Sets the storage directory and restores the autosaved working plan, if any.
+     * Safe to call again (e.g. after a plugin reload in the same process): the in-memory plan
+     * is kept when it already has content.
+     */
+    public void init(File storageDir, int cotStaleDays) {
+        boolean restore;
+        synchronized (this) {
+            this.storageDir = storageDir;
+            this.cotStaleDays = cotStaleDays;
+            if (storageDir != null && !storageDir.exists() && !storageDir.mkdirs()) {
+                android.util.Log.w(TAG, "Could not create " + storageDir);
+            }
+            restore = storageDir != null && plan.totalItems() == 0;
+        }
+        if (restore) restoreAutosave();
+    }
+
+    // -------------------------------------------------------------- autosave
+
+    public synchronized File autosaveFile() {
+        return storageDir == null ? null : new File(storageDir, AUTOSAVE_FILE_NAME);
+    }
+
+    /**
+     * Loads the autosave file into the repository. Falls back to the leftover temp file if
+     * the process died between delete and rename. A corrupt file is moved aside (never
+     * silently overwritten) so it can be recovered by hand.
+     *
+     * @return true if a plan was restored.
+     */
+    boolean restoreAutosave() {
+        File file = autosaveFile();
+        if (file == null) return false;
+        File tmp = new File(file.getPath() + ".tmp");
+        File source = file.exists() ? file : (tmp.exists() ? tmp : null);
+        if (source == null) return false;
+        try {
+            loadFromFile(source);
+            android.util.Log.i(TAG, "Restored plan from " + source + " (" + getPlan().totalItems() + " items)");
+            return true;
+        } catch (IOException | RuntimeException e) {
+            File aside = new File(source.getPath() + ".corrupt-" + System.currentTimeMillis());
+            boolean moved = source.renameTo(aside);
+            android.util.Log.e(TAG, "Could not restore " + source + (moved ? "; moved to " + aside : ""), e);
+            return false;
+        }
+    }
+
+    /** For tests: shorten the debounce. 0 = write on the next executor tick. */
+    void setAutosaveDelayMs(long ms) {
+        autosaveDelayMs = Math.max(0, ms);
+    }
+
+    private void scheduleAutosave() {
+        if (autosaveFile() == null) return;
+        synchronized (autosaveLock) {
+            if (autosaveExecutor == null) {
+                autosaveExecutor = Executors.newSingleThreadScheduledExecutor(r -> {
+                    Thread t = new Thread(r, "skiarkt-autosave");
+                    t.setDaemon(true);
+                    return t;
+                });
+            }
+            if (pendingAutosave != null) pendingAutosave.cancel(false);
+            pendingAutosave = autosaveExecutor.schedule(this::writeAutosave, autosaveDelayMs,
+                    TimeUnit.MILLISECONDS);
+        }
+    }
+
+    private void writeAutosave() {
+        File file = autosaveFile();
+        if (file == null) return;
+        try {
+            saveToFile(file);
+        } catch (IOException | RuntimeException e) {
+            android.util.Log.e(TAG, "Autosave to " + file + " failed", e);
+        }
+    }
+
+    /** Cancels any pending debounced write and saves synchronously (call on unload). */
+    public void flushAutosave() {
+        synchronized (autosaveLock) {
+            if (pendingAutosave == null) return;
+            pendingAutosave.cancel(false);
+            pendingAutosave = null;
+        }
+        writeAutosave();
+    }
+
+    /** Flushes pending changes and stops the autosave thread. */
+    public void shutdownAutosave() {
+        flushAutosave();
+        synchronized (autosaveLock) {
+            if (autosaveExecutor != null) autosaveExecutor.shutdown();
+            autosaveExecutor = null;
         }
     }
 
@@ -94,11 +205,12 @@ public final class PointDefenseRepository {
     }
 
     private void notifyListeners(ChangeType type, BasePlanItem item) {
+        scheduleAutosave();
         for (PlanChangeListener l : listeners) {
             try {
                 l.onPlanChanged(type, item);
             } catch (RuntimeException e) {
-                android.util.Log.e("SkiarktRepository", "Listener failed", e);
+                android.util.Log.e(TAG, "Listener failed", e);
             }
         }
     }
@@ -109,7 +221,19 @@ public final class PointDefenseRepository {
         return plan;
     }
 
+    /**
+     * Starts an empty plan. If the current plan has content it is first archived to its named
+     * plan file, so "New plan" never destroys work that was only in the autosave.
+     */
     public void newPlan(String name, String author, String classification) {
+        File archive = getPlan().totalItems() > 0 ? defaultPlanFile() : null;
+        if (archive != null) {
+            try {
+                saveToFile(archive);
+            } catch (IOException e) {
+                android.util.Log.w(TAG, "Could not archive current plan to " + archive, e);
+            }
+        }
         PointDefensePlan p = new PointDefensePlan();
         if (name != null && !name.isEmpty()) p.name = name;
         p.author = author == null ? "" : author;

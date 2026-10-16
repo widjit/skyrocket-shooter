@@ -62,6 +62,8 @@ public class PointDefenseMapComponent extends DropDownMapComponent {
     @Override
     protected void onDestroyImpl(Context context, MapView view) {
         if (overlayManager != null) overlayManager.stop();
+        // Write any pending change now; the debounced autosave may not have fired yet.
+        if (repository != null) repository.flushAutosave();
         // DropDownMapComponent unregisters and disposes registered drop-down receivers.
         super.onDestroyImpl(context, view);
         Log.d(TAG, "SKY ROCKET SHOOTER unloaded");
