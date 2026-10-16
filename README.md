@@ -46,6 +46,8 @@ as Cursor-on-Target (CoT).
 | 5 | Engagement timeline (detect → decide → defeat), best-effector designation, friendly-fire deconfliction, MSA |
 | 6 | PACE plan builder, decision-maker briefing export (PDF / KMZ / data package), WinTAK → ATAK pre-planned push |
 
+Planned feature additions (multi-frequency RF effectors, sensor types, exclusion-zone shapes, laser-guided rockets with designator pairing and laser-masking analysis, engagement-authority perimeters) are detailed in [docs/ROADMAP.md](docs/ROADMAP.md).
+
 ---
 
 ## Building
