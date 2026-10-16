@@ -1,12 +1,12 @@
 <?xml version="1.0" encoding="utf-8"?>
 <!--
     SKY ROCKET SHOOTER - ATAK 5.x plugin descriptor (IPlugin model, ATAK-CIV 5.6.0 SDK).
-    name: SKY ROCKET SHOOTER (SKIARKT)   version: 1.0.0
+    name: SKY ROCKET SHOOTER (SKIARKT)   version: 1.0.1
     ATAK instantiates PluginLifecycle reflectively via its (IServiceController) constructor;
-    the toolbar tool is registered by AbstractPlugin (no separate ToolDescriptor extension).
+    the tool-menu button is added via IHostUIService.addToolbarItem (per the 5.6 SDK template).
     If you change this file, bump pluginVersionCode in the root build.gradle.
 -->
-<plugin name="SKY ROCKET SHOOTER (SKIARKT)" version="1.0.0">
+<plugin name="SKY ROCKET SHOOTER (SKIARKT)" version="1.0.1">
     <extension
         type="gov.tak.api.plugin.IPlugin"
         impl="com.skiarkt.shooter.plugin.PluginLifecycle"
