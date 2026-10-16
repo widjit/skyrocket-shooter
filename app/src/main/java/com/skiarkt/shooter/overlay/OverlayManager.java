@@ -14,6 +14,7 @@ import com.skiarkt.shooter.data.PointDefenseRepository;
 import com.skiarkt.shooter.model.BasePlanItem;
 import com.skiarkt.shooter.model.ExclusionZone;
 import com.skiarkt.shooter.model.ItemKind;
+import com.skiarkt.shooter.model.KineticEffector;
 import com.skiarkt.shooter.model.NonKineticEffector;
 import com.skiarkt.shooter.model.SensorItem;
 import com.skiarkt.shooter.settings.SettingsManager;
@@ -55,6 +56,7 @@ public class OverlayManager implements PointDefenseRepository.PlanChangeListener
     private final ExclusionZoneOverlay zoneOverlay;
     private final SensorOverlay sensorOverlay;
     private final RfHeatmapOverlay heatmapOverlay;
+    private final KineticEffectorOverlay kineticOverlay;
     private final CoverageEngine coverageEngine;
     private MapGroup rootGroup;
     private MapGroup drawingGroup;
@@ -74,6 +76,7 @@ public class OverlayManager implements PointDefenseRepository.PlanChangeListener
         this.zoneOverlay = new ExclusionZoneOverlay(settings);
         this.sensorOverlay = new SensorOverlay(settings);
         this.heatmapOverlay = new RfHeatmapOverlay(settings);
+        this.kineticOverlay = new KineticEffectorOverlay(settings);
         this.coverageEngine = new CoverageEngine(elevationSource, new CoverageEngine.Listener() {
             @Override
             public void onResultReady(final String itemUid) {
@@ -283,6 +286,8 @@ public class OverlayManager implements PointDefenseRepository.PlanChangeListener
                 NonKineticEffector n = (NonKineticEffector) item;
                 CoverageEngine.HeatmapResult heat = getHeatmap(n);
                 heatmapOverlay.render(group, n, heat, heat == null && coverageEngine.isPending(n.uid));
+            } else if (item instanceof KineticEffector) {
+                kineticOverlay.render(group, (KineticEffector) item);
             }
             // Other kinds: later phases.
         } catch (RuntimeException e) {

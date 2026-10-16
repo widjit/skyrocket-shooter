@@ -182,4 +182,35 @@
     <string name="nk_marker_color">Marker / ring color</string>
     <string name="nk_opacity_fmt">Heat map opacity (this effector): %1$d%%</string>
     <string name="nk_stats_fmt">Effective over %1$.0f%% of the engagement circle, marginal %2$.0f%%. Free-space range at threshold: %3$s.</string>
+
+    <!-- Kinetic effectors (Phase 4) -->
+    <string name="ke_new">Add Kinetic Effector</string>
+    <string name="ke_list_header">Kinetic Effectors</string>
+    <string name="ke_list_empty">No kinetic effectors yet. Tap \"Add Kinetic Effector\" and tap the map.</string>
+    <string name="ke_list_item_fmt">%1$s \u2014 %2$s, %3$s\u2013%4$s</string>
+    <string name="ke_edit_title_new">New Kinetic Effector</string>
+    <string name="ke_edit_title">Edit Kinetic Effector</string>
+    <string name="ke_type_fmt">Type: %1$s</string>
+    <string name="ke_munition_fmt">Munition: %1$s</string>
+    <string name="ke_detonation_fmt">Detonation: %1$s</string>
+    <string name="ke_status_fmt">Status: %1$s</string>
+    <string name="ke_min_range_fmt">Min engagement range / dead zone (%1$s)</string>
+    <string name="ke_az_min">Azimuth min (\u00B0 true, blank = 360\u00B0)</string>
+    <string name="ke_az_max">Azimuth max (\u00B0 true, blank = 360\u00B0)</string>
+    <string name="ke_el_min">Elevation min (\u00B0)</string>
+    <string name="ke_el_max">Elevation max (\u00B0)</string>
+    <string name="ke_frag_radius_fmt">Fragmentation radius (%1$s)</string>
+    <string name="ke_frag_width_fmt">Fragmentation route width (%1$s)</string>
+    <string name="ke_velocity">Munition velocity (m/s)</string>
+    <string name="ke_restricted">Restricted azimuths (e.g. 30-45; 200-210)</string>
+    <string name="ke_min_intercept_fmt">Min intercept altitude AGL (%1$s)</string>
+    <string name="ke_perimeter_uid">Engagement authority perimeter UID (optional)</string>
+    <string name="ke_ff_check">Friendly-fire check enabled</string>
+    <string name="ke_sensors">Linked sensor UIDs (comma separated)</string>
+    <string name="ke_designators">Linked laser designator UIDs (comma separated)</string>
+    <string name="ke_laser_code">Laser PRF code (1111\u20131788, laser-guided rockets)</string>
+    <string name="ke_ammo">Ammo count</string>
+    <string name="ke_reload">Reload time (s)</string>
+    <string name="ke_notes">Notes</string>
+    <string name="ke_stats_fmt">Envelope %1$s\u2013%2$s, sector %3$.0f\u00B0, %4$d restricted arc(s). Time of flight to max range: %5$.1f s.</string>
 </resources>

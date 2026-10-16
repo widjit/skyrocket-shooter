@@ -74,6 +74,49 @@ public class PointDefensePlan {
         if (defendedAssets == null) defendedAssets = new ArrayList<>();
         if (threatCorridors == null) threatCorridors = new ArrayList<>();
         if (classification == null) classification = DEFAULT_CLASSIFICATION;
+        for (KineticEffector k : kineticEffectors) {
+            if (k != null) k.ensureLists();
+        }
+    }
+
+    // ------------------------------------------------------- kinetic effectors
+
+    public KineticEffector findKineticEffector(String effectorUid) {
+        if (effectorUid == null || kineticEffectors == null) return null;
+        for (KineticEffector k : kineticEffectors) {
+            if (k != null && effectorUid.equals(k.uid)) return k;
+        }
+        return null;
+    }
+
+    /** Adds {@code e} (replacing any existing effector with the same uid). */
+    public void addKineticEffector(KineticEffector e) {
+        if (e == null) return;
+        if (kineticEffectors == null) kineticEffectors = new ArrayList<>();
+        if (!updateKineticEffector(e)) kineticEffectors.add(e);
+        touch();
+    }
+
+    /** Replaces the effector with the same uid; returns false when not present. */
+    public boolean updateKineticEffector(KineticEffector e) {
+        if (e == null || kineticEffectors == null) return false;
+        for (int i = 0; i < kineticEffectors.size(); i++) {
+            KineticEffector k = kineticEffectors.get(i);
+            if (k != null && k.uid != null && k.uid.equals(e.uid)) {
+                kineticEffectors.set(i, e);
+                touch();
+                return true;
+            }
+        }
+        return false;
+    }
+
+    public boolean removeKineticEffector(String effectorUid) {
+        KineticEffector k = findKineticEffector(effectorUid);
+        if (k == null) return false;
+        kineticEffectors.remove(k);
+        touch();
+        return true;
     }
 
     public void touch() {

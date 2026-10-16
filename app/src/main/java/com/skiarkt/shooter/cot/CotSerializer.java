@@ -178,6 +178,7 @@ public final class CotSerializer {
                 skiarkt.setAttribute("noShootColor", String.valueOf(k.noShootColor));
                 skiarkt.setAttribute("fragZoneColor", String.valueOf(k.fragZoneColor));
                 skiarkt.setAttribute("clearZoneColor", String.valueOf(k.clearZoneColor));
+                KineticEffectorCot.encodeInto(k, detail);
                 break;
             }
             case THREAT_CORRIDOR: {
@@ -273,6 +274,7 @@ public final class CotSerializer {
                 k.noShootColor = pi(skiarkt, "noShootColor", k.noShootColor);
                 k.fragZoneColor = pi(skiarkt, "fragZoneColor", k.fragZoneColor);
                 k.clearZoneColor = pi(skiarkt, "clearZoneColor", k.clearZoneColor);
+                KineticEffectorCot.decodeFrom(ev.getDetail(), k);
                 item = k;
                 break;
             }

@@ -160,12 +160,18 @@ public final class PointDefenseRepository {
     private void writeAutosave() {
         File file = autosaveFile();
         if (file == null) return;
-        try {
-            saveToFile(file);
-        } catch (IOException | RuntimeException e) {
-            android.util.Log.e(TAG, "Autosave to " + file + " failed", e);
+        // Serialise writers: a debounced background write may overlap a synchronous flush,
+        // and both use the same .tmp file.
+        synchronized (autosaveWriteLock) {
+            try {
+                saveToFile(file);
+            } catch (IOException | RuntimeException e) {
+                android.util.Log.e(TAG, "Autosave to " + file + " failed", e);
+            }
         }
     }
+
+    private final Object autosaveWriteLock = new Object();
 
     /** Cancels any pending debounced write and saves synchronously (call on unload). */
     public void flushAutosave() {

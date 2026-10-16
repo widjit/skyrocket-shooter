@@ -22,6 +22,7 @@ import com.skiarkt.shooter.overlay.OverlayManager;
 import com.skiarkt.shooter.settings.SettingsManager;
 import com.skiarkt.shooter.ui.ExclusionZonePanel;
 import com.skiarkt.shooter.ui.FeatureSection;
+import com.skiarkt.shooter.ui.KineticPanel;
 import com.skiarkt.shooter.ui.NonKineticPanel;
 import com.skiarkt.shooter.ui.SensorPanel;
 import com.skiarkt.shooter.ui.SettingsPanel;
@@ -52,6 +53,7 @@ public class PointDefenseDropDownReceiver extends DropDownReceiver
     private ExclusionZonePanel exclusionZonePanel;
     private SensorPanel sensorPanel;
     private NonKineticPanel nonKineticPanel;
+    private KineticPanel kineticPanel;
 
     private final View rootView;
     private final TextView planSummary;
@@ -178,6 +180,12 @@ public class PointDefenseDropDownReceiver extends DropDownReceiver
                         overlayManager, backToMenu());
             }
             view = nonKineticPanel.createView();
+        } else if (section == FeatureSection.KINETIC) {
+            if (kineticPanel == null) {
+                kineticPanel = new KineticPanel(pluginContext, getMapView(), settings, repository,
+                        overlayManager, backToMenu());
+            }
+            view = kineticPanel.createView();
         } else if (section == FeatureSection.SETTINGS) {
             view = new SettingsPanel(pluginContext, settings, repository, new Runnable() {
                 @Override
@@ -205,6 +213,7 @@ public class PointDefenseDropDownReceiver extends DropDownReceiver
         if (keep != FeatureSection.EXCLUSION_ZONES && exclusionZonePanel != null) exclusionZonePanel.onHidden();
         if (keep != FeatureSection.SENSORS && sensorPanel != null) sensorPanel.onHidden();
         if (keep != FeatureSection.NON_KINETIC && nonKineticPanel != null) nonKineticPanel.onHidden();
+        if (keep != FeatureSection.KINETIC && kineticPanel != null) kineticPanel.onHidden();
     }
 
     private View createPlaceholder(FeatureSection section) {
@@ -323,6 +332,9 @@ public class PointDefenseDropDownReceiver extends DropDownReceiver
                 } else if (currentSection == FeatureSection.NON_KINETIC) {
                     updatePlanSummary();
                     if (nonKineticPanel != null) nonKineticPanel.refresh();
+                } else if (currentSection == FeatureSection.KINETIC) {
+                    updatePlanSummary();
+                    if (kineticPanel != null) kineticPanel.refresh();
                 } else if (currentSection != FeatureSection.SETTINGS) showSection(currentSection);
                 else updatePlanSummary();
             }
@@ -335,6 +347,7 @@ public class PointDefenseDropDownReceiver extends DropDownReceiver
         if (exclusionZonePanel != null) exclusionZonePanel.dispose();
         if (sensorPanel != null) sensorPanel.dispose();
         if (nonKineticPanel != null) nonKineticPanel.dispose();
+        if (kineticPanel != null) kineticPanel.dispose();
     }
 
     @Override

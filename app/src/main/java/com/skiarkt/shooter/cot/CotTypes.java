@@ -38,6 +38,7 @@ public final class CotTypes {
     /** @return the item kind for a CoT type, or null if not a SKIARKT item type. */
     public static ItemKind kindForType(String type) {
         if (type == null || !type.startsWith(PREFIX)) return null;
+        if (KineticEffectorCot.COT_TYPE.equals(type)) return ItemKind.KINETIC_EFFECTOR;
         return ItemKind.fromCode(type.substring(PREFIX.length()));
     }
 
