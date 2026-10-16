@@ -1,10 +1,69 @@
 # SKY ROCKET SHOOTER (SKIARKT) — Roadmap
 
-Released: **1.0.2** (ATAK-CIV 5.6.0) — exclusion zones (polygon), sensors, RF jamming heat map,
-kinetic effectors, CoT sharing.
+Released: **1.0.5** (ATAK-CIV 5.6.0) — exclusion zones (polygon), sensors, RF jamming heat map,
+kinetic effectors (including Directed Energy / laser at speed-of-light default), CoT sharing,
+autosave persistence.
 
 Items below are planned, not implemented. Everything new is saved and shared as CoT, like the
 existing objects. All distances follow the global unit setting (ft / m / km).
+
+---
+
+## R0. Multi-sensor / multi-effector sites — separate assets, linked and co-located  *(Phase 5)*
+
+Real-world sites typically have two or more sensors (RADAR, EO camera, IR/thermal) and one or more
+effectors (SHORAD, jammer, laser) at the same point. Each type belongs to a different planning
+workflow so a single combined panel does not scale. The chosen model keeps everything as separate
+independent assets that are precisely co-located and cross-linked.
+
+### R0a. `siteUid` — named site groups
+
+Add a nullable `String siteUid` field to `PointItem` (the shared base class for sensors,
+kinetic effectors, and non-kinetic effectors).
+
+- Items sharing the same `siteUid` form a **site group**.
+- A subtle site-group ring is drawn around all members on the map so the relationship is visually
+  obvious at a glance.
+- Editing the lat/lon of any member prompts *"Move all N site members?"* — one tap keeps every
+  co-located asset precisely at the same coordinates without having to move each one manually.
+- Adding a new asset lets the user pick an existing site from a dropdown or create a new one.
+- Removing an asset from a site (clearing its `siteUid`) removes only that item; co-located
+  neighbours are unaffected.
+
+CoT: `siteUid` is serialised as an attribute on every asset's CoT detail element. Recipients can
+reconstruct site groups from the matching UIDs.
+
+### R0b. Cross-type checkbox linking
+
+Each asset panel shows a scrollable checklist of every other asset in the plan (by label, not
+raw UID), grouped by type: sensors, kinetic effectors, non-kinetic effectors. The user ticks the
+assets that this asset depends on or feeds into.
+
+Supported link directions:
+
+| From | To | Purpose |
+|---|---|---|
+| Kinetic effector | Sensor | Cue: sensor drives engagement decision |
+| Kinetic effector | Sensor (laser designator) | Designation: LGR requires a laser code match |
+| Non-kinetic effector | Sensor | Cue: jammer directed by sensor coverage |
+| Sensor | Sensor | Handoff: e.g. radar cues IR for confirmation |
+
+These replace the current raw UID text fields (`linkedSensorUids`, `linkedLaserDesignatorUids`)
+with a human-readable picker. The underlying data model and CoT schema are unchanged.
+
+### R0c. Sensor panel — multiple sensor types at one asset
+
+*Separates from R0a/b but ships together.* The sensor list screen needs to make it easy to place
+multiple sensors at the same site. The current flow works but offers no shortcut. Two additions:
+
+- **"Add to site"** button on the sensor list: pre-fills lat/lon and siteUid from an existing
+  asset so a second sensor snaps exactly to the same position without any manual coordinate entry.
+- **Site summary** in the plan list header shows how many assets share each siteUid and which
+  types are present (e.g. "Alpha-1: 3 sensors, 1 kinetic, 1 NK").
+
+### Dependencies and rollout order
+`siteUid` on the model (R0a) ships first — it is additive, backward-compatible, and unblocks the
+rest. The checkbox picker (R0b) and site-summary header (R0c) ship together in the same sprint.
 
 ---
 
@@ -31,8 +90,9 @@ existing objects. All distances follow the global unit setting (ft / m / km).
   and the engagement heat map.
 
 ## R4. Laser-guided rocket (LGR) kinetic effector
-- New effector type: **laser-guided rocket** launcher, with AGL, min/max range,
-  fragmentation radius, seeker field of view / acquisition range, and laser code.
+- Effector type **LASER_GUIDED_ROCKET** (already in the type enum). Seeker FOV / acquisition range
+  and laser code are already on the model. This item completes the *not mission-capable* logic and
+  the engagement timeline integration.
 - **Must be paired with one or more laser designators** (R2). The effector is shown as
   *not mission-capable* (and excluded from best-effector recommendations) when no paired
   designator is placed, in range, or code-matched.
@@ -42,8 +102,8 @@ existing objects. All distances follow the global unit setting (ft / m / km).
 For each candidate target point / ingress corridor, the analysis checks:
 1. **Designator → target LOS** (DTED terrain; later, obstacles and exclusion-zone roofs).
 2. **Seeker → laser spot LOS** along the rocket's flight path from the launcher.
-3. **Geometry constraints**: the angle between the designator line and the rocket's approach must fall
-   inside a user-set *attack cone*. The rocket must also stay out of a user-set *designator
+3. **Geometry constraints**: the angle between the designator line and the rocket's approach must
+   fall inside a user-set *attack cone*. The rocket must also stay out of a user-set *designator
    safety fan* around the designator line. Angles are user-configurable, not hard-coded.
 4. Max lasing range and seeker acquisition range.
 
@@ -55,24 +115,37 @@ designator position(s) for each launcher. Results feed into the engagement timel
 Buffer zones offset from a base perimeter (a defended asset, an exclusion zone, or a drawn boundary).
 Each zone has its own distance, color, and label:
 - **Non-kinetic engagement authority**: area where RF/NK effectors are authorized.
-- **Kinetic engagement authority**: area where kinetic effectors (including LGRs) are
-  authorized.
-- **Non-hostile authority**: area where tracks are treated as non-hostile and no
-  engagement is authorized (weapons hold).
+- **Kinetic engagement authority**: area where kinetic effectors (including LGRs) are authorized.
+- **Non-hostile authority**: area where tracks are treated as non-hostile and no engagement is
+  authorized (weapons hold).
 
 Rules:
 - Buffers are distances outward (or inward) from the base shape. Any R3 shape can be a base.
-- Engagement timeline, deconfliction, and best-effector logic only recommend an effector
-  when the threat position is inside that effector class's authority zone and outside
-  non-hostile zones. Violations are flagged.
+- Engagement timeline, deconfliction, and best-effector logic only recommend an effector when the
+  threat position is inside that effector class's authority zone and outside non-hostile zones.
+  Violations are flagged.
 - Shown on the map and in the PACE PDF.
+
+## R7. Directed Energy — frag / field suppression fields  *(follow-on to 1.0.5)*
+Phase 4 added Directed Energy as a kinetic type with speed-of-light velocity default. Fields that
+don't apply to beam weapons (munition type, detonation mode, frag radius, ammo count / reload time)
+are still shown in the panel but mean nothing for a laser. Planned work:
+- Hide / grey out inapplicable fields when Directed Energy is selected.
+- Add laser-specific fields: beam dwell time, aperture diameter, power density at range, and an
+  effective suppression zone (replaces frag corridor).
+- Overlay: replace concentric frag rings with a beam-intensity gradient along the threat vector
+  (complements the Phase 5 dynamic-frag-cylinder item for projectiles).
 
 ---
 
-### Previously planned (unchanged)
+### Phase 5 core items (previously planned)
 Threat ingress corridors, sensor gap analysis, engagement timeline (detect → jam → kinetic),
-MSA rings, friendly-fire deconfliction / best-effector designation, PACE plan PDF.
+MSA rings, friendly-fire deconfliction / best-effector designation, dynamic fragmentation
+cylinder along threat vector, PACE plan PDF, full-plan CoT import/export, WinTAK push/pull.
 
 ### Dependencies
-R2 (designators) → R4 (LGR) → R5 (masking). R3 (shapes) → R6 (buffers can use any shape).
+R0 (site grouping) is independent of all others and ships first.
+R2 (designators) → R4 (LGR) → R5 (masking).
+R3 (shapes) → R6 (buffers can use any shape).
 R1 is independent.
+R7 depends only on the Directed Energy type added in 1.0.5.
