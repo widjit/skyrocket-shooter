@@ -7,7 +7,7 @@
 **S**hooters **K**nown **I**ntercepter **A**TAK **R**apid **K**nowledge **T**ool
 
 [![License: Apache 2.0](https://img.shields.io/badge/License-Apache_2.0-blue.svg)](LICENSE)
-![ATAK](https://img.shields.io/badge/ATAK--CIV-4.6.0%2B-green.svg)
+![ATAK](https://img.shields.io/badge/ATAK--CIV-5.6.0-green.svg)
 ![Status](https://img.shields.io/badge/phases-1--3_complete-orange.svg)
 
 SKIARKT is an ATAK-CIV plugin for planning counter-small-UAS (C-sUAS) point defense. Operators use it to lay out
@@ -61,7 +61,7 @@ as Cursor-on-Target (CoT).
 ./gradlew assembleCivDebug                       # -> app/build/outputs/apk/civ/debug/app-civ-debug.apk (debug key)
 ./gradlew testCivDebugUnitTest                   # JVM unit tests
 ./gradlew assembleCivRelease                     # your release key, or UNSIGNED if none configured
-./gradlew assembleCivRelease -PatakVersion=5.8.0 # needs sdk/5.8.0/main.jar
+./gradlew assembleCivRelease -PatakVersion=5.5.0 # another 5.x host; needs sdk/5.5.0/main.jar
 ```
 Flavours `civ` / `mil` / `gov` match the TAK plugin template and set `plugin-api` to `com.atakmap.app@<ver>.CIV|MIL|GOV`.
 
@@ -79,40 +79,47 @@ The ATAK SDK is proprietary and is **not** included in this repository. Gradle l
 
 | Priority | Source | How |
 |---|---|---|
-| 1 | ATAK-CIV SDK jar | `-PatakSdkJar=<path>`, else `sdk/<atakVersion>/main.jar` (e.g. `sdk/5.8.0/main.jar`), else `sdk/main.jar` (4.6.0 only). The 4.6.0.5 SDK is public on [GitHub](https://github.com/deptofdefense/AndroidTacticalAssaultKit-CIV/releases); newer SDKs come from [tak.gov](https://tak.gov) |
+| 1 | ATAK-CIV SDK jar | `-PatakSdkJar=<path>`, else `sdk/<atakVersion>/main.jar` (default `sdk/5.6.0/main.jar`). ATAK-CIV 5.x SDKs come from [tak.gov](https://tak.gov) |
 | 2 | TAK Maven AAR | `-PatakSdkMaven=true -PtakRepoUrl=... -PtakRepoUser=... -PtakRepoPassword=...` |
-| 3 | Bundled `:atak-sdk-stubs` | Default. Contains only the API signatures, so the project compiles and tests run without tak.gov access |
+| 3 | Bundled `:atak-sdk-stubs` | Only with `-PallowStubs`. Contains only the API signatures (mirroring ATAK-CIV 5.6), so the code compiles without tak.gov access. Always used as the unit-test classpath |
 
 Build field or release APKs against the real SDK (option 1 or 2), not the stubs.
+
+### Plugin model (ATAK 5.x `IPlugin`)
+ATAK-CIV 5.6 removed the legacy `transapps` Lifecycle/ToolDescriptor model (`AbstractPluginLifecycle`). SKIARKT follows the SDK's `PluginTemplateLegacy` sample:
+- `app/src/main/assets/plugin.xml` declares exactly one extension: `gov.tak.api.plugin.IPlugin` → `com.skiarkt.shooter.plugin.PluginLifecycle`.
+- `PluginLifecycle` extends `com.atak.plugins.impl.AbstractPlugin`. ATAK calls its `(IServiceController)` constructor; it obtains the plugin `Context` through `PluginContextProvider` and passes `AbstractPlugin` the toolbar tool and the map component.
+- `PointDefenseTool` extends `AbstractPluginTool` and implements `gov.tak.api.util.Disposable`.
+- `PointDefenseMapComponent` (a `DropDownMapComponent`) applies `R.style.ATAKPluginTheme` before inflating any UI.
+
+### ATAK 4.x
+This branch targets ATAK 5.x only; `-PatakVersion=4.x` fails with a pointer here. The ATAK-CIV 4.6.0 build (legacy plugin model, verified in the 4.6.0.5 emulator) is at commit `fc397d0`, tagged **`v1.0.0-civ4.6.0`**: `git checkout v1.0.0-civ4.6.0`.
 
 ---
 
 ## Running on ATAK-CIV
 
-> **Version lock:** ATAK only loads a plugin whose `plugin-api` exactly matches the running ATAK (for example `com.atakmap.app@4.6.0.CIV`).
-> The default build targets **4.6.0**. To target a different version, build against that version's SDK `main.jar` and pass `-PatakVersion=X.Y.Z`.
+> **Version lock:** ATAK only loads a plugin whose `plugin-api` exactly matches the running ATAK (for example `com.atakmap.app@5.6.0.CIV`).
+> The default build targets **5.6.0** (`com.atakmap.app@5.6.0.CIV`). To target another 5.x version, build against that version's SDK `main.jar` and pass `-PatakVersion=X.Y.Z`.
 
-### Option A: Developer ATAK-CIV 4.6.0.5 (tested)
-1. Download `atak-civ-sdk-4.6.0.5.zip` from the [ATAK-CIV GitHub release](https://github.com/deptofdefense/AndroidTacticalAssaultKit-CIV/releases).
-   Extract `atak-civ/atak.apk` (developer build) and `atak-civ/main.jar` (copy to `sdk/main.jar`).
-2. Uninstall any Play Store ATAK on the device, since it uses the same package name. Then run `adb install -r -g atak.apk`.
-3. Run `./gradlew assembleDebug` and then `adb install -r app/build/outputs/apk/debug/app-debug.apk`.
-4. In ATAK, go to **☰ → Plugins**. If the list is empty, tap the sync arrows. Tick **SKY ROCKET SHOOTER (SKIARKT)** and choose **Load**.
-5. Open **☰ → SKY ROCKET SHOOTER** to open the side panel. Logs: `adb logcat | grep -i skiarkt`
+### Option A: Developer ATAK-CIV 5.6.0 (from the SDK)
+1. Download **ATAK-CIV SDK 5.6.0** from [tak.gov](https://tak.gov) and copy its `main.jar` to `sdk/5.6.0/main.jar`. Install the developer ATAK 5.6.0 APK that tak.gov provides with the SDK (uninstall any Play Store ATAK first, since it uses the same package name).
+2. Run `./gradlew assembleCivDebug` and then `adb install -r app/build/outputs/apk/civ/debug/app-civ-debug.apk`.
+3. In ATAK, go to **☰ → Plugins**. If the list is empty, tap the sync arrows. Tick **SKY ROCKET SHOOTER (SKIARKT)** and choose **Load**.
+4. Open **☰ → SKY ROCKET SHOOTER** to open the side panel. Logs: `adb logcat | grep -i skiarkt`
 
-Screenshots from the emulator test are in [docs/screenshots](docs/screenshots).
+Screenshots in [docs/screenshots](docs/screenshots) come from the earlier ATAK-CIV 4.6.0.5 emulator test (tag `v1.0.0-civ4.6.0`).
 
-### Option B: Play Store ATAK-CIV 5.x (e.g. 5.8)
+### Option B: Play Store ATAK-CIV 5.x (e.g. 5.6)
 Release ATAK (Play Store CIV, MIL, GOV) loads only plugins that meet **both** of these conditions:
-1. **The version matches.** The plugin was built with `plugin-api = com.atakmap.app@5.8.0.CIV`. Check the exact number under ATAK **☰ → Settings → About**.
+1. **The version matches.** The plugin was built with `plugin-api = com.atakmap.app@5.6.0.CIV`. Check the exact number under ATAK **☰ → Settings → About**.
 2. **TAK.gov signed it.** A plugin signed with your own key installs, but release ATAK refuses to load it. That signing check is not something the plugin can change.
 
 Steps:
-1. Create an account at [tak.gov](https://tak.gov) and download **ATAK-CIV SDK 5.8.x**. Copy its `main.jar` to `sdk/5.8.0/main.jar`.
-2. Run `./gradlew assembleCivRelease -PatakVersion=5.8.0` and fix any API drift. The plugin uses the legacy
-   `transapps` Lifecycle/ToolDescriptor + `AbstractPluginLifecycle` model. The 5.x SDK still ships it as deprecated; migrate to `gov.tak.api.plugin.IPlugin` if the SDK no longer does.
-3. Test on the **developer ATAK 5.8 APK** that comes with the SDK. It accepts any signature, including your release key.
-4. Run `scripts/package_for_takgov.sh` and upload the zip to the TAK.gov **Third-Party Plugin** pipeline. Choose ATAK 5.8.x / CIV.
+1. Create an account at [tak.gov](https://tak.gov) and download **ATAK-CIV SDK 5.6.0**. Copy its `main.jar` to `sdk/5.6.0/main.jar`.
+2. Run `./gradlew assembleCivRelease` (5.6.0 is the default; for another 5.x release add `-PatakVersion=X.Y.Z` with that SDK's jar). The plugin uses the 5.x `gov.tak.api.plugin.IPlugin` model.
+3. Test on the **developer ATAK 5.6 APK** that comes with the SDK. It accepts any signature, including your release key.
+4. Run `scripts/package_for_takgov.sh` and upload the zip to the TAK.gov **Third-Party Plugin** pipeline. Choose ATAK 5.6.0 / CIV.
    The pipeline builds the plugin against the official SDK and returns an APK signed for release ATAK. Install it with `adb install` or through Mission Package / TAK Server.
 
 **WinTAK:** this APK runs on ATAK (Android) only. WinTAK works with SKIARKT through the shared CoT types below.
@@ -151,7 +158,7 @@ See [SECURITY.md](SECURITY.md).
 ```
 ├── app/                         plugin APK module
 │   └── src/main/java/com/skiarkt/shooter/
-│       ├── plugin/              PluginLifecycle, toolbar tool
+│       ├── plugin/              PluginLifecycle (IPlugin / AbstractPlugin), toolbar tool
 │       ├── model/  data/  cot/  settings/  util/
 │       ├── analysis/            intercept altitude, LOS sweep, RF propagation / heat map, coverage engine
 │       ├── overlay/             map rendering

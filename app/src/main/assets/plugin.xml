@@ -1,18 +1,14 @@
 <?xml version="1.0" encoding="utf-8"?>
 <!--
-    SKY ROCKET SHOOTER - ATAK plugin descriptor (CivTAK SDK 4.6+ transapps plugin model).
+    SKY ROCKET SHOOTER - ATAK 5.x plugin descriptor (IPlugin model, ATAK-CIV 5.6.0 SDK).
     name: SKY ROCKET SHOOTER (SKIARKT)   version: 1.0.0
-    ATAK instantiates each extension below reflectively via its (Context) constructor.
-    NOTE: <plugin> must have NO attributes - ATAK's parser rejects name/version here
-    (verified on ATAK-CIV 4.6.0.5). Name/version come from AndroidManifest/strings.
+    ATAK instantiates PluginLifecycle reflectively via its (IServiceController) constructor;
+    the toolbar tool is registered by AbstractPlugin (no separate ToolDescriptor extension).
+    If you change this file, bump pluginVersionCode in the root build.gradle.
 -->
-<plugin>
+<plugin name="SKY ROCKET SHOOTER (SKIARKT)" version="1.0.0">
     <extension
-        type="transapps.maps.plugin.lifecycle.Lifecycle"
+        type="gov.tak.api.plugin.IPlugin"
         impl="com.skiarkt.shooter.plugin.PluginLifecycle"
-        singleton="true" />
-    <extension
-        type="transapps.maps.plugin.tool.ToolDescriptor"
-        impl="com.skiarkt.shooter.plugin.PointDefenseTool"
         singleton="true" />
 </plugin>

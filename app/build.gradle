@@ -4,18 +4,23 @@ plugins {
 
 // ---------------------------------------------------------------------------
 // ATAK SDK resolution: real SDK jar > TAK Maven AAR > bundled compile-only stubs
-//   Jar lookup order: -PatakSdkJar=<path>  >  sdk/<atakVersion>/main.jar  >  sdk/main.jar (4.6.0 only)
-//   e.g. ATAK 5.8: put the tak.gov SDK jar at sdk/5.8.0/main.jar and build with -PatakVersion=5.8.0
+//   Jar lookup order: -PatakSdkJar=<path>  >  sdk/<atakVersion>/main.jar
+//   e.g. ATAK 5.6: put the tak.gov SDK jar at sdk/5.6.0/main.jar (default atakVersion)
+//   Plugin model: gov.tak.api.plugin.IPlugin (ATAK 5.x). ATAK 4.x is NOT supported on this
+//   branch - build tag v1.0.0-civ4.6.0 (commit fc397d0) for 4.6.0.
 // ---------------------------------------------------------------------------
 def atakVer = rootProject.ext.atakVersion
+if (atakVer.toString().startsWith('4.')) {
+    throw new GradleException("ATAK ${atakVer} uses the legacy transapps plugin model, which this source no longer " +
+            "implements. Check out tag v1.0.0-civ4.6.0 (commit fc397d0) to build for ATAK 4.x.")
+}
 def atakSdkJar = project.hasProperty('atakSdkJar') ? rootProject.file(project.property('atakSdkJar')) :
-        (rootProject.file("sdk/${atakVer}/main.jar").exists() ? rootProject.file("sdk/${atakVer}/main.jar") :
-                (atakVer == '4.6.0' ? rootProject.file('sdk/main.jar') : rootProject.file("sdk/${atakVer}/main.jar")))
+        rootProject.file("sdk/${atakVer}/main.jar")
 def useMavenSdk = project.hasProperty('atakSdkMaven') && project.property('atakSdkMaven').toString().toBoolean()
 def atakSdkMode = atakSdkJar.exists() ? 'jar' : (useMavenSdk ? 'maven' : 'stubs')
 logger.lifecycle("SKY ROCKET SHOOTER: ATAK ${atakVer} - compiling against SDK via '${atakSdkMode}'" +
         (atakSdkMode == 'jar' ? " (${atakSdkJar})" : ''))
-if (atakSdkMode == 'stubs' && atakVer != '4.6.0' && !project.hasProperty('allowStubs')) {
+if (atakSdkMode == 'stubs' && !project.hasProperty('allowStubs')) {
     throw new GradleException("ATAK ${atakVer} requested but no SDK found at ${atakSdkJar}. " +
             "Download the ATAK-CIV ${atakVer} SDK from tak.gov and copy its main.jar there, " +
             "or pass -PatakSdkJar=<path> (or -PallowStubs to compile-check only; such an APK is NOT runnable).")
@@ -81,7 +86,7 @@ android {
     }
 
     // Same flavour layout as the TAK plugin template (civ/mil/gov). Each flavour stamps the
-    // matching plugin-api string, e.g. com.atakmap.app@5.8.0.CIV
+    // matching plugin-api string, e.g. com.atakmap.app@5.6.0.CIV
     flavorDimensions = ['application']
     productFlavors {
         civ { dimension 'application'; manifestPlaceholders = [atakApiVersion: "com.atakmap.app@${atakVer}.CIV"] }

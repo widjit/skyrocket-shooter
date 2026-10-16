@@ -7,9 +7,10 @@ plugins {
 ext {
     // ATAK host version this plugin is built against. Must EXACTLY match the
     // major.minor.patch + flavour of the ATAK install on the device, or ATAK
-    // refuses to load the plugin. Default = public CivTAK SDK 4.6.0.5 (GitHub).
-    // Override for another host, e.g. ./gradlew assembleDebug -PatakVersion=5.4.0 -PatakFlavor=CIV
-    atakVersion = project.findProperty('atakVersion') ?: '4.6.0'
+    // refuses to load the plugin. Default = ATAK-CIV 5.6.0 (tak.gov SDK, IPlugin model).
+    // Override for another 5.x host, e.g. ./gradlew assembleCivRelease -PatakVersion=5.5.0
+    // ATAK 4.x (legacy transapps plugin model) is built from tag v1.0.0-civ4.6.0 (commit fc397d0).
+    atakVersion = project.findProperty('atakVersion') ?: '5.6.0'
     atakFlavor = project.findProperty('atakFlavor') ?: 'CIV'
     atakApiVersion = "com.atakmap.app@${atakVersion}.${atakFlavor}" // informational; per-flavour value is set in app/build.gradle
     pluginVersionName = '1.0.0'

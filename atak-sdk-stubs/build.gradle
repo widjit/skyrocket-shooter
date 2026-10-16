@@ -1,4 +1,4 @@
-// Compile-only stand-in for the ATAK 4.8 SDK. Class/method signatures mirror the
+// Compile-only stand-in for the ATAK-CIV 5.6 SDK. Class/method signatures mirror the
 // subset of the real SDK used by the plugin. NEVER packaged into the plugin APK.
 plugins {
     id 'com.android.library'
