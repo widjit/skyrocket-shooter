@@ -4,18 +4,48 @@ plugins {
 
 // ---------------------------------------------------------------------------
 // ATAK SDK resolution: real SDK jar > TAK Maven AAR > bundled compile-only stubs
+//   Jar lookup order: -PatakSdkJar=<path>  >  sdk/<atakVersion>/main.jar  >  sdk/main.jar (4.6.0 only)
+//   e.g. ATAK 5.8: put the tak.gov SDK jar at sdk/5.8.0/main.jar and build with -PatakVersion=5.8.0
 // ---------------------------------------------------------------------------
-def atakSdkJar = rootProject.file('sdk/main.jar')
+def atakVer = rootProject.ext.atakVersion
+def atakSdkJar = project.hasProperty('atakSdkJar') ? rootProject.file(project.property('atakSdkJar')) :
+        (rootProject.file("sdk/${atakVer}/main.jar").exists() ? rootProject.file("sdk/${atakVer}/main.jar") :
+                (atakVer == '4.6.0' ? rootProject.file('sdk/main.jar') : rootProject.file("sdk/${atakVer}/main.jar")))
 def useMavenSdk = project.hasProperty('atakSdkMaven') && project.property('atakSdkMaven').toString().toBoolean()
 def atakSdkMode = atakSdkJar.exists() ? 'jar' : (useMavenSdk ? 'maven' : 'stubs')
-logger.lifecycle("SKY ROCKET SHOOTER: compiling against ATAK SDK via '${atakSdkMode}'")
+logger.lifecycle("SKY ROCKET SHOOTER: ATAK ${atakVer} - compiling against SDK via '${atakSdkMode}'" +
+        (atakSdkMode == 'jar' ? " (${atakSdkJar})" : ''))
+if (atakSdkMode == 'stubs' && atakVer != '4.6.0' && !project.hasProperty('allowStubs')) {
+    throw new GradleException("ATAK ${atakVer} requested but no SDK found at ${atakSdkJar}. " +
+            "Download the ATAK-CIV ${atakVer} SDK from tak.gov and copy its main.jar there, " +
+            "or pass -PatakSdkJar=<path> (or -PallowStubs to compile-check only; such an APK is NOT runnable).")
+}
 
-// Signing: override via local.properties (takDebugKeyFile, takDebugKeyFilePassword,
-// takDebugKeyAlias, takDebugKeyPassword); falls back to the committed debug keystore.
-def localProps = new Properties()
-def localPropsFile = rootProject.file('local.properties')
-if (localPropsFile.exists()) { localPropsFile.withInputStream { localProps.load(it) } }
+// ---------------------------------------------------------------------------
+// Signing
+//   debug   : local debug keystore (developer ATAK builds only).
+//   release : YOUR key, never the debug key. Read from keystore.properties (git-ignored)
+//             or env vars SKIARKT_KEYSTORE / SKIARKT_KEYSTORE_PASSWORD / SKIARKT_KEY_ALIAS /
+//             SKIARKT_KEY_PASSWORD. If none is configured the release APK is left UNSIGNED -
+//             which is exactly what the TAK.gov third-party pipeline expects (it signs for you).
+// ---------------------------------------------------------------------------
+def loadProps = { String name ->
+    def p = new Properties(); def f = rootProject.file(name)
+    if (f.exists()) { f.withInputStream { p.load(it) } }
+    return p
+}
+def localProps = loadProps('local.properties')
+def ksProps = loadProps('keystore.properties')
 def prop = { String key, String dflt -> localProps.getProperty(key, dflt) }
+def rel = { String key, String env -> ksProps.getProperty(key) ?: System.getenv(env) }
+def relStore = rel('storeFile', 'SKIARKT_KEYSTORE')
+def hasReleaseKey = relStore != null && rootProject.file(relStore).exists()
+if (relStore != null && !hasReleaseKey) {
+    throw new GradleException("Release keystore not found: ${relStore}")
+}
+if (hasReleaseKey && rootProject.file(relStore).name == 'debug.keystore') {
+    throw new GradleException('Refusing to sign a release build with debug.keystore')
+}
 
 android {
     namespace 'com.skiarkt.shooter'
@@ -27,8 +57,8 @@ android {
         targetSdk 34
         versionCode rootProject.ext.pluginVersionCode
         versionName rootProject.ext.pluginVersionName
-        manifestPlaceholders = [atakApiVersion: rootProject.ext.atakApiVersion]
         buildConfigField 'String', 'ATAK_SDK_MODE', "\"${atakSdkMode}\""
+        buildConfigField 'String', 'ATAK_VERSION', "\"${atakVer}\""
     }
 
     signingConfigs {
@@ -38,12 +68,25 @@ android {
             keyAlias prop('takDebugKeyAlias', 'androiddebugkey')
             keyPassword prop('takDebugKeyPassword', 'android')
         }
-        release {
-            storeFile rootProject.file(prop('takReleaseKeyFile', 'keystores/debug.keystore'))
-            storePassword prop('takReleaseKeyFilePassword', 'android')
-            keyAlias prop('takReleaseKeyAlias', 'androiddebugkey')
-            keyPassword prop('takReleaseKeyPassword', 'android')
+        if (hasReleaseKey) {
+            release {
+                storeFile rootProject.file(relStore)
+                storePassword rel('storePassword', 'SKIARKT_KEYSTORE_PASSWORD')
+                keyAlias rel('keyAlias', 'SKIARKT_KEY_ALIAS')
+                keyPassword rel('keyPassword', 'SKIARKT_KEY_PASSWORD') ?: rel('storePassword', 'SKIARKT_KEYSTORE_PASSWORD')
+                enableV1Signing true
+                enableV2Signing true
+            }
         }
+    }
+
+    // Same flavour layout as the TAK plugin template (civ/mil/gov). Each flavour stamps the
+    // matching plugin-api string, e.g. com.atakmap.app@5.8.0.CIV
+    flavorDimensions = ['application']
+    productFlavors {
+        civ { dimension 'application'; manifestPlaceholders = [atakApiVersion: "com.atakmap.app@${atakVer}.CIV"] }
+        mil { dimension 'application'; manifestPlaceholders = [atakApiVersion: "com.atakmap.app@${atakVer}.MIL"] }
+        gov { dimension 'application'; manifestPlaceholders = [atakApiVersion: "com.atakmap.app@${atakVer}.GOV"] }
     }
 
     buildTypes {
@@ -52,7 +95,7 @@ android {
             debuggable true
         }
         release {
-            signingConfig signingConfigs.release
+            signingConfig hasReleaseKey ? signingConfigs.release : null
             minifyEnabled false
             proguardFiles getDefaultProguardFile('proguard-android.txt'), 'proguard-rules.pro'
         }

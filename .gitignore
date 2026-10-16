@@ -19,3 +19,9 @@ sdk/*.jar
 # Auto-generated document previews
 *.pdf
 *.docx
+
+# Release signing credentials - never publish
+keystore.properties
+*.jks
+sdk/*/
+!sdk/README.md

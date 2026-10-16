@@ -11,7 +11,7 @@ ext {
     // Override for another host, e.g. ./gradlew assembleDebug -PatakVersion=5.4.0 -PatakFlavor=CIV
     atakVersion = project.findProperty('atakVersion') ?: '4.6.0'
     atakFlavor = project.findProperty('atakFlavor') ?: 'CIV'
-    atakApiVersion = "com.atakmap.app@${atakVersion}.${atakFlavor}"
+    atakApiVersion = "com.atakmap.app@${atakVersion}.${atakFlavor}" // informational; per-flavour value is set in app/build.gradle
     pluginVersionName = '1.0.0'
     pluginVersionCode = 1
 }
