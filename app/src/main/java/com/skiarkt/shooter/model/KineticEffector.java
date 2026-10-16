@@ -129,6 +129,25 @@ public class KineticEffector extends PointItem {
         munitionSpeedMps = mps;
     }
 
+    /**
+     * Changes the weapon type. If the velocity is still the old type's default (i.e. the
+     * user never customised it), it follows the new type's default - so switching to
+     * Directed Energy sets the speed of light, and switching back restores 800 m/s.
+     */
+    public void applyType(KineticEffectorType newType) {
+        if (newType == null) return;
+        munitionSpeedMps = KineticEffector.velocityForTypeChange(type, newType, munitionSpeedMps);
+        type = newType;
+    }
+
+    /** Velocity to use after a type change; custom (non-default) values are preserved. */
+    public static double velocityForTypeChange(KineticEffectorType oldType, KineticEffectorType newType,
+            double currentMps) {
+        if (newType == null) return currentMps;
+        boolean isDefault = oldType != null && Double.compare(currentMps, oldType.defaultMunitionSpeedMps()) == 0;
+        return isDefault || !(currentMps > 0) ? newType.defaultMunitionSpeedMps() : currentMps;
+    }
+
     // ------------------------------------------------------------- envelope math
 
     /** True when no sector limits are set (either azimuth bound null). */

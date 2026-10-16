@@ -124,8 +124,18 @@ public class KineticPanel extends PointItemPanel<KineticEffector> {
         typeBtn.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
+                KineticEffectorType prev = selType;
                 selType = selType.next();
                 typeBtn.setText(ctx.getString(R.string.ke_type_fmt, selType.displayName));
+                // Lasers default to the speed of light; untouched defaults follow the type.
+                if (velocityInput != null) {
+                    double cur = parseNumber(velocityInput.getText().toString());
+                    double next = KineticEffector.velocityForTypeChange(prev, selType,
+                            Double.isNaN(cur) ? -1 : cur);
+                    if (Double.isNaN(cur) || Double.compare(next, cur) != 0) {
+                        velocityInput.setText(String.format(Locale.US, "%.1f", next));
+                    }
+                }
             }
         });
         form.addView(typeBtn, matchWrap());

@@ -208,4 +208,33 @@ public class KineticEffectorModelTest {
         assertTrue(new AzimuthArc(350, 10).contains(5));
         assertFalse(new AzimuthArc(350, 10).contains(20));
     }
+
+    @Test
+    public void directedEnergyDefaultsToSpeedOfLight() {
+        assertEquals(299_792_458.0, KineticEffectorType.DIRECTED_ENERGY.defaultMunitionSpeedMps(), 0.0);
+        assertEquals(800.0, KineticEffectorType.RIFLE.defaultMunitionSpeedMps(), 0.0);
+        assertEquals(800.0, KineticEffectorType.LASER_GUIDED_ROCKET.defaultMunitionSpeedMps(), 0.0);
+
+        KineticEffector k = new KineticEffector();
+        assertEquals(800.0, k.munitionSpeedMps, 0.0);
+        k.applyType(KineticEffectorType.DIRECTED_ENERGY);
+        assertSame(KineticEffectorType.DIRECTED_ENERGY, k.type);
+        assertEquals(KineticEffectorType.SPEED_OF_LIGHT_MPS, k.munitionSpeedMps, 0.0);
+        assertNull(k.validationError());
+        // Switching back from an untouched laser default restores the projectile default.
+        k.applyType(KineticEffectorType.ROCKET);
+        assertEquals(800.0, k.munitionSpeedMps, 0.0);
+
+        // A user-customised velocity is never overwritten by a type change.
+        k.munitionSpeedMps = 1200.0;
+        k.applyType(KineticEffectorType.DIRECTED_ENERGY);
+        assertEquals(1200.0, k.munitionSpeedMps, 0.0);
+
+        // Speed of light survives JSON round-trip.
+        KineticEffector laser = new KineticEffector();
+        laser.applyType(KineticEffectorType.DIRECTED_ENERGY);
+        KineticEffector back = GSON.fromJson(GSON.toJson(laser), KineticEffector.class);
+        assertEquals(KineticEffectorType.SPEED_OF_LIGHT_MPS, back.munitionSpeedMps, 0.0);
+        assertSame(KineticEffectorType.DIRECTED_ENERGY, back.type);
+    }
 }
