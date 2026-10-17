@@ -185,6 +185,37 @@ For each effector, a wall casts a **masking shadow** on the far side:
 - Optional: the same walls block sensor line of sight (e.g. radar masked by a tree line), feeding
   sensor gap analysis.
 
+## R9. Per-asset visibility toggles
+Busy plans get cluttered: overlapping coverage rings, heat maps, and frag bands from many assets.
+The planner can show or hide each asset's map drawing individually.
+
+### R9a. Controls
+- **Eye icon on every row** in each asset list (exclusion zones, sensors, non-kinetic effectors,
+  kinetic effectors, and later walls and buffers). Tap to show or hide that one asset.
+- **Per-type "show all / hide all"** at the top of each list.
+- **Per-site toggle** (with R0): hide or show every asset that shares a `siteUid` in one tap.
+- **Solo**: long-press the eye to show only that asset and hide everything else; long-press
+  again to restore the previous visibility.
+- **Show everything** button in the main panel, so nothing stays hidden by accident.
+- Hidden assets stay in the list, greyed out, with a "hidden" tag, and still open for editing.
+- The panel header shows a count, e.g. "3 hidden", whenever anything is hidden.
+
+### R9b. Optional finer control
+- Per-layer toggles inside one asset, e.g. show a kinetic effector's max-range ring but hide its
+  frag bands, or show a sensor marker but hide its coverage.
+
+### R9c. Rules
+- **Hiding only changes what's drawn. Hidden assets still count in every analysis.** A hidden
+  exclusion zone, protected asset, or wall still blocks shots, and hidden sensors and effectors
+  still count in coverage, gap analysis, the engagement timeline, and best-effector logic. This
+  keeps the "never shoot at or through protected assets or walls" rules from being switched off
+  by accident.
+- Visibility is a **personal view setting on this device**. It is saved with the local autosave
+  and restored after restart, but it is **not sent over CoT**: hiding an asset on your map never
+  hides it on a teammate's map.
+- PNG export and the PACE PDF draw what's visible, with an option to include all assets. The
+  legend notes when assets are hidden.
+
 ---
 
 ### Phase 5 core items (previously planned)
@@ -200,3 +231,4 @@ R1 is independent.
 R7 depends only on the Directed Energy type added in 1.0.5.
 R8 (walls) is independent for measurement and drawing. Its masking rule (R8c) shares the clearance
 engine with exclusion-zone heights and feeds the engagement timeline and R5 masking analysis.
+R9 (visibility) is independent and works with today's asset types. The per-site toggle needs R0.
