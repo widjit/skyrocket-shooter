@@ -292,4 +292,14 @@
     <string name="nk_band_range_fmt">Max range (%1$s)</string>
     <string name="nk_band_invalid_fmt">Band %1$d has invalid values</string>
     <string name="nk_bands_stats_fmt">Bands: %1$d of %2$d enabled, heatmap %3$s</string>
+    <!-- Radar presets (C-sUAS catalog) -->
+    <string name="sn_preset">Radar preset…</string>
+    <string name="sn_preset_title">Radar model</string>
+    <string name="sn_preset_target_fmt">%1$s — target class</string>
+    <string name="sn_preset_target_item_fmt">%1$s (%2$s)</string>
+    <string name="sn_preset_panels_fmt">%1$s — panels</string>
+    <string name="sn_preset_panel_item_fmt">%1$d panel(s) — %2$.0f° azimuth</string>
+    <string name="sn_preset_applied_fmt">%1$s: %2$s, %3$.0f° FOV. %4$s</string>
+    <string name="sn_preset_note_fmt">Elevation %1$.0f° to %2$.0f°, min range %3$s. Nominal data-sheet values; adjust for siting and RCS.</string>
+    <string name="sn_preset_min_na">n/a</string>
 </resources>

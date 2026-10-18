@@ -1,12 +1,17 @@
 package com.skiarkt.shooter.ui;
 
+import android.app.AlertDialog;
 import android.content.Context;
+import android.content.DialogInterface;
+import android.view.View;
+import android.widget.Button;
 import android.widget.CheckBox;
 import android.widget.EditText;
 import android.widget.LinearLayout;
 import android.widget.RadioButton;
 import android.widget.RadioGroup;
 import android.widget.SeekBar;
+import android.widget.TextView;
 
 import com.atakmap.android.maps.MapView;
 import com.skiarkt.shooter.R;
@@ -15,6 +20,7 @@ import com.skiarkt.shooter.data.PointDefenseRepository;
 import com.skiarkt.shooter.model.GeoPos;
 import com.skiarkt.shooter.model.ItemKind;
 import com.skiarkt.shooter.model.SensorItem;
+import com.skiarkt.shooter.model.SensorPreset;
 import com.skiarkt.shooter.model.SensorType;
 import com.skiarkt.shooter.overlay.OverlayManager;
 import com.skiarkt.shooter.settings.SettingsManager;
@@ -31,6 +37,7 @@ public class SensorPanel extends PointItemPanel<SensorItem> {
     private EditText azimuthInput;
     private SeekBar opacitySeek;
     private List<CheckBox> sensorBoxes;
+    private TextView presetNote;
 
     public SensorPanel(Context pluginContext, MapView mapView, SettingsManager settings,
             PointDefenseRepository repository, OverlayManager overlayManager, Runnable onBack) {
@@ -105,6 +112,18 @@ public class SensorPanel extends PointItemPanel<SensorItem> {
         typeGroup.check(1000 + item.type.ordinal());
         form.addView(typeGroup, matchWrap());
 
+        Button presetBtn = button(ctx.getString(R.string.sn_preset));
+        presetBtn.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                choosePresetModel();
+            }
+        });
+        form.addView(presetBtn, matchWrap());
+        presetNote = text("", 0xFF90A4AE);
+        presetNote.setVisibility(View.GONE);
+        form.addView(presetNote, matchWrap());
+
         String unit = settings.getUnitSystem().abbreviation;
         rangeField = distanceField(form, ctx.getString(R.string.sn_range_fmt, unit), item.rangeMeters);
         beamInput = numberField(form, ctx.getString(R.string.sn_beam), item.beamWidthDeg, false);
@@ -112,6 +131,82 @@ public class SensorPanel extends PointItemPanel<SensorItem> {
         opacitySeek = percentSeek(form, R.string.pt_opacity_fmt, Math.round(item.opacity * 100f));
         sensorBoxes = linkPicker(form, ctx.getString(R.string.link_sensors), new ItemKind[] {ItemKind.SENSOR},
                 item.linkedSensorUids, item.uid);
+    }
+
+    /** Step 1: radar model. */
+    private void choosePresetModel() {
+        final SensorPreset[] presets = SensorPreset.values();
+        String[] names = new String[presets.length];
+        for (int i = 0; i < presets.length; i++) {
+            names[i] = presets[i].displayName + " \u2014 " + presets[i].description;
+        }
+        new AlertDialog.Builder(mapView.getContext())
+                .setTitle(ctx.getString(R.string.sn_preset_title))
+                .setItems(names, new DialogInterface.OnClickListener() {
+                    @Override
+                    public void onClick(DialogInterface d, int which) {
+                        choosePresetTarget(presets[which]);
+                    }
+                })
+                .setNegativeButton(ctx.getString(R.string.pt_cancel), null)
+                .show();
+    }
+
+    /** Step 2: target class (sets detection range). */
+    private void choosePresetTarget(final SensorPreset p) {
+        String[] names = new String[p.targetClassCount()];
+        for (int i = 0; i < names.length; i++) {
+            names[i] = ctx.getString(R.string.sn_preset_target_item_fmt, p.targetClass(i),
+                    settings.formatDistance(p.rangeMeters(i)));
+        }
+        new AlertDialog.Builder(mapView.getContext())
+                .setTitle(ctx.getString(R.string.sn_preset_target_fmt, p.displayName))
+                .setItems(names, new DialogInterface.OnClickListener() {
+                    @Override
+                    public void onClick(DialogInterface d, int which) {
+                        choosePresetPanels(p, which);
+                    }
+                })
+                .setNegativeButton(ctx.getString(R.string.pt_cancel), null)
+                .show();
+    }
+
+    /** Step 3: panel count (sets horizontal FOV; 4 panels = 360 omni). */
+    private void choosePresetPanels(final SensorPreset p, final int targetIdx) {
+        String[] names = new String[SensorPreset.FULL_PANELS];
+        for (int i = 0; i < names.length; i++) {
+            names[i] = ctx.getString(R.string.sn_preset_panel_item_fmt, i + 1, p.beamWidthDeg(i + 1));
+        }
+        new AlertDialog.Builder(mapView.getContext())
+                .setTitle(ctx.getString(R.string.sn_preset_panels_fmt, p.displayName))
+                .setItems(names, new DialogInterface.OnClickListener() {
+                    @Override
+                    public void onClick(DialogInterface d, int which) {
+                        applyPreset(p, targetIdx, which + 1);
+                    }
+                })
+                .setNegativeButton(ctx.getString(R.string.pt_cancel), null)
+                .show();
+    }
+
+    private void applyPreset(SensorPreset p, int targetIdx, int panels) {
+        SensorItem tmp = new SensorItem();
+        p.applyTo(tmp, targetIdx, panels);
+        typeGroup.check(1000 + tmp.type.ordinal());
+        rangeField.set(tmp.rangeMeters);
+        beamInput.setText(String.format(Locale.US, "%.1f", tmp.beamWidthDeg));
+        if (labelField() != null) {
+            String cur = labelField().getText().toString().trim();
+            if (cur.isEmpty() || cur.matches("Sensor \\d+")) {
+                labelField().setText(p.shortName() + " " + (repository.getItems(ItemKind.SENSOR).size() + 1));
+            }
+        }
+        String min = p.minRangeMeters > 0 ? settings.formatDistance(p.minRangeMeters)
+                : ctx.getString(R.string.sn_preset_min_na);
+        String note = ctx.getString(R.string.sn_preset_note_fmt, p.elevationMinDeg, p.elevationMaxDeg, min);
+        presetNote.setText(ctx.getString(R.string.sn_preset_applied_fmt, p.displayName,
+                p.targetClass(targetIdx), tmp.beamWidthDeg, note));
+        presetNote.setVisibility(View.VISIBLE);
     }
 
     @Override

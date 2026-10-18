@@ -784,6 +784,18 @@ abstract class PointItemPanel<T extends PointItem> {
             prefill = t;
             return m;
         }
+
+        /** Programmatic update (e.g. from a preset). */
+        void set(double meters) {
+            original = meters;
+            prefill = settings.formatNumber(meters);
+            input.setText(prefill);
+        }
+    }
+
+    /** Label editor of the open edit form (null outside the editor). */
+    protected EditText labelField() {
+        return labelInput;
     }
 
     protected DistanceField distanceField(LinearLayout form, String label, double meters) {
