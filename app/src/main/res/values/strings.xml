@@ -316,4 +316,31 @@
     <string name="layer_heatmap">Heat map</string>
     <string name="layer_ring">Range ring</string>
     <string name="layer_marker">Marker</string>
+    <string name="sn_min_range_fmt">Min range / blind zone (%1$s)</string>
+    <string name="sn_elev_min">Elevation min (deg, blank = unknown)</string>
+    <string name="sn_elev_max">Elevation max (deg, blank = unknown)</string>
+    <string name="sn_day_night">Day / night capability</string>
+    <string name="sn_lasing_range_fmt">Max lasing range (%1$s, 0 = sensor range)</string>
+    <string name="sn_prf">PRF code (e.g. 1688)</string>
+    <string name="sn_divergence">Beam divergence (mrad)</string>
+    <string name="sp_header">Sensor presets (this device)</string>
+    <string name="sp_edit">Edit</string>
+    <string name="sp_reset">Reset</string>
+    <string name="sp_delete">Delete</string>
+    <string name="sp_add">Add custom preset</string>
+    <string name="sp_edited_suffix">" (edited)"</string>
+    <string name="sp_custom_suffix">" (custom)"</string>
+    <string name="sp_edit_title_fmt">Edit preset: %1$s</string>
+    <string name="sp_add_title">New custom preset</string>
+    <string name="sp_name">Name</string>
+    <string name="sp_short">Short name (label prefix)</string>
+    <string name="sp_desc">Description</string>
+    <string name="sp_panel_az">Azimuth per panel (deg)</string>
+    <string name="sp_min_range">Min range (m)</string>
+    <string name="sp_elev_min">Elevation min (deg, blank = unknown)</string>
+    <string name="sp_elev_max">Elevation max (deg, blank = unknown)</string>
+    <string name="sp_target_fmt">Target class %1$d (blank = unused)</string>
+    <string name="sp_range_fmt">Range %1$d (m)</string>
+    <string name="sp_invalid">Preset not saved: needs a name, panel azimuth 1-360 and at least one target class with range above min range.</string>
+    <string name="sp_saved">Preset saved</string>
 </resources>

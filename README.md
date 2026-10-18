@@ -10,6 +10,8 @@
 ![ATAK](https://img.shields.io/badge/ATAK--CIV-5.6.0-green.svg)
 ![Status](https://img.shields.io/badge/phases-1--3_complete-orange.svg)
 
+Current version: **1.0.8** (debug pre-release for ATAK developer builds; see [docs/ROADMAP.md](docs/ROADMAP.md)).
+
 SKIARKT is an ATAK-CIV plugin for planning counter-small-UAS (C-sUAS) point defense. Operators use it to lay out
 exclusion zones, sensors and effectors on the ATAK map. The plugin shows terrain-masked sensor coverage, models RF
 jammer effectiveness, works out safe intercept altitudes, and shares the whole plan with other ATAK / WinTAK users

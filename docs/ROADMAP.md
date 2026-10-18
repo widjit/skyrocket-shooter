@@ -1,6 +1,6 @@
 # SKY ROCKET SHOOTER (SKIARKT) — Roadmap
 
-Released: **1.0.6** (ATAK-CIV 5.6.0) — exclusion zones (polygon), sensors, RF jamming heat map,
+Current build: **1.0.8** (ATAK-CIV 5.6.0, debug pre-release). Released: **1.0.6** — exclusion zones (polygon), sensors, RF jamming heat map,
 kinetic effectors (including Directed Energy / laser at speed-of-light default), engagement-authority
 perimeters (R6), CoT sharing, autosave persistence.
 
@@ -93,7 +93,14 @@ toggling is done via each band's *enabled* checkbox (no separate per-band layer)
   actually denied.
 - Builds on the existing terrain-aware RF model. Most of the work is the data model, UI, and CoT schema.
 
-## R2. Sensor types
+## R2. Sensor types  — **Partially implemented in 1.0.8**
+
+**Status (1.0.8):** done: IR_THERMAL and LASER_DESIGNATOR types; min-range field with a dashed
+"Blind" ring on the map; elevation min/max; type-specific fields in the sensor edit form (radar:
+min range + elevation; EO/IR: day/night; designator: max lasing range, PRF code, beam divergence);
+the preset picker fills min range and elevation. Remaining: using elevation limits, day/night and
+designator fields in gap analysis / MSA filters, per-type icons, radar min RCS.
+
 - Types: **RADAR**, **Optical (EO camera)**, **IR / thermal**, **Laser designator**.
 - Each type has its own icon and type-specific fields. Common fields: range, beam width / FOV, AGL,
   azimuth sector. Type-specific examples: radar min detectable RCS; EO/IR day/night capability;
@@ -243,7 +250,7 @@ For each effector, a wall casts a **masking shadow** on the far side:
 - Optional: the same walls block sensor line of sight (e.g. radar masked by a tree line), feeding
   sensor gap analysis.
 
-## R9. Per-asset visibility toggles  — **Implemented in 1.0.7** (R9a, R9c; R9b not yet)
+## R9. Per-asset visibility toggles  — **Implemented** (R9a, R9c in 1.0.7; R9b in 1.0.8)
 
 **Status (1.0.7):** eye button on every row (sensors, NK, kinetic, exclusion zones, authority
 zones); tap toggles, long-press solos / restores. Per-type Show all / Hide all, per-site toggle,
@@ -252,7 +259,12 @@ in the main menu. `VisibilityStore` saves to `visibility.skiarkt.json` beside th
 in CoT or the plan JSON. Only the overlay consults it, so analysis still counts hidden items.
 PNG export asks whether to include hidden assets in the schematic and notes the hidden count in
 the header. The live map capture always shows what is currently drawn. PACE PDF does not exist
-yet; R9b (per-layer toggles) is not implemented.
+yet.
+
+**Status (1.0.8):** R9b done: per-layer "Layers" checkboxes in the Sensor, Kinetic and NK edit
+forms (e.g. hide a sensor's min-range ring or a kinetic effector's frag bands). `VisibilityStore`
+uses compound keys (`uid#layer:id`); layer keys are dropped with their asset and cleared by
+*Show everything*.
 
 Busy plans get cluttered: overlapping coverage rings, heat maps, and frag bands from many assets.
 The planner can show or hide each asset's map drawing individually.
@@ -268,7 +280,7 @@ The planner can show or hide each asset's map drawing individually.
 - Hidden assets stay in the list, greyed out, with a "hidden" tag, and still open for editing.
 - The panel header shows a count, e.g. "3 hidden", whenever anything is hidden.
 
-### R9b. Optional finer control
+### R9b. Optional finer control  — **Implemented in 1.0.8**
 - Per-layer toggles inside one asset, e.g. show a kinetic effector's max-range ring but hide its
   frag bands, or show a sensor marker but hide its coverage.
 
@@ -283,6 +295,21 @@ The planner can show or hide each asset's map drawing individually.
   hides it on a teammate's map.
 - PNG export and the PACE PDF draw what's visible, with an option to include all assets. The
   legend notes when assets are hidden.
+
+## R10. Sensor preset catalog  — **Implemented in 1.0.8**
+(v1.0.8) Sensor preset catalog in Settings — edit built-in presets, add/delete custom ones, persist
+JSON, merged picker in SensorPanel.
+- Settings → *Sensor presets*: one row per preset with Edit, Reset (built-in, enabled when edited)
+  or Delete (custom), and an Add button.
+- Saved in `sensor_presets.skiarkt.json` beside the autosave: overrides keyed by built-in id plus
+  the custom list. Built-ins are never deleted, only reset.
+- The sensor panel's preset picker shows built-ins (with overrides applied) followed by customs.
+
+## R11. Optics/IR definition and PID rings  *(pending)*
+Optics/IR definition and PID rings: per-sensor resolution, zoom and HFOV for day and IR/thermal
+channels; Detect/Recognise/Identify (DRI) range rings for Group 1 and Group 2 UAS that clip to the
+terrain/building mask so blind spots are preserved.
+- Builds on R2 (EO / IR_THERMAL types and the day/night field).
 
 ---
 
@@ -305,3 +332,5 @@ R7 depends only on the Directed Energy type added in 1.0.5.
 R8 (walls) is independent for measurement and drawing. Its masking rule (R8c) shares the clearance
 engine with exclusion-zone heights and feeds the engagement timeline and R5 masking analysis.
 R9 (visibility) is independent and works with today's asset types. The per-site toggle needs R0.
+R10 (preset catalog) builds on R2's min-range / elevation fields. R11 (optics / DRI rings) needs R2
+and the existing terrain/building line-of-sight mask.

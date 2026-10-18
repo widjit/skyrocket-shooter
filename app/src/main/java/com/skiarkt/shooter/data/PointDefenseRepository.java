@@ -73,6 +73,7 @@ public final class PointDefenseRepository {
     private long autosaveDelayMs = DEFAULT_AUTOSAVE_DELAY_MS;
 
     private final VisibilityStore visibility = new VisibilityStore();
+    private final CustomPresetStore presets = new CustomPresetStore();
 
     private PointDefenseRepository() {
         visibility.setListener(new VisibilityStore.Listener() {
@@ -86,6 +87,11 @@ public final class PointDefenseRepository {
     /** R9 per-device visibility (never shared, never part of the plan JSON / CoT). */
     public VisibilityStore getVisibility() {
         return visibility;
+    }
+
+    /** R10 local sensor preset catalog (never shared, never part of the plan JSON / CoT). */
+    public CustomPresetStore getPresetStore() {
+        return presets;
     }
 
     public static PointDefenseRepository getInstance() {
@@ -120,6 +126,7 @@ public final class PointDefenseRepository {
             restore = storageDir != null && plan.totalItems() == 0;
         }
         visibility.attach(storageDir == null ? null : new File(storageDir, VisibilityStore.FILE_NAME));
+        presets.attach(storageDir == null ? null : new File(storageDir, CustomPresetStore.FILE_NAME));
         if (restore) restoreAutosave();
     }
 

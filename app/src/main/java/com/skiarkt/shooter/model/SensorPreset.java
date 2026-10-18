@@ -105,12 +105,15 @@ public enum SensorPreset {
 
     /**
      * Applies this radar to a sensor: type RADAR, range for target class {@code targetIdx},
-     * horizontal FOV for {@code panels}. Azimuth, position, label, color are left unchanged.
+     * horizontal FOV for {@code panels}, min range and elevation limits. Azimuth, position, label, color are left unchanged.
      */
     public void applyTo(SensorItem s, int targetIdx, int panels) {
         int i = Math.max(0, Math.min(rangesMeters.length - 1, targetIdx));
         s.type = SensorType.RADAR;
         s.rangeMeters = rangesMeters[i];
         s.beamWidthDeg = beamWidthDeg(panels);
+        s.minRangeMeters = minRangeMeters;
+        s.elevationMinDeg = elevationMinDeg;
+        s.elevationMaxDeg = elevationMaxDeg;
     }
 }

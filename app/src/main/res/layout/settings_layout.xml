@@ -215,6 +215,20 @@
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:paddingTop="10dp"
+            android:text="@string/sp_header"
+            android:textColor="@color/skiarkt_accent"
+            android:textStyle="bold" />
+
+        <LinearLayout
+            android:id="@+id/sensor_presets_container"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="vertical" />
+
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:paddingTop="10dp"
             android:text="@string/settings_plan_header"
             android:textColor="@color/skiarkt_accent"
             android:textStyle="bold" />
