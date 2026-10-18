@@ -13,11 +13,18 @@
 ![Status](https://img.shields.io/badge/status-debug_pre--release-orange.svg)
 ![Version](https://img.shields.io/badge/version-1.0.8-lightgrey.svg)
 
-SKIARKT is an ATAK-CIV plugin for planning **counter-small-UAS (C-sUAS) point defense**. You lay out what
-you are protecting, where your sensors and effectors are, and where you are not allowed to shoot. The
-plugin then shows what each sensor can actually see over the terrain, where jammers are effective, where
-kinetic effectors can engage safely, and what altitude an intercept has to happen at. The whole plan
-is shared with other ATAK / WinTAK users as Cursor-on-Target (CoT).
+SKIARKT is an ATAK-CIV plugin for **counter-small-UAS (C-sUAS) point defense**. It is used by three
+groups:
+
+- **Planners** see what is actually covered before any asset is employed, and build courses of
+  action (COAs).
+- **Decision makers** make data-driven decisions, with coverage, gaps and engagement options in
+  front of them.
+- **Shooters** understand the environment they are operating in: what can be seen, where they can
+  engage, and where the blind spots are.
+
+The plugin shows terrain-masked sensor coverage, models RF jammer effectiveness, works out safe
+intercept altitudes, and shares the whole plan with other ATAK / WinTAK users as Cursor-on-Target (CoT).
 
 > **Planning and visualization tool only.** It is not a fire-control system. Ranges come from public
 > datasheets or what the operator enters. See [SECURITY.md](SECURITY.md) before any operational use.
