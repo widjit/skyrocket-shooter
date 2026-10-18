@@ -6,8 +6,7 @@
 
 **S**hooters **K**nown **I**ntercepter **A**TAK **R**apid **K**nowledge **T**ool
 
-> 🚀 ***Built by a shooter, for shooters.** Know what you can see, know where you can shoot, and
-> never take the shot you shouldn't.*
+> 🚀 ***Be a Shooter too.** Find your limits, and know your blindspots.*
 
 [![License: Apache 2.0](https://img.shields.io/badge/License-Apache_2.0-blue.svg)](LICENSE)
 ![ATAK](https://img.shields.io/badge/ATAK--CIV-5.6.0-green.svg)
