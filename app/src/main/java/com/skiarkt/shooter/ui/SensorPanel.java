@@ -197,7 +197,7 @@ public class SensorPanel extends PointItemPanel<SensorItem> {
         beamInput.setText(String.format(Locale.US, "%.1f", tmp.beamWidthDeg));
         if (labelField() != null) {
             String cur = labelField().getText().toString().trim();
-            if (cur.isEmpty() || cur.matches("(Sensor|RPS-42|nMHR|SUADS) \\d+")) {
+            if (cur.isEmpty() || cur.matches("(Sensor|RPS-42|nMHR|SUADS|B202) \\d+")) {
                 labelField().setText(p.shortName() + " " + (repository.getItems(ItemKind.SENSOR).size() + 1));
             }
         }

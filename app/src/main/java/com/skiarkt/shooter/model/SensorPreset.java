@@ -3,7 +3,7 @@ package com.skiarkt.shooter.model;
 /**
  * Catalog of fielded C-sUAS radars. Values come from public manufacturer data (Leonardo DRS /
  * RADA MHR family and nMHR data sheets; Echodyne EchoShield published tracking ranges, which is
- * the primary radar of Trust Automation SUADS) and are nominal: real detection range
+ * the primary radar of Trust Automation SUADS; Blighter B202 Mk 2 data sheet) and are nominal: real detection range
  * depends on target RCS, clutter, siting and mode. The planner only uses range and horizontal
  * field of view; minimum range and elevation limits are shown for reference.
  */
@@ -24,7 +24,19 @@ public enum SensorPreset {
     TRUST_SUADS("Trust Automation SUADS (EchoShield)", "SUADS", "Ku-band MESA radar, multi-sensor C-sUAS",
             120.0, 0.0, Double.NaN, 80.0,
             new String[] {"Group 1 UAS", "Group 2 UAS", "Group 3 UAS"},
-            new double[] {2700.0, 4800.0, 6400.0});
+            new double[] {2700.0, 4800.0, 6400.0}),
+    /**
+     * Blighter B202 Mk 2: Ku-band FMCW PESA ground surveillance radar with low-air (near-ground
+     * drone) coverage. 90 deg e-scan per head (80 deg in some markets), 20 deg vertical beam,
+     * 8 km instrumented range, < 10 m minimum. Blighter publishes ranges by RCS, not by drone
+     * class, so target classes are the data-sheet RCS points (0.1 m2 ~ small drone).
+     */
+    BLIGHTER_B202_MK2("Blighter B202 Mk 2", "B202", "Ku-band FMCW PESA ground / low-air radar",
+            90.0, 10.0, Double.NaN, 20.0,
+            new String[] {"Small drone / crawling person (0.1 m\u00B2)",
+                    "Large drone / walking person (1 m\u00B2)",
+                    "Vehicle (30 m\u00B2)"},
+            new double[] {1500.0, 3300.0, 8000.0});
 
     /** Max panels offered in the picker. */
     public static final int FULL_PANELS = 4;
