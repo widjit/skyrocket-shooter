@@ -173,7 +173,7 @@ public class SensorPanel extends PointItemPanel<SensorItem> {
 
     /** Step 3: panel count (sets horizontal FOV; 4 panels = 360 omni). */
     private void choosePresetPanels(final SensorPreset p, final int targetIdx) {
-        String[] names = new String[SensorPreset.FULL_PANELS];
+        String[] names = new String[p.panelsFor360()];
         for (int i = 0; i < names.length; i++) {
             names[i] = ctx.getString(R.string.sn_preset_panel_item_fmt, i + 1, p.beamWidthDeg(i + 1));
         }
@@ -197,13 +197,13 @@ public class SensorPanel extends PointItemPanel<SensorItem> {
         beamInput.setText(String.format(Locale.US, "%.1f", tmp.beamWidthDeg));
         if (labelField() != null) {
             String cur = labelField().getText().toString().trim();
-            if (cur.isEmpty() || cur.matches("Sensor \\d+")) {
+            if (cur.isEmpty() || cur.matches("(Sensor|RPS-42|nMHR|SUADS) \\d+")) {
                 labelField().setText(p.shortName() + " " + (repository.getItems(ItemKind.SENSOR).size() + 1));
             }
         }
         String min = p.minRangeMeters > 0 ? settings.formatDistance(p.minRangeMeters)
                 : ctx.getString(R.string.sn_preset_min_na);
-        String note = ctx.getString(R.string.sn_preset_note_fmt, p.elevationMinDeg, p.elevationMaxDeg, min);
+        String note = ctx.getString(R.string.sn_preset_note_fmt, p.elevationText(), min);
         presetNote.setText(ctx.getString(R.string.sn_preset_applied_fmt, p.displayName,
                 p.targetClass(targetIdx), tmp.beamWidthDeg, note));
         presetNote.setVisibility(View.VISIBLE);

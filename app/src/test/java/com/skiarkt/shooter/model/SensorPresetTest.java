@@ -47,4 +47,24 @@ public class SensorPresetTest {
         assertEquals(8000.0, s.rangeMeters, 0);
         assertEquals(90.0, s.beamWidthDeg, 0);
     }
+
+    @Test
+    public void suadsEchoShieldValues() {
+        SensorPreset p = SensorPreset.TRUST_SUADS;
+        assertEquals(3, p.targetClassCount());
+        assertEquals(2700.0, p.rangeMeters(0), 0);
+        assertEquals(6400.0, p.rangeMeters(2), 0);
+        assertEquals(3, p.panelsFor360());
+        assertEquals(240.0, p.beamWidthDeg(2), 0);
+        assertEquals(360.0, p.beamWidthDeg(3), 0);
+        assertEquals("80\u00B0 span", p.elevationText());
+        assertEquals("SUADS", p.shortName());
+    }
+
+    @Test
+    public void panelsAndElevationTextForRada() {
+        assertEquals(4, SensorPreset.RADA_RPS42.panelsFor360());
+        assertEquals("-10\u00B0 to +70\u00B0", SensorPreset.RADA_RPS42.elevationText());
+        assertEquals(4, SensorPreset.RADA_RPS92_NMHR.panelsFor360());
+    }
 }

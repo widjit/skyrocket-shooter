@@ -300,6 +300,6 @@
     <string name="sn_preset_panels_fmt">%1$s — panels</string>
     <string name="sn_preset_panel_item_fmt">%1$d panel(s) — %2$.0f° azimuth</string>
     <string name="sn_preset_applied_fmt">%1$s: %2$s, %3$.0f° FOV. %4$s</string>
-    <string name="sn_preset_note_fmt">Elevation %1$.0f° to %2$.0f°, min range %3$s. Nominal data-sheet values; adjust for siting and RCS.</string>
+    <string name="sn_preset_note_fmt">Elevation %1$s, min range %2$s. Nominal data-sheet values; adjust for siting and RCS.</string>
     <string name="sn_preset_min_na">n/a</string>
 </resources>
