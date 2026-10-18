@@ -302,4 +302,18 @@
     <string name="sn_preset_applied_fmt">%1$s: %2$s, %3$.0f° FOV. %4$s</string>
     <string name="sn_preset_note_fmt">Elevation %1$s, min range %2$s. Nominal data-sheet values; adjust for siting and RCS.</string>
     <string name="sn_preset_min_na">n/a</string>
+    <string name="layers_header">Layers (this device only; analysis unaffected)</string>
+    <string name="layer_coverage">Coverage</string>
+    <string name="layer_mask">Terrain mask</string>
+    <string name="layer_engage">Engage ring</string>
+    <string name="layer_minrange">Min-range (blind) ring</string>
+    <string name="layer_bands">Frag / beam bands</string>
+    <string name="layer_maxring">Max ring</string>
+    <string name="layer_minring">Min ring</string>
+    <string name="layer_sector">Sector outline</string>
+    <string name="layer_restricted">No-fire wedges</string>
+    <string name="layer_effective">Effective / suppression rings</string>
+    <string name="layer_heatmap">Heat map</string>
+    <string name="layer_ring">Range ring</string>
+    <string name="layer_marker">Marker</string>
 </resources>

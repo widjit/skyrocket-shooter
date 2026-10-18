@@ -26,10 +26,43 @@ import java.util.Set;
  * <b>never</b> written to CoT or to the shared plan JSON, so hiding an asset here never hides it on
  * a teammate's map. Hiding only affects drawing: analysis code must not consult this store.
  *
+ * <p>R9b per-layer visibility: sub-layers of one asset (coverage, terrain mask, rings, marker...)
+ * are hidden with compound keys {@code uid + LAYER_SEP + layer} ({@link #layerKey}) stored in the
+ * same set. Layer keys never count as hidden assets and are kept while their owning uid is live.
+ *
  * <p>Thread-safe; the change callback runs on the calling thread.
  */
 public final class VisibilityStore {
     public static final String FILE_NAME = "visibility.skiarkt.json";
+    /** Separator between the owning uid and the layer id in a layer key. */
+    public static final String LAYER_SEP = "#layer:";
+
+    /** R9b layer ids drawn by the overlays (view-only, never in CoT). */
+    public static final class Layer {
+        // Sensor
+        public static final String COVERAGE = "coverage";
+        public static final String TERRAIN_MASK = "mask";
+        public static final String ENGAGE_RING = "engage";
+        public static final String MIN_RANGE_RING = "minrange";
+        // Kinetic / directed energy
+        public static final String FRAG_BANDS = "bands";
+        public static final String MAX_RING = "maxring";
+        public static final String MIN_RING = "minring";
+        public static final String SECTOR = "sector";
+        public static final String RESTRICTED = "restricted";
+        public static final String EFFECTIVE_RING = "effective";
+        // Non-kinetic (RF)
+        public static final String HEATMAP = "heatmap";
+        public static final String RANGE_RING = "ring";
+        // Shared
+        public static final String MARKER = "marker";
+
+        static final String[] ALL = {COVERAGE, TERRAIN_MASK, ENGAGE_RING, MIN_RANGE_RING, FRAG_BANDS, MAX_RING,
+                MIN_RING, SECTOR, RESTRICTED, EFFECTIVE_RING, HEATMAP, RANGE_RING, MARKER};
+
+        private Layer() {
+        }
+    }
 
     /** Notified after every change. */
     public interface Listener {
@@ -80,6 +113,51 @@ public final class VisibilityStore {
         }
     }
 
+    /** Compound key for layer {@code layer} of asset {@code uid}. */
+    public static String layerKey(String uid, String layer) {
+        return uid + LAYER_SEP + layer;
+    }
+
+    /** True when {@code key} ends with a known layer suffix (uids may contain dots / colons). */
+    public static boolean isLayerKey(String key) {
+        return ownerOf(key) != null;
+    }
+
+    /** Owning uid of a layer key, or null when {@code key} is a plain asset uid. */
+    public static String ownerOf(String key) {
+        if (key == null) return null;
+        for (String l : Layer.ALL) {
+            String suffix = LAYER_SEP + l;
+            if (key.length() > suffix.length() && key.endsWith(suffix)) {
+                return key.substring(0, key.length() - suffix.length());
+            }
+        }
+        return null;
+    }
+
+    public synchronized boolean isLayerHidden(String uid, String layer) {
+        return uid != null && layer != null && hidden.contains(layerKey(uid, layer));
+    }
+
+    /** Hides / shows one sub-layer of an asset (view-only). */
+    public void setLayerHidden(String uid, String layer, boolean hide) {
+        if (uid == null || layer == null) return;
+        setHidden(layerKey(uid, layer), hide);
+    }
+
+    /** Number of hidden sub-layers of {@code uid}. */
+    public synchronized int hiddenLayerCount(String uid) {
+        int n = 0;
+        if (uid != null) for (String k : hidden) if (uid.equals(ownerOf(k))) n++;
+        return n;
+    }
+
+    private Set<String> layerKeysLocked() {
+        Set<String> out = new LinkedHashSet<>();
+        for (String k : hidden) if (isLayerKey(k)) out.add(k);
+        return out;
+    }
+
     public synchronized boolean isHidden(String uid) {
         return uid != null && hidden.contains(uid);
     }
@@ -88,8 +166,11 @@ public final class VisibilityStore {
         return !isHidden(uid);
     }
 
+    /** Number of hidden assets (layer keys excluded). */
     public synchronized int hiddenCount() {
-        return hidden.size();
+        int n = 0;
+        for (String k : hidden) if (!isLayerKey(k)) n++;
+        return n;
     }
 
     /** Number of {@code uids} that are hidden. */
@@ -99,8 +180,11 @@ public final class VisibilityStore {
         return n;
     }
 
+    /** Hidden asset uids (layer keys excluded). */
     public synchronized Set<String> hiddenUids() {
-        return new LinkedHashSet<>(hidden);
+        Set<String> out = new LinkedHashSet<>();
+        for (String k : hidden) if (!isLayerKey(k)) out.add(k);
+        return out;
     }
 
     public synchronized String soloUid() {
@@ -143,26 +227,32 @@ public final class VisibilityStore {
         if (uid == null) return false;
         boolean nowSolo;
         synchronized (this) {
+            // Solo only acts on assets; per-layer settings survive it.
+            Set<String> layers = layerKeysLocked();
             if (uid.equals(soloUid)) {
                 hidden.clear();
-                if (beforeSolo != null) hidden.addAll(beforeSolo);
+                if (beforeSolo != null) for (String k : beforeSolo) if (!isLayerKey(k)) hidden.add(k);
                 soloUid = null;
                 beforeSolo = null;
                 nowSolo = false;
             } else {
-                if (soloUid == null) beforeSolo = new LinkedHashSet<>(hidden);
+                if (soloUid == null) {
+                    beforeSolo = new LinkedHashSet<>(hidden);
+                    beforeSolo.removeAll(layers);
+                }
                 soloUid = uid;
                 hidden.clear();
                 if (allUids != null) for (String u : allUids) if (u != null && !u.equals(uid)) hidden.add(u);
                 hidden.remove(uid);
                 nowSolo = true;
             }
+            hidden.addAll(layers);
         }
         changed();
         return nowSolo;
     }
 
-    /** "Show everything": clears every hidden uid and any solo snapshot. */
+    /** "Show everything": clears every hidden uid, every hidden layer and any solo snapshot. */
     public void showAll() {
         boolean changed;
         synchronized (this) {
@@ -174,11 +264,20 @@ public final class VisibilityStore {
         if (changed) changed();
     }
 
-    /** Drops uids no longer in the plan (keeps the file tidy). */
+    /** Drops uids (and layer keys of uids) no longer in the plan (keeps the file tidy). */
     public void retainOnly(Collection<String> liveUids) {
-        boolean changed;
+        if (liveUids == null) return;
+        boolean changed = false;
         synchronized (this) {
-            changed = hidden.retainAll(new LinkedHashSet<>(liveUids));
+            Set<String> live = new LinkedHashSet<>(liveUids);
+            for (java.util.Iterator<String> it = hidden.iterator(); it.hasNext(); ) {
+                String k = it.next();
+                if (live.contains(k)) continue;
+                String owner = ownerOf(k);
+                if (owner != null && live.contains(owner)) continue;
+                it.remove();
+                changed = true;
+            }
             if (soloUid != null && !liveUids.contains(soloUid)) {
                 soloUid = null;
                 beforeSolo = null;

@@ -210,6 +210,11 @@ public class SensorPanel extends PointItemPanel<SensorItem> {
     }
 
     @Override
+    String[] layerIds() {
+        return new String[] {com.skiarkt.shooter.data.VisibilityStore.Layer.COVERAGE, com.skiarkt.shooter.data.VisibilityStore.Layer.TERRAIN_MASK, com.skiarkt.shooter.data.VisibilityStore.Layer.ENGAGE_RING, com.skiarkt.shooter.data.VisibilityStore.Layer.MIN_RANGE_RING, com.skiarkt.shooter.data.VisibilityStore.Layer.MARKER};
+    }
+
+    @Override
     String readSpecificFields(SensorItem item) {
         String err = null;
         int checked = typeGroup.getCheckedRadioButtonId() - 1000;

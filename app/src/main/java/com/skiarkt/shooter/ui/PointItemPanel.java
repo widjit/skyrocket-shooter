@@ -127,6 +127,11 @@ abstract class PointItemPanel<T extends PointItem> {
     /** Reads subclass fields into {@code item}; returns an error description or null. */
     abstract String readSpecificFields(T item);
 
+    /** R9b: sub-layer ids ({@link com.skiarkt.shooter.data.VisibilityStore.Layer}) offered in "Layers"; null = none. */
+    String[] layerIds() {
+        return null;
+    }
+
     /** Analysis summary for the editor (null = none). */
     abstract String statsText(T item);
 
@@ -373,6 +378,7 @@ abstract class PointItemPanel<T extends PointItem> {
         colorPicker(form, ctx.getString(R.string.pt_color), item.color);
 
         buildSpecificFields(form, item);
+        buildLayerToggles(form, item.uid);
 
         statsText = text("", 0xFFFFC107);
         statsText.setPadding(0, dp(6), 0, dp(2));
@@ -604,6 +610,53 @@ abstract class PointItemPanel<T extends PointItem> {
                 showEdit(item, true);
             }
         });
+    }
+
+    /**
+     * R9b "Layers" section: one checkbox per sub-layer (checked = drawn). Applies immediately, is
+     * stored locally in the visibility file and never affects CoT or analysis.
+     */
+    private void buildLayerToggles(LinearLayout form, final String uid) {
+        String[] ids = layerIds();
+        if (ids == null || ids.length == 0 || uid == null) return;
+        final com.skiarkt.shooter.data.VisibilityStore vis = repository.getVisibility();
+        TextView t = text(ctx.getString(R.string.layers_header), 0xFFB0BEC5);
+        t.setPadding(0, dp(6), 0, 0);
+        form.addView(t, matchWrap());
+        for (final String id : ids) {
+            CheckBox c = new CheckBox(ctx);
+            c.setText(layerLabel(id));
+            c.setTextColor(0xFFFFFFFF);
+            c.setChecked(!vis.isLayerHidden(uid, id));
+            c.setOnCheckedChangeListener(new android.widget.CompoundButton.OnCheckedChangeListener() {
+                @Override
+                public void onCheckedChanged(android.widget.CompoundButton b, boolean checked) {
+                    vis.setLayerHidden(uid, id, !checked);
+                }
+            });
+            form.addView(c, matchWrap());
+        }
+    }
+
+    private String layerLabel(String id) {
+        int res;
+        switch (id) {
+            case com.skiarkt.shooter.data.VisibilityStore.Layer.COVERAGE: res = R.string.layer_coverage; break;
+            case com.skiarkt.shooter.data.VisibilityStore.Layer.TERRAIN_MASK: res = R.string.layer_mask; break;
+            case com.skiarkt.shooter.data.VisibilityStore.Layer.ENGAGE_RING: res = R.string.layer_engage; break;
+            case com.skiarkt.shooter.data.VisibilityStore.Layer.MIN_RANGE_RING: res = R.string.layer_minrange; break;
+            case com.skiarkt.shooter.data.VisibilityStore.Layer.FRAG_BANDS: res = R.string.layer_bands; break;
+            case com.skiarkt.shooter.data.VisibilityStore.Layer.MAX_RING: res = R.string.layer_maxring; break;
+            case com.skiarkt.shooter.data.VisibilityStore.Layer.MIN_RING: res = R.string.layer_minring; break;
+            case com.skiarkt.shooter.data.VisibilityStore.Layer.SECTOR: res = R.string.layer_sector; break;
+            case com.skiarkt.shooter.data.VisibilityStore.Layer.RESTRICTED: res = R.string.layer_restricted; break;
+            case com.skiarkt.shooter.data.VisibilityStore.Layer.EFFECTIVE_RING: res = R.string.layer_effective; break;
+            case com.skiarkt.shooter.data.VisibilityStore.Layer.HEATMAP: res = R.string.layer_heatmap; break;
+            case com.skiarkt.shooter.data.VisibilityStore.Layer.RANGE_RING: res = R.string.layer_ring; break;
+            case com.skiarkt.shooter.data.VisibilityStore.Layer.MARKER: res = R.string.layer_marker; break;
+            default: return id;
+        }
+        return ctx.getString(res);
     }
 
     /** Site summary rows with a per-site visibility toggle. */

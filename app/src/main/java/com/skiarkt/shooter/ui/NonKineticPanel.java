@@ -343,6 +343,11 @@ public class NonKineticPanel extends PointItemPanel<NonKineticEffector> {
     }
 
     @Override
+    String[] layerIds() {
+        return new String[] {com.skiarkt.shooter.data.VisibilityStore.Layer.HEATMAP, com.skiarkt.shooter.data.VisibilityStore.Layer.RANGE_RING, com.skiarkt.shooter.data.VisibilityStore.Layer.MARKER};
+    }
+
+    @Override
     String readSpecificFields(NonKineticEffector item) {
         String err = null;
         double p = parseNumber(powerInput.getText().toString());

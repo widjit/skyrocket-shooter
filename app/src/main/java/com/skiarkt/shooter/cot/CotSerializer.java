@@ -18,6 +18,7 @@ import com.skiarkt.shooter.model.PointItem;
 import com.skiarkt.shooter.model.RfBand;
 import com.skiarkt.shooter.model.RfHeatmapMode;
 import com.skiarkt.shooter.model.PolygonItem;
+import com.skiarkt.shooter.model.DayNight;
 import com.skiarkt.shooter.model.SensorItem;
 import com.skiarkt.shooter.model.SensorType;
 import com.skiarkt.shooter.model.ThreatCorridor;
@@ -184,6 +185,17 @@ public final class CotSerializer {
                 if (s.linkedSensorUids != null && !s.linkedSensorUids.isEmpty()) {
                     skiarkt.setAttribute("linkedSensors", joinUids(s.linkedSensorUids));
                 }
+                // R2 (optional attributes; absent on older peers -> defaults).
+                if (s.minRangeMeters > 0) skiarkt.setAttribute("minRange", d(s.minRangeMeters));
+                if (!Double.isNaN(s.elevationMinDeg)) skiarkt.setAttribute("elevMin", d(s.elevationMinDeg));
+                if (!Double.isNaN(s.elevationMaxDeg)) skiarkt.setAttribute("elevMax", d(s.elevationMaxDeg));
+                s.ensureLists();
+                skiarkt.setAttribute("dayNight", s.dayNight.name());
+                if (s.type == SensorType.LASER_DESIGNATOR) {
+                    skiarkt.setAttribute("maxLasingRange", d(s.maxLasingRangeMeters));
+                    skiarkt.setAttribute("laserPrf", String.valueOf(s.laserPrfCode));
+                    skiarkt.setAttribute("beamDivergence", d(s.beamDivergenceMrad));
+                }
                 break;
             }
             case NON_KINETIC_EFFECTOR: {
@@ -295,6 +307,13 @@ public final class CotSerializer {
                 s.azimuthDeg = pd(skiarkt, "azimuth", s.azimuthDeg);
                 s.opacity = (float) Math.max(0, Math.min(1, pd(skiarkt, "opacity", s.opacity)));
                 s.linkedSensorUids = splitUids(skiarkt.getAttribute("linkedSensors"));
+                s.minRangeMeters = Math.max(0, pd(skiarkt, "minRange", s.minRangeMeters));
+                s.elevationMinDeg = pd(skiarkt, "elevMin", s.elevationMinDeg);
+                s.elevationMaxDeg = pd(skiarkt, "elevMax", s.elevationMaxDeg);
+                s.dayNight = DayNight.fromName(skiarkt.getAttribute("dayNight"), DayNight.DAY_NIGHT);
+                s.maxLasingRangeMeters = Math.max(0, pd(skiarkt, "maxLasingRange", s.maxLasingRangeMeters));
+                s.laserPrfCode = pi(skiarkt, "laserPrf", s.laserPrfCode);
+                s.beamDivergenceMrad = Math.max(0, pd(skiarkt, "beamDivergence", s.beamDivergenceMrad));
                 item = s;
                 break;
             }

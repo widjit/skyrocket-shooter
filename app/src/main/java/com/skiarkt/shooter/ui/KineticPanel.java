@@ -249,6 +249,11 @@ public class KineticPanel extends PointItemPanel<KineticEffector> {
     }
 
     @Override
+    String[] layerIds() {
+        return new String[] {com.skiarkt.shooter.data.VisibilityStore.Layer.FRAG_BANDS, com.skiarkt.shooter.data.VisibilityStore.Layer.MAX_RING, com.skiarkt.shooter.data.VisibilityStore.Layer.MIN_RING, com.skiarkt.shooter.data.VisibilityStore.Layer.EFFECTIVE_RING, com.skiarkt.shooter.data.VisibilityStore.Layer.SECTOR, com.skiarkt.shooter.data.VisibilityStore.Layer.RESTRICTED, com.skiarkt.shooter.data.VisibilityStore.Layer.MARKER};
+    }
+
+    @Override
     String readSpecificFields(KineticEffector item) {
         String err = null;
         item.type = selType;

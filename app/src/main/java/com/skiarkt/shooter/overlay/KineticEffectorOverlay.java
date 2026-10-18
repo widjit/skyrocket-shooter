@@ -6,6 +6,8 @@ import com.atakmap.android.maps.MapGroup;
 import com.atakmap.android.maps.Polyline;
 import com.skiarkt.shooter.analysis.CoverageGeometry;
 import com.skiarkt.shooter.analysis.LaserPerformance;
+import com.skiarkt.shooter.data.VisibilityStore;
+import com.skiarkt.shooter.data.VisibilityStore.Layer;
 import com.skiarkt.shooter.model.AzimuthArc;
 import com.skiarkt.shooter.model.GeoPos;
 import com.skiarkt.shooter.model.KineticEffector;
@@ -24,6 +26,7 @@ import java.util.Locale;
  *   <li>restricted (no-fire) azimuth wedges in solid red;</li>
  *   <li>centre marker with name / type / range / status.</li>
  * </ul>
+ * R9b: every sub-layer can be hidden per asset ({@link VisibilityStore.Layer}).
  */
 public class KineticEffectorOverlay {
     private static final String TAG = "SkiarktKineticOverlay";
@@ -47,12 +50,20 @@ public class KineticEffectorOverlay {
     static final float RESTRICTED_ALPHA = 0.75f;
 
     private final SettingsManager settings;
+    /** Layer visibility for the render in progress (map thread only). */
+    private VisibilityStore vis;
 
     public KineticEffectorOverlay(SettingsManager settings) {
         this.settings = settings;
     }
 
     public void render(MapGroup group, KineticEffector k) {
+        render(group, k, null);
+    }
+
+    /** @param vis per-layer visibility (null = draw every layer). */
+    public void render(MapGroup group, KineticEffector k, VisibilityStore vis) {
+        this.vis = vis;
         if (group == null || k == null || k.position == null || !k.position.isValid()) return;
         k.ensureLists();
         GeoPos pos = k.position;
@@ -73,41 +84,44 @@ public class KineticEffectorOverlay {
         }
         try {
             // Heat bands (outer first so inner bands draw on top).
-            if (max > frag + 0.5) {
+            boolean bands = shown(k, Layer.FRAG_BANDS);
+            if (bands && max > frag + 0.5) {
                 group.addItem(OverlayItems.polygon(k.uid + BAND_GREEN_SUFFIX, k.uid,
                         band(pos, frag, max, full, start, sweep, step),
                         OverlayItems.withAlpha(green, BAND_ALPHA), 0, 0, false));
             }
-            if (frag > min + 0.5) {
+            if (bands && frag > min + 0.5) {
                 group.addItem(OverlayItems.polygon(k.uid + BAND_YELLOW_SUFFIX, k.uid,
                         band(pos, min, frag, full, start, sweep, step),
                         OverlayItems.withAlpha(yellow, BAND_ALPHA + 0.08f), 0, 0, false));
             }
-            if (min > 0.5) {
+            if (bands && min > 0.5) {
                 group.addItem(OverlayItems.polygon(k.uid + BAND_RED_SUFFIX, k.uid,
                         CoverageGeometry.circle(pos, min, step),
                         OverlayItems.withAlpha(red, BAND_ALPHA + 0.13f), 0, 0, false));
             }
 
             // Rings.
-            Polyline maxRing = OverlayItems.polygon(k.uid + MAX_RING_SUFFIX, k.uid,
-                    CoverageGeometry.circle(pos, max, step), 0, OverlayItems.withAlpha(green, 0.85f), 2d, false);
-            maxRing.setTitle(k.label);
-            group.addItem(maxRing);
-            if (min > 0.5) {
+            if (shown(k, Layer.MAX_RING)) {
+                Polyline maxRing = OverlayItems.polygon(k.uid + MAX_RING_SUFFIX, k.uid,
+                        CoverageGeometry.circle(pos, max, step), 0, OverlayItems.withAlpha(green, 0.85f), 2d, false);
+                maxRing.setTitle(k.label);
+                group.addItem(maxRing);
+            }
+            if (min > 0.5 && shown(k, Layer.MIN_RING)) {
                 group.addItem(OverlayItems.polygon(k.uid + MIN_RING_SUFFIX, k.uid,
                         CoverageGeometry.circle(pos, min, step), 0, red, 2d, false));
             }
 
             // Sector outline.
-            if (!full && sweep < 360.0) {
+            if (!full && sweep < 360.0 && shown(k, Layer.SECTOR)) {
                 group.addItem(OverlayItems.polygon(k.uid + SECTOR_SUFFIX, k.uid,
                         CoverageGeometry.annularWedge(pos, 0, max, start, sweep, step),
                         0, 0xFFFFFFFF, 2d, true));
             }
 
             // Restricted (no-fire) azimuth wedges.
-            for (int i = 0; i < k.restrictedAzimuths.size(); i++) {
+            for (int i = 0; shown(k, Layer.RESTRICTED) && i < k.restrictedAzimuths.size(); i++) {
                 AzimuthArc a = k.restrictedAzimuths.get(i);
                 if (a == null || !a.isValid()) continue;
                 double s = a.sweepDeg();
@@ -117,7 +131,9 @@ public class KineticEffectorOverlay {
                         OverlayItems.withAlpha(red, RESTRICTED_ALPHA), red, 1.5d, false));
             }
 
-            group.addItem(OverlayItems.label(k.uid + CENTER_SUFFIX, k.uid, pos, labelText(k), green, true));
+            if (shown(k, Layer.MARKER)) {
+                group.addItem(OverlayItems.label(k.uid + CENTER_SUFFIX, k.uid, pos, labelText(k), green, true));
+            }
         } catch (RuntimeException e) {
             Log.e(TAG, "Failed to render kinetic effector " + k.uid, e);
         }
@@ -137,7 +153,7 @@ public class KineticEffectorOverlay {
         try {
             double eff = Math.max(0.0, Math.min(max, LaserPerformance.effectiveRangeM(k)));
             double span = Math.max(1.0, max - min);
-            for (int i = BEAM_BANDS - 1; i >= 0; i--) {
+            for (int i = BEAM_BANDS - 1; shown(k, Layer.FRAG_BANDS) && i >= 0; i--) {
                 double r0 = min + span * i / BEAM_BANDS;
                 double r1 = min + span * (i + 1) / BEAM_BANDS;
                 if (r1 - r0 < 0.5) continue;
@@ -148,18 +164,22 @@ public class KineticEffectorOverlay {
                         band(pos, r0, r1, full, start, sweep, step),
                         OverlayItems.withAlpha(color, (float) (BEAM_MAX_ALPHA * rel)), 0, 0, false));
             }
-            if (min > 0.5) {
+            if (min > 0.5 && shown(k, Layer.FRAG_BANDS)) {
                 group.addItem(OverlayItems.polygon(k.uid + BAND_RED_SUFFIX, k.uid,
                         CoverageGeometry.circle(pos, min, step),
                         OverlayItems.withAlpha(red, BAND_ALPHA + 0.13f), 0, 0, false));
+            }
+            if (min > 0.5 && shown(k, Layer.MIN_RING)) {
                 group.addItem(OverlayItems.polygon(k.uid + MIN_RING_SUFFIX, k.uid,
                         CoverageGeometry.circle(pos, min, step), 0, red, 2d, false));
             }
-            Polyline maxRing = OverlayItems.polygon(k.uid + MAX_RING_SUFFIX, k.uid,
-                    CoverageGeometry.circle(pos, max, step), 0, OverlayItems.withAlpha(green, 0.5f), 1.5d, true);
-            maxRing.setTitle(k.label);
-            group.addItem(maxRing);
-            if (eff > 0.5) {
+            if (shown(k, Layer.MAX_RING)) {
+                Polyline maxRing = OverlayItems.polygon(k.uid + MAX_RING_SUFFIX, k.uid,
+                        CoverageGeometry.circle(pos, max, step), 0, OverlayItems.withAlpha(green, 0.5f), 1.5d, true);
+                maxRing.setTitle(k.label);
+                group.addItem(maxRing);
+            }
+            if (eff > 0.5 && shown(k, Layer.EFFECTIVE_RING)) {
                 group.addItem(OverlayItems.polygon(k.uid + EFFECTIVE_RING_SUFFIX, k.uid,
                         band(pos, 0, eff, full, start, sweep, step), 0, OverlayItems.withAlpha(green, 0.95f),
                         2.5d, false));
@@ -170,11 +190,11 @@ public class KineticEffectorOverlay {
                             OverlayItems.withAlpha(yellow, 0.9f), 1.5d, true));
                 }
             }
-            if (!full && sweep < 360.0) {
+            if (!full && sweep < 360.0 && shown(k, Layer.SECTOR)) {
                 group.addItem(OverlayItems.polygon(k.uid + SECTOR_SUFFIX, k.uid,
                         CoverageGeometry.annularWedge(pos, 0, max, start, sweep, step), 0, 0xFFFFFFFF, 2d, true));
             }
-            for (int i = 0; i < k.restrictedAzimuths.size(); i++) {
+            for (int i = 0; shown(k, Layer.RESTRICTED) && i < k.restrictedAzimuths.size(); i++) {
                 AzimuthArc a = k.restrictedAzimuths.get(i);
                 if (a == null || !a.isValid()) continue;
                 double s = a.sweepDeg();
@@ -183,10 +203,16 @@ public class KineticEffectorOverlay {
                                 Math.max(0.5, Math.min(step, s / 2))),
                         OverlayItems.withAlpha(red, RESTRICTED_ALPHA), red, 1.5d, false));
             }
-            group.addItem(OverlayItems.label(k.uid + CENTER_SUFFIX, k.uid, pos, labelText(k), green, true));
+            if (shown(k, Layer.MARKER)) {
+                group.addItem(OverlayItems.label(k.uid + CENTER_SUFFIX, k.uid, pos, labelText(k), green, true));
+            }
         } catch (RuntimeException e) {
             Log.e(TAG, "Failed to render directed-energy effector " + k.uid, e);
         }
+    }
+
+    private boolean shown(KineticEffector k, String layer) {
+        return vis == null || !vis.isLayerHidden(k.uid, layer);
     }
 
     private static List<GeoPos> band(GeoPos pos, double r0, double r1, boolean full, double start,

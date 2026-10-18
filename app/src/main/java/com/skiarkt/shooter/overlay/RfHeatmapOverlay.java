@@ -6,6 +6,8 @@ import com.skiarkt.shooter.analysis.CoverageEngine;
 import com.skiarkt.shooter.analysis.CoverageGeometry;
 import com.skiarkt.shooter.analysis.RfHeatmap;
 import com.skiarkt.shooter.analysis.RfPropagation;
+import com.skiarkt.shooter.data.VisibilityStore;
+import com.skiarkt.shooter.data.VisibilityStore.Layer;
 import com.skiarkt.shooter.model.GeoPos;
 import com.skiarkt.shooter.model.NonKineticEffector;
 import com.skiarkt.shooter.model.PlanColors;
@@ -40,11 +42,17 @@ public class RfHeatmapOverlay {
     }
 
     public void render(MapGroup group, NonKineticEffector n, CoverageEngine.HeatmapResult heat, boolean computing) {
+        render(group, n, heat, computing, null);
+    }
+
+    /** @param vis R9b per-layer visibility (null = draw every layer). */
+    public void render(MapGroup group, NonKineticEffector n, CoverageEngine.HeatmapResult heat, boolean computing,
+            VisibilityStore vis) {
         if (group == null || n == null || !n.isValid()) return;
         normalizeColors(n);
         float alpha = settings.getHeatmapOpacity() * n.getOpacity();
 
-        if (heat != null && heat.raster != null && alpha > 0.004f) {
+        if (heat != null && heat.raster != null && alpha > 0.004f && shown(vis, n, Layer.HEATMAP)) {
             int[] palette = RfPropagation.palette(RfHeatmap.GRADIENT_STEPS, n.heatmapColor, n.marginalColor,
                     n.insufficientColor);
             RfHeatmap.Raster r = heat.raster;
@@ -69,14 +77,22 @@ public class RfHeatmapOverlay {
             }
         }
 
-        Polyline ring = OverlayItems.polygon(n.uid + RING_SUFFIX, n.uid,
-                CoverageGeometry.circle(n.position, n.maxEngagementDistMeters, CoverageGeometry.DEFAULT_ARC_STEP_DEG),
-                0, n.color | 0xFF000000, 2d, true);
-        ring.setTitle(n.label);
-        group.addItem(ring);
+        if (shown(vis, n, Layer.RANGE_RING)) {
+            Polyline ring = OverlayItems.polygon(n.uid + RING_SUFFIX, n.uid,
+                    CoverageGeometry.circle(n.position, n.maxEngagementDistMeters, CoverageGeometry.DEFAULT_ARC_STEP_DEG),
+                    0, n.color | 0xFF000000, 2d, true);
+            ring.setTitle(n.label);
+            group.addItem(ring);
+        }
 
-        group.addItem(OverlayItems.label(n.uid + CENTER_SUFFIX, n.uid, n.position,
-                labelText(n, heat, computing), n.color, true));
+        if (shown(vis, n, Layer.MARKER)) {
+            group.addItem(OverlayItems.label(n.uid + CENTER_SUFFIX, n.uid, n.position,
+                    labelText(n, heat, computing), n.color, true));
+        }
+    }
+
+    private static boolean shown(VisibilityStore vis, NonKineticEffector n, String layer) {
+        return vis == null || !vis.isLayerHidden(n.uid, layer);
     }
 
     String labelText(NonKineticEffector n, CoverageEngine.HeatmapResult heat, boolean computing) {

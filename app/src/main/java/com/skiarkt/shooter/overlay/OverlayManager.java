@@ -323,13 +323,15 @@ public class OverlayManager implements PointDefenseRepository.PlanChangeListener
             } else if (item instanceof SensorItem) {
                 SensorItem s = (SensorItem) item;
                 LosSweep.Result mask = getSensorMask(s);
-                sensorOverlay.render(group, s, mask, mask == null && coverageEngine.isPending(s.uid));
+                sensorOverlay.render(group, s, mask, mask == null && coverageEngine.isPending(s.uid),
+                        repository.getVisibility());
             } else if (item instanceof NonKineticEffector) {
                 NonKineticEffector n = (NonKineticEffector) item;
                 CoverageEngine.HeatmapResult heat = getHeatmap(n);
-                heatmapOverlay.render(group, n, heat, heat == null && coverageEngine.isPending(n.uid));
+                heatmapOverlay.render(group, n, heat, heat == null && coverageEngine.isPending(n.uid),
+                        repository.getVisibility());
             } else if (item instanceof KineticEffector) {
-                kineticOverlay.render(group, (KineticEffector) item);
+                kineticOverlay.render(group, (KineticEffector) item, repository.getVisibility());
             } else if (item instanceof EngagementAuthorityZone) {
                 authorityOverlay.render(group, (EngagementAuthorityZone) item, repository.getPlan());
             }
