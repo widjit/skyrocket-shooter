@@ -15,6 +15,8 @@ import com.skiarkt.shooter.model.KineticEffector;
 import com.skiarkt.shooter.model.NonKineticEffector;
 import com.skiarkt.shooter.model.PointDefensePlan;
 import com.skiarkt.shooter.model.PointItem;
+import com.skiarkt.shooter.model.RfBand;
+import com.skiarkt.shooter.model.RfHeatmapMode;
 import com.skiarkt.shooter.model.PolygonItem;
 import com.skiarkt.shooter.model.SensorItem;
 import com.skiarkt.shooter.model.SensorType;
@@ -127,12 +129,34 @@ public final class CotSerializer {
         return ev;
     }
 
+    /** Comma-joined uid list (uids never contain commas in TAK). */
+    static String joinUids(java.util.List<String> uids) {
+        StringBuilder sb = new StringBuilder();
+        for (String u : uids) {
+            if (u == null || u.trim().isEmpty()) continue;
+            if (sb.length() > 0) sb.append(',');
+            sb.append(u.trim());
+        }
+        return sb.toString();
+    }
+
+    static java.util.List<String> splitUids(String s) {
+        java.util.List<String> out = new java.util.ArrayList<>();
+        if (s == null) return out;
+        for (String u : s.split(",")) {
+            String t = u.trim();
+            if (!t.isEmpty() && !out.contains(t)) out.add(t);
+        }
+        return out;
+    }
+
     private static void encodeSpecific(BasePlanItem item, CotDetail skiarkt, CotDetail detail) {
         if (item instanceof PointItem) {
             PointItem p = (PointItem) item;
             skiarkt.setAttribute("agl", d(p.aglMeters));
             skiarkt.setAttribute("maxEng", d(p.maxEngagementDistMeters));
             if (p.position != null) skiarkt.setAttribute("pos", p.position.toCotString());
+            if (p.hasSite()) skiarkt.setAttribute("siteUid", p.siteUid.trim());
         }
         if (item instanceof PolygonItem) {
             addLinks(detail, ((PolygonItem) item).points);
@@ -157,6 +181,9 @@ public final class CotSerializer {
                 skiarkt.setAttribute("beamWidth", d(s.beamWidthDeg));
                 skiarkt.setAttribute("azimuth", d(s.azimuthDeg));
                 skiarkt.setAttribute("opacity", Float.toString(s.opacity));
+                if (s.linkedSensorUids != null && !s.linkedSensorUids.isEmpty()) {
+                    skiarkt.setAttribute("linkedSensors", joinUids(s.linkedSensorUids));
+                }
                 break;
             }
             case NON_KINETIC_EFFECTOR: {
@@ -170,6 +197,13 @@ public final class CotSerializer {
                 skiarkt.setAttribute("useGlobalFreq", String.valueOf(n.useGlobalFrequency));
                 skiarkt.setAttribute("marginalColor", String.valueOf(n.marginalColor));
                 skiarkt.setAttribute("insufficientColor", String.valueOf(n.insufficientColor));
+                if (n.linkedSensorUids != null && !n.linkedSensorUids.isEmpty()) {
+                    skiarkt.setAttribute("linkedSensors", joinUids(n.linkedSensorUids));
+                }
+                if (n.isMultiBand()) {
+                    skiarkt.setAttribute("bands", RfBand.encodeList(n.bands));
+                    skiarkt.setAttribute("heatmapMode", n.getHeatmapMode().name());
+                }
                 break;
             }
             case KINETIC_EFFECTOR: {
@@ -260,6 +294,7 @@ public final class CotSerializer {
                 s.beamWidthDeg = pd(skiarkt, "beamWidth", s.beamWidthDeg);
                 s.azimuthDeg = pd(skiarkt, "azimuth", s.azimuthDeg);
                 s.opacity = (float) Math.max(0, Math.min(1, pd(skiarkt, "opacity", s.opacity)));
+                s.linkedSensorUids = splitUids(skiarkt.getAttribute("linkedSensors"));
                 item = s;
                 break;
             }
@@ -276,6 +311,9 @@ public final class CotSerializer {
                 n.useGlobalFrequency = pb(skiarkt, "useGlobalFreq", skiarkt.getAttribute("freqMhz") == null);
                 n.marginalColor = pi(skiarkt, "marginalColor", n.marginalColor);
                 n.insufficientColor = pi(skiarkt, "insufficientColor", n.insufficientColor);
+                n.linkedSensorUids = splitUids(skiarkt.getAttribute("linkedSensors"));
+                n.bands = RfBand.decodeList(skiarkt.getAttribute("bands"));
+                n.heatmapMode = RfHeatmapMode.parse(skiarkt.getAttribute("heatmapMode"));
                 item = n;
                 break;
             }
@@ -341,6 +379,7 @@ public final class CotSerializer {
                         hae >= CotTypes.COT_UNKNOWN ? Double.NaN : hae);
             }
             p.position = pos != null ? pos : new GeoPos();
+            p.siteUid = PointItem.normalizeSiteUid(skiarkt.getAttribute("siteUid"));
         }
         return item;
     }

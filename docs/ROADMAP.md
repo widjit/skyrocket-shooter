@@ -9,7 +9,18 @@ existing objects. All distances follow the global unit setting (ft / m / km).
 
 ---
 
-## R0. Multi-sensor / multi-effector sites — separate assets, linked and co-located  *(Phase 5)*
+## R0. Multi-sensor / multi-effector sites — separate assets, linked and co-located  — **Implemented in 1.0.7**
+
+**Status (1.0.7):** `PointItem.siteUid` (site name doubles as uid, case-insensitive, trimmed) on
+sensors, NK and kinetic effectors, carried in Parcel, plan JSON and CoT (`siteUid` attribute).
+`SiteGroups` builds sites; the overlay draws a site ring (furthest member + 15 m, min 25 m). The
+edit form has a *Site* picker (None / existing / New site…). Changing a member's position offers
+to move the other members by the same bearing and distance. Lists show an *Add to site* button
+(new item pre-filled at the site's mean position, which equals the shared position for
+co-located members) and a site summary with a per-site hide/show. Cross-type checkbox pickers
+replace the raw UID text fields: kinetic → sensors and designators (sensors + kinetic), NK →
+sensors, sensor → sensors (new `linkedSensorUids` on sensors and NK effectors). Unknown UIDs are
+kept as checked "Unknown asset" entries so nothing is silently dropped.
 
 Real-world sites typically have two or more sensors (RADAR, EO camera, IR/thermal) and one or more
 effectors (SHORAD, jammer, laser) at the same point. Each type belongs to a different planning
@@ -67,7 +78,14 @@ rest. The checkbox picker (R0b) and site-summary header (R0c) ship together in t
 
 ---
 
-## R1. Multi-frequency non-kinetic (RF) effectors
+## R1. Multi-frequency non-kinetic (RF) effectors  — **Implemented in 1.0.7**
+
+**Status (1.0.7):** `RfBand` list on `NonKineticEffector` (label, MHz, EIRP, threshold, max range,
+enabled) with a band editor, drone-class presets and a combined heat map in **UNION** (best band
+wins) or **WEAKEST** (worst enabled band) mode. With no bands the legacy single-band fields are
+used unchanged. Bands travel in Parcel, JSON and CoT (`bands`, `heatmapMode`). Per-band heat-map
+toggling is done via each band's *enabled* checkbox (no separate per-band layer).
+
 - A jammer has a **list of bands**, not one frequency (e.g. 433 MHz, 915 MHz, 2.4 GHz,
   5.8 GHz, GNSS L1/L2). Each band has its own ERP, jamming threshold, and max range.
 - Heat map per band (toggle each) or combined (union / weakest band).
@@ -83,7 +101,12 @@ rest. The checkbox picker (R0b) and site-summary header (R0c) ship together in t
 - Gap analysis and MSA rings can filter by sensor type (e.g. "IR-only coverage at night").
 - Laser designators are prerequisites for R4/R5.
 
-## R3. Exclusion-zone shapes
+## R3. Exclusion-zone shapes  — **Implemented in 1.0.7**
+
+**Status (1.0.7):** `ExclusionZoneShape` POLYGON / CIRCLE / RECTANGLE (center, size, rotation).
+Circles and rectangles are converted to rings for the overlay, the intercept-altitude calculator
+and the heat map, so height AGL still applies. Shape travels in Parcel, JSON, CoT and XML.
+
 - **Circle** (center + radius), **rectangle / square** (two corners, or center + size + rotation),
   and **polygon** (existing).
 - All shapes keep height AGL, colors, and opacity, and work in the intercept-altitude calculator
@@ -148,7 +171,17 @@ Rules:
   Violations are flagged.
 - Shown on the map and in the PACE PDF.
 
-## R7. Directed Energy — frag / field suppression fields  *(follow-on to 1.0.5)*
+## R7. Directed Energy — frag / field suppression fields  — **Implemented in 1.0.7**
+
+**Status (1.0.7):** with Directed Energy selected the panel hides the ballistic and ammo fields
+and shows beam dwell, aperture, optional laser power (kW), optional qualitative effective range,
+suppression-zone radius and damage-fluence threshold. `LaserPerformance` computes power density
+and fluence at range (diffraction + jitter spot, clear-air extinction) and derives the effective
+range when power is entered; otherwise the qualitative range is used, then max range. Never
+blocks. The overlay draws a beam-intensity gradient, the effective-range ring and the suppression
+outline instead of frag rings. **Planning-grade only:** no turbulence, thermal blooming or target
+aspect; constants are fixed (1.07 µm, M² 1.5, 5 µrad jitter, 0.2/km).
+
 Phase 4 added Directed Energy as a kinetic type with speed-of-light velocity default. Fields that
 don't apply to beam weapons (munition type, detonation mode, frag radius, ammo count / reload time)
 are still shown in the panel but mean nothing for a laser. Planned work:
@@ -210,7 +243,17 @@ For each effector, a wall casts a **masking shadow** on the far side:
 - Optional: the same walls block sensor line of sight (e.g. radar masked by a tree line), feeding
   sensor gap analysis.
 
-## R9. Per-asset visibility toggles
+## R9. Per-asset visibility toggles  — **Implemented in 1.0.7** (R9a, R9c; R9b not yet)
+
+**Status (1.0.7):** eye button on every row (sensors, NK, kinetic, exclusion zones, authority
+zones); tap toggles, long-press solos / restores. Per-type Show all / Hide all, per-site toggle,
+greyed rows with "(hidden)", hidden counts in list and plan header, and a *Show everything* button
+in the main menu. `VisibilityStore` saves to `visibility.skiarkt.json` beside the autosave; never
+in CoT or the plan JSON. Only the overlay consults it, so analysis still counts hidden items.
+PNG export asks whether to include hidden assets in the schematic and notes the hidden count in
+the header. The live map capture always shows what is currently drawn. PACE PDF does not exist
+yet; R9b (per-layer toggles) is not implemented.
+
 Busy plans get cluttered: overlapping coverage rings, heat maps, and frag bands from many assets.
 The planner can show or hide each asset's map drawing individually.
 

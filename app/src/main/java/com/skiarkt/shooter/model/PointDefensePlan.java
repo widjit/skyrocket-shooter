@@ -83,6 +83,12 @@ public class PointDefensePlan {
         for (KineticEffector k : kineticEffectors) {
             if (k != null) k.ensureLists();
         }
+        for (SensorItem s : sensors) {
+            if (s != null) s.ensureLists();
+        }
+        for (NonKineticEffector n : nonKineticEffectors) {
+            if (n != null) n.ensureLists();
+        }
     }
 
     // ------------------------------------------------------- kinetic effectors

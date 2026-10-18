@@ -9,6 +9,7 @@ import android.view.Gravity;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.Button;
+import android.widget.CheckBox;
 import android.widget.EditText;
 import android.widget.FrameLayout;
 import android.widget.LinearLayout;
@@ -24,12 +25,18 @@ import com.skiarkt.shooter.model.BasePlanItem;
 import com.skiarkt.shooter.model.GeoPos;
 import com.skiarkt.shooter.model.ItemKind;
 import com.skiarkt.shooter.model.PointItem;
+import com.skiarkt.shooter.model.SiteGroups;
 import com.skiarkt.shooter.overlay.OverlayManager;
 import com.skiarkt.shooter.settings.SettingsManager;
 import com.skiarkt.shooter.tools.PointPlacementTool;
+import com.skiarkt.shooter.util.GeoUtils;
 
+import java.util.ArrayList;
+import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Locale;
+import java.util.Map;
+import java.util.Set;
 
 /**
  * Shared side-panel flow for single-point emplacements (sensors, NK effectors): CRUD list,
@@ -70,6 +77,15 @@ abstract class PointItemPanel<T extends PointItem> {
     private EditText remarksInput;
     private TextView statsText;
     protected int selectedColor;
+    /** R0 site of the item being edited (null = none). */
+    private String selectedSite;
+    private LinearLayout sitesContainer;
+    private TextView hiddenInfo;
+
+    /** Site picker result (null = no site). */
+    interface SiteChoice {
+        void chosen(String site);
+    }
 
     PointItemPanel(Context pluginContext, MapView mapView, SettingsManager settings,
             PointDefenseRepository repository, OverlayManager overlayManager, Runnable onBack) {
@@ -184,8 +200,41 @@ abstract class PointItemPanel<T extends PointItem> {
             }
         });
         section.addView(create, matchWrap());
+        Button addToSite = button(ctx.getString(R.string.site_add_to));
+        addToSite.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                addToExistingSite();
+            }
+        });
+        section.addView(addToSite, matchWrap());
         addListExtras(section);
+
+        sitesContainer = vertical();
+        sitesContainer.setPadding(0, 0, 0, 0);
+        section.addView(sitesContainer, matchWrap());
+
         section.addView(heading(ctx.getString(listHeaderRes())));
+        LinearLayout visRow = horizontal();
+        Button showAllBtn = button(ctx.getString(R.string.vis_show_all));
+        showAllBtn.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                repository.getVisibility().setHiddenAll(kindUids(), false);
+            }
+        });
+        Button hideAllBtn = button(ctx.getString(R.string.vis_hide_all));
+        hideAllBtn.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                repository.getVisibility().setHiddenAll(kindUids(), true);
+            }
+        });
+        visRow.addView(showAllBtn, weight());
+        visRow.addView(hideAllBtn, weight());
+        section.addView(visRow, matchWrap());
+        hiddenInfo = text("", 0xFFFFC107);
+        section.addView(hiddenInfo, matchWrap());
         listEmpty = text(ctx.getString(listEmptyRes()), 0xFFB0BEC5);
         section.addView(listEmpty);
         listContainer = vertical();
@@ -201,16 +250,28 @@ abstract class PointItemPanel<T extends PointItem> {
         listContainer.removeAllViews();
         List<T> items = repository.getItems(kind());
         listEmpty.setVisibility(items.isEmpty() ? View.VISIBLE : View.GONE);
+        final com.skiarkt.shooter.data.VisibilityStore vis = repository.getVisibility();
+        populateSites();
+        if (hiddenInfo != null) {
+            int n = vis.hiddenCount(kindUids());
+            hiddenInfo.setText(n == 0 ? "" : ctx.getString(R.string.vis_hidden_count_fmt, n));
+            hiddenInfo.setVisibility(n == 0 ? View.GONE : View.VISIBLE);
+        }
         for (final T item : items) {
+            final boolean hidden = vis.isHidden(item.uid);
             LinearLayout row = new LinearLayout(ctx);
             row.setOrientation(LinearLayout.HORIZONTAL);
             row.setGravity(Gravity.CENTER_VERTICAL);
+            row.setAlpha(hidden ? 0.5f : 1f);
             View swatch = new View(ctx);
             swatch.setBackground(swatchDrawable(item.color | 0xFF000000, false));
             LinearLayout.LayoutParams slp = new LinearLayout.LayoutParams(dp(20), dp(20));
             slp.rightMargin = dp(6);
             row.addView(swatch, slp);
-            TextView t = text(listText(item), 0xFFFFFFFF);
+            String rowText = listText(item);
+            if (item.hasSite()) rowText += " [" + item.siteUid.trim() + "]";
+            if (hidden) rowText += ctx.getString(R.string.vis_hidden_suffix);
+            TextView t = text(rowText, 0xFFFFFFFF);
             t.setPadding(0, dp(8), 0, dp(8));
             t.setOnClickListener(new View.OnClickListener() {
                 @Override
@@ -219,6 +280,7 @@ abstract class PointItemPanel<T extends PointItem> {
                 }
             });
             row.addView(t, new LinearLayout.LayoutParams(0, ViewGroup.LayoutParams.WRAP_CONTENT, 1f));
+            row.addView(eyeButton(item.uid, item.label), wrap());
             Button del = button("\u2715");
             del.setOnClickListener(new View.OnClickListener() {
                 @Override
@@ -290,6 +352,21 @@ abstract class PointItemPanel<T extends PointItem> {
                 | InputType.TYPE_NUMBER_FLAG_SIGNED;
         latInput = field(form, ctx.getString(R.string.pt_lat), signedDecimal, latPrefill);
         lonInput = field(form, ctx.getString(R.string.pt_lon), signedDecimal, lonPrefill);
+        selectedSite = PointItem.normalizeSiteUid(item.siteUid);
+        final Button siteBtn = button(siteButtonText());
+        siteBtn.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                chooseSite(true, new SiteChoice() {
+                    @Override
+                    public void chosen(String site) {
+                        selectedSite = site;
+                        siteBtn.setText(siteButtonText());
+                    }
+                });
+            }
+        });
+        form.addView(siteBtn, matchWrap());
         aglField = distanceField(form, ctx.getString(R.string.pt_agl_fmt, unit), item.aglMeters);
         engageField = distanceField(form, ctx.getString(R.string.pt_max_engage_fmt, unit),
                 item.maxEngagementDistMeters);
@@ -381,6 +458,7 @@ abstract class PointItemPanel<T extends PointItem> {
         if (!label.isEmpty()) item.label = label;
         item.remarks = remarksInput.getText().toString();
         item.color = selectedColor;
+        item.siteUid = PointItem.normalizeSiteUid(selectedSite);
         String err = null;
         String lat = latInput.getText().toString().trim();
         String lon = lonInput.getText().toString().trim();
@@ -414,11 +492,254 @@ abstract class PointItemPanel<T extends PointItem> {
             toast(ctx.getString(R.string.pt_invalid_fmt, err == null ? item.label : err));
             return null;
         }
+        // R0: detect a position change against the stored copy (covers typed lat/lon and Move).
+        GeoPos oldPos = null;
+        BasePlanItem stored = repository.find(item.uid);
+        if (stored instanceof PointItem && ((PointItem) stored).position != null && item.position != null
+                && !((PointItem) stored).position.equals(item.position)) {
+            oldPos = new GeoPos(((PointItem) stored).position);
+        }
         item.touch();
         editing = null;
         repository.upsert(item);
         showList();
+        if (oldPos != null && item.hasSite()) offerMoveSite(item, oldPos);
         return item;
+    }
+
+    /** Asks whether the other members of the item's site should follow it (same offset). */
+    private void offerMoveSite(final T item, final GeoPos oldPos) {
+        final List<PointItem> others = SiteGroups.otherMembers(repository.getPlan(), item);
+        if (others.isEmpty()) return;
+        final double dist = GeoUtils.distanceMeters(oldPos, item.position);
+        final double brg = GeoUtils.bearingDeg(oldPos, item.position);
+        if (!(dist > 0.01)) return;
+        new AlertDialog.Builder(mapView.getContext())
+                .setTitle(ctx.getString(R.string.site_move_title))
+                .setMessage(ctx.getString(R.string.site_move_msg_fmt, others.size(), item.siteUid.trim(),
+                        settings.formatDistance(dist)))
+                .setPositiveButton(ctx.getString(R.string.site_move_yes), new DialogInterface.OnClickListener() {
+                    @Override
+                    public void onClick(DialogInterface d, int which) {
+                        for (PointItem p : others) {
+                            if (p.position == null || !p.position.isValid()) continue;
+                            GeoPos np = GeoUtils.destination(p.position, brg, dist);
+                            p.position = new GeoPos(np.lat, np.lon, p.position.altHae);
+                            repository.upsert(p);
+                        }
+                        toast(ctx.getString(R.string.site_moved_fmt, others.size()));
+                    }
+                })
+                .setNegativeButton(ctx.getString(R.string.site_move_no), null)
+                .show();
+    }
+
+    // ------------------------------------------------------------- R0 sites / R9 visibility
+
+    private String siteButtonText() {
+        return ctx.getString(R.string.site_btn_fmt,
+                selectedSite == null ? ctx.getString(R.string.site_none) : selectedSite);
+    }
+
+    /** Site chooser: existing sites, plus "None" and "New site…" when {@code forEdit}. */
+    protected void chooseSite(final boolean forEdit, final SiteChoice cb) {
+        final List<String> sites = new ArrayList<>(SiteGroups.build(repository.getPlan()).keySet());
+        final List<String> options = new ArrayList<>();
+        if (forEdit) options.add(ctx.getString(R.string.site_none));
+        options.addAll(sites);
+        if (forEdit) options.add(ctx.getString(R.string.site_new));
+        if (options.isEmpty()) {
+            toast(ctx.getString(R.string.site_none_defined));
+            return;
+        }
+        new AlertDialog.Builder(mapView.getContext())
+                .setTitle(ctx.getString(R.string.site_choose))
+                .setItems(options.toArray(new String[0]), new DialogInterface.OnClickListener() {
+                    @Override
+                    public void onClick(DialogInterface d, int which) {
+                        if (forEdit && which == 0) {
+                            cb.chosen(null);
+                        } else if (forEdit && which == options.size() - 1) {
+                            promptNewSite(cb);
+                        } else {
+                            cb.chosen(sites.get(which - (forEdit ? 1 : 0)));
+                        }
+                    }
+                })
+                .setNegativeButton(ctx.getString(R.string.pt_cancel), null)
+                .show();
+    }
+
+    private void promptNewSite(final SiteChoice cb) {
+        final EditText name = new EditText(mapView.getContext());
+        name.setInputType(InputType.TYPE_CLASS_TEXT);
+        name.setHint(ctx.getString(R.string.site_new_hint));
+        new AlertDialog.Builder(mapView.getContext())
+                .setTitle(ctx.getString(R.string.site_new))
+                .setView(name)
+                .setPositiveButton(ctx.getString(R.string.pt_save), new DialogInterface.OnClickListener() {
+                    @Override
+                    public void onClick(DialogInterface d, int which) {
+                        String s = PointItem.normalizeSiteUid(name.getText().toString());
+                        if (s != null) cb.chosen(s);
+                    }
+                })
+                .setNegativeButton(ctx.getString(R.string.pt_cancel), null)
+                .show();
+    }
+
+    /** "Add to site": new item of this kind at the site's centre, already assigned to the site. */
+    private void addToExistingSite() {
+        chooseSite(false, new SiteChoice() {
+            @Override
+            public void chosen(String site) {
+                SiteGroups.Site s = SiteGroups.build(repository.getPlan()).get(site);
+                GeoPos c = s == null ? null : s.center();
+                if (c == null) {
+                    toast(ctx.getString(R.string.site_none_defined));
+                    return;
+                }
+                T item = createItem(c);
+                item.siteUid = s.uid;
+                showEdit(item, true);
+            }
+        });
+    }
+
+    /** Site summary rows with a per-site visibility toggle. */
+    private void populateSites() {
+        if (sitesContainer == null) return;
+        sitesContainer.removeAllViews();
+        Map<String, SiteGroups.Site> sites = SiteGroups.build(repository.getPlan());
+        if (sites.isEmpty()) return;
+        sitesContainer.addView(heading(ctx.getString(R.string.site_header)));
+        final com.skiarkt.shooter.data.VisibilityStore vis = repository.getVisibility();
+        for (final SiteGroups.Site s : sites.values()) {
+            final List<String> uids = s.memberUids();
+            final int hiddenN = vis.hiddenCount(uids);
+            final boolean allHidden = hiddenN == uids.size();
+            LinearLayout row = horizontal();
+            row.setGravity(Gravity.CENTER_VERTICAL);
+            row.setAlpha(allHidden ? 0.5f : 1f);
+            String label = s.summary() + (hiddenN > 0 ? ctx.getString(R.string.vis_site_hidden_fmt, hiddenN) : "");
+            row.addView(text(label, 0xFFFFFFFF), new LinearLayout.LayoutParams(0,
+                    ViewGroup.LayoutParams.WRAP_CONTENT, 1f));
+            Button toggle = button(ctx.getString(allHidden ? R.string.vis_show : R.string.vis_hide));
+            toggle.setOnClickListener(new View.OnClickListener() {
+                @Override
+                public void onClick(View view) {
+                    vis.setHiddenAll(uids, !allHidden);
+                }
+            });
+            row.addView(toggle, wrap());
+            sitesContainer.addView(row, matchWrap());
+        }
+    }
+
+    /** Eye toggle for one row: tap = show/hide, long-press = solo (hide everything else). */
+    protected Button eyeButton(final String uid, final String label) {
+        final com.skiarkt.shooter.data.VisibilityStore vis = repository.getVisibility();
+        boolean hidden = vis.isHidden(uid);
+        Button eye = button(ctx.getString(hidden ? R.string.vis_show : R.string.vis_hide));
+        eye.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                vis.toggle(uid);
+            }
+        });
+        eye.setOnLongClickListener(new View.OnLongClickListener() {
+            @Override
+            public boolean onLongClick(View view) {
+                boolean solo = vis.toggleSolo(uid, allPlanUids(repository));
+                toast(solo ? ctx.getString(R.string.vis_solo_fmt, label) : ctx.getString(R.string.vis_solo_end));
+                return true;
+            }
+        });
+        return eye;
+    }
+
+    private List<String> kindUids() {
+        List<String> out = new ArrayList<>();
+        for (T t : repository.<T>getItems(kind())) out.add(t.uid);
+        return out;
+    }
+
+    /** Every item uid in the plan, all kinds (solo target set). */
+    static Set<String> allPlanUids(PointDefenseRepository repository) {
+        Set<String> out = new LinkedHashSet<>();
+        for (ItemKind k : ItemKind.values()) {
+            for (BasePlanItem b : repository.getItems(k)) if (b != null && b.uid != null) out.add(b.uid);
+        }
+        return out;
+    }
+
+    /**
+     * Cross-type link picker (R0b): one checkbox per item of {@code kinds}, grouped by type, with
+     * the item's uid in the tag. Unknown selected uids (e.g. items not received yet) are kept as
+     * checked entries so saving never drops them.
+     */
+    protected List<CheckBox> linkPicker(LinearLayout form, String title, ItemKind[] kinds,
+            List<String> selected, String excludeUid) {
+        List<CheckBox> boxes = new ArrayList<>();
+        Set<String> sel = new LinkedHashSet<>();
+        if (selected != null) sel.addAll(selected);
+        Set<String> seen = new LinkedHashSet<>();
+        TextView t = text(title, 0xFFB0BEC5);
+        t.setPadding(0, dp(6), 0, 0);
+        form.addView(t, matchWrap());
+        for (ItemKind k : kinds) {
+            List<BasePlanItem> items = repository.getItems(k);
+            boolean header = false;
+            for (BasePlanItem b : items) {
+                if (b == null || b.uid == null || b.uid.equals(excludeUid)) continue;
+                if (!header) {
+                    TextView h = text(kindLabel(k), 0xFF4FC3F7);
+                    form.addView(h, matchWrap());
+                    header = true;
+                }
+                String site = b instanceof PointItem && ((PointItem) b).hasSite()
+                        ? " [" + ((PointItem) b).siteUid.trim() + "]" : "";
+                boxes.add(checkBox(form, b.label + site, b.uid, sel.contains(b.uid)));
+                seen.add(b.uid);
+            }
+        }
+        for (String u : sel) {
+            if (u == null || seen.contains(u) || u.equals(excludeUid)) continue;
+            boxes.add(checkBox(form, ctx.getString(R.string.link_unknown_fmt, u), u, true));
+        }
+        if (boxes.isEmpty()) form.addView(text(ctx.getString(R.string.link_none), 0xFF78909C), matchWrap());
+        return boxes;
+    }
+
+    private CheckBox checkBox(LinearLayout form, String label, String uid, boolean checked) {
+        CheckBox c = new CheckBox(ctx);
+        c.setText(label);
+        c.setTextColor(0xFFFFFFFF);
+        c.setTag(uid);
+        c.setChecked(checked);
+        form.addView(c, matchWrap());
+        return c;
+    }
+
+    /** UIDs of the checked boxes from {@link #linkPicker}. */
+    protected static List<String> checkedUids(List<CheckBox> boxes) {
+        List<String> out = new ArrayList<>();
+        if (boxes == null) return out;
+        for (CheckBox c : boxes) if (c.isChecked() && c.getTag() != null) out.add(String.valueOf(c.getTag()));
+        return out;
+    }
+
+    private String kindLabel(ItemKind k) {
+        switch (k) {
+            case SENSOR:
+                return ctx.getString(R.string.link_kind_sensors);
+            case KINETIC_EFFECTOR:
+                return ctx.getString(R.string.link_kind_kinetic);
+            case NON_KINETIC_EFFECTOR:
+                return ctx.getString(R.string.link_kind_nk);
+            default:
+                return k.name();
+        }
     }
 
     private void confirmDelete(final String uid, final String label, final boolean fromEditor) {

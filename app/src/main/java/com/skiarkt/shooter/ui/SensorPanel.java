@@ -1,6 +1,7 @@
 package com.skiarkt.shooter.ui;
 
 import android.content.Context;
+import android.widget.CheckBox;
 import android.widget.EditText;
 import android.widget.LinearLayout;
 import android.widget.RadioButton;
@@ -18,6 +19,7 @@ import com.skiarkt.shooter.model.SensorType;
 import com.skiarkt.shooter.overlay.OverlayManager;
 import com.skiarkt.shooter.settings.SettingsManager;
 
+import java.util.List;
 import java.util.Locale;
 
 /** Sensors section: radar / camera / EO-IR emplacements with DTED-masked coverage. */
@@ -28,6 +30,7 @@ public class SensorPanel extends PointItemPanel<SensorItem> {
     private EditText beamInput;
     private EditText azimuthInput;
     private SeekBar opacitySeek;
+    private List<CheckBox> sensorBoxes;
 
     public SensorPanel(Context pluginContext, MapView mapView, SettingsManager settings,
             PointDefenseRepository repository, OverlayManager overlayManager, Runnable onBack) {
@@ -107,6 +110,8 @@ public class SensorPanel extends PointItemPanel<SensorItem> {
         beamInput = numberField(form, ctx.getString(R.string.sn_beam), item.beamWidthDeg, false);
         azimuthInput = numberField(form, ctx.getString(R.string.sn_azimuth), item.azimuthDeg, false);
         opacitySeek = percentSeek(form, R.string.pt_opacity_fmt, Math.round(item.opacity * 100f));
+        sensorBoxes = linkPicker(form, ctx.getString(R.string.link_sensors), new ItemKind[] {ItemKind.SENSOR},
+                item.linkedSensorUids, item.uid);
     }
 
     @Override
@@ -133,6 +138,7 @@ public class SensorPanel extends PointItemPanel<SensorItem> {
             item.azimuthDeg = ((az % 360.0) + 360.0) % 360.0;
         }
         item.opacity = opacitySeek.getProgress() / 100f;
+        item.linkedSensorUids = checkedUids(sensorBoxes);
         return err;
     }
 

@@ -18,6 +18,9 @@ import com.skiarkt.shooter.model.ItemKind;
 import com.skiarkt.shooter.model.KineticEffector;
 import com.skiarkt.shooter.model.NonKineticEffector;
 import com.skiarkt.shooter.model.SensorItem;
+import com.skiarkt.shooter.model.SiteGroups;
+import com.skiarkt.shooter.analysis.CoverageGeometry;
+import com.skiarkt.shooter.data.VisibilityStore;
 import com.skiarkt.shooter.settings.SettingsManager;
 import com.skiarkt.shooter.util.AtakElevationSource;
 import com.skiarkt.shooter.util.ElevationSource;
@@ -49,6 +52,9 @@ public class OverlayManager implements PointDefenseRepository.PlanChangeListener
     public static final String ROOT_GROUP_NAME = "SKY ROCKET SHOOTER";
     public static final String DRAWING_GROUP_NAME = "Drawing";
     public static final String ANALYSIS_GROUP_NAME = "Analysis";
+    public static final String SITES_GROUP_NAME = "Sites";
+    public static final String SITE_RING_PREFIX = "skiarkt.site.";
+    static final int SITE_RING_COLOR = 0xFFB0BEC5;
 
     private final MapView mapView;
     private final PointDefenseRepository repository;
@@ -63,6 +69,7 @@ public class OverlayManager implements PointDefenseRepository.PlanChangeListener
     private MapGroup rootGroup;
     private MapGroup drawingGroup;
     private MapGroup analysisGroup;
+    private MapGroup sitesGroup;
     private InterceptAltitudeResult interceptResult;
     private boolean started;
 
@@ -135,6 +142,8 @@ public class OverlayManager implements PointDefenseRepository.PlanChangeListener
         }
         drawingGroup = new DefaultMapGroup(DRAWING_GROUP_NAME);
         analysisGroup = new DefaultMapGroup(ANALYSIS_GROUP_NAME);
+        sitesGroup = new DefaultMapGroup(SITES_GROUP_NAME);
+        rootGroup.addGroup(sitesGroup);
         rootGroup.addGroup(analysisGroup);
         rootGroup.addGroup(drawingGroup);
         mapRoot.addGroup(rootGroup);
@@ -152,6 +161,7 @@ public class OverlayManager implements PointDefenseRepository.PlanChangeListener
         rootGroup = null;
         drawingGroup = null;
         analysisGroup = null;
+        sitesGroup = null;
     }
 
     public MapGroup getGroup(ItemKind kind) {
@@ -228,6 +238,7 @@ public class OverlayManager implements PointDefenseRepository.PlanChangeListener
             for (BasePlanItem item : repository.getItems(kind)) uids.add(item.uid);
         }
         coverageEngine.retainOnly(uids);
+        repository.getVisibility().retainOnly(uids);
         for (ItemKind kind : ItemKind.values()) {
             MapGroup g = kindGroups.get(kind);
             if (g == null) continue;
@@ -236,6 +247,38 @@ public class OverlayManager implements PointDefenseRepository.PlanChangeListener
                 renderItem(g, item);
             }
         }
+        renderSites();
+    }
+
+    /**
+     * R0: a subtle dashed ring around every site group's members, labelled with the site summary.
+     * Drawn while at least one member is visible (R9).
+     */
+    void renderSites() {
+        if (sitesGroup == null) return;
+        sitesGroup.clearItems();
+        VisibilityStore vis = repository.getVisibility();
+        for (SiteGroups.Site site : SiteGroups.build(repository.getPlan()).values()) {
+            if (vis.hiddenCount(site.memberUids()) >= site.members.size()) continue;
+            com.skiarkt.shooter.model.GeoPos c = site.center();
+            if (c == null) continue;
+            double r = site.ringRadiusMeters();
+            try {
+                sitesGroup.addItem(OverlayItems.polygon(SITE_RING_PREFIX + site.uid, null,
+                        CoverageGeometry.circle(c, r, CoverageGeometry.DEFAULT_ARC_STEP_DEG), 0,
+                        OverlayItems.withAlpha(SITE_RING_COLOR, 0.8f), 1.5d, true));
+                sitesGroup.addItem(OverlayItems.label(SITE_RING_PREFIX + site.uid + ".label", null,
+                        com.skiarkt.shooter.util.GeoUtils.destination(c, 0.0, r), site.summary(),
+                        SITE_RING_COLOR, false));
+            } catch (RuntimeException e) {
+                Log.e(TAG, "Failed to render site " + site.uid, e);
+            }
+        }
+    }
+
+    /** R9: true when the item should be drawn on this device (analysis ignores this). */
+    public boolean isDrawn(BasePlanItem item) {
+        return item != null && repository.getVisibility().isVisible(item.uid);
     }
 
     /** Re-renders the layer holding {@code uid} after a background result (map thread). */
@@ -256,14 +299,8 @@ public class OverlayManager implements PointDefenseRepository.PlanChangeListener
     }
 
     public RfHeatmap.Params heatmapParams(NonKineticEffector n) {
-        RfHeatmap.Params p = new RfHeatmap.Params();
-        p.txDbm = n.eirpDbm;
-        p.frequencyMhz = n.effectiveFrequencyMhz(settings.getRfFrequencyMhz());
-        p.thresholdDbm = n.effectiveThresholdDbm(settings.getRfThresholdDbm());
-        p.terrainLossDb = settings.getRfTerrainLossDb();
-        p.radiusM = n.maxEngagementDistMeters;
-        p.cellM = RfHeatmap.DEFAULT_CELL_M;
-        return p;
+        return RfHeatmap.forEffector(n, settings.getRfFrequencyMhz(), settings.getRfThresholdDbm(),
+                settings.getRfTerrainLossDb());
     }
 
     /** Cached sensor terrain mask (null while computing); used by the sensor panel stats. */
@@ -278,6 +315,8 @@ public class OverlayManager implements PointDefenseRepository.PlanChangeListener
 
     /** Creates the ATAK map items for {@code item} inside {@code group}. */
     protected void renderItem(MapGroup group, BasePlanItem item) {
+        // R9: hidden assets are not drawn, but stay in the repository and in every analysis.
+        if (!isDrawn(item)) return;
         try {
             if (item instanceof ExclusionZone) {
                 zoneOverlay.render(group, (ExclusionZone) item);

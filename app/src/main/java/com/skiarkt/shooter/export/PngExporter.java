@@ -63,6 +63,9 @@ public final class PngExporter {
     private final File outDir;
     private final Handler main = new Handler(Looper.getMainLooper());
     private final AtomicBoolean done = new AtomicBoolean(false);
+    /** R9: locally hidden UIDs (view only; they still count in every analysis). */
+    private java.util.Set<String> hiddenUids = java.util.Collections.emptySet();
+    private boolean includeHidden = true;
 
     /** @param planSnapshot a deep copy; it is read on a background thread. */
     public PngExporter(MapView mapView, PointDefensePlan planSnapshot, UnitSystem unit, int decimals, File outDir) {
@@ -71,6 +74,20 @@ public final class PngExporter {
         this.unit = unit;
         this.decimals = decimals;
         this.outDir = outDir;
+    }
+
+    /**
+     * R9: hidden items are omitted from the schematic unless {@code include} is true. The live map
+     * capture already reflects the overlay (which skips hidden items). A note is always added.
+     */
+    public PngExporter setHiddenUids(java.util.Set<String> uids, boolean include) {
+        this.hiddenUids = uids == null ? java.util.Collections.<String>emptySet() : new java.util.HashSet<>(uids);
+        this.includeHidden = include;
+        return this;
+    }
+
+    private boolean skip(BasePlanItem item) {
+        return !includeHidden && hiddenUids.contains(item.uid);
     }
 
     /** Starts the export; returns immediately. Call on the main thread. */
@@ -226,7 +243,9 @@ public final class PngExporter {
         String meta = "SKY ROCKET SHOOTER (SKIARKT)  |  " + PngExportModel.dtg(System.currentTimeMillis())
                 + (plan.author == null || plan.author.isEmpty() ? "" : "  |  " + plan.author)
                 + "  |  " + plan.totalItems() + " items"
-                + (map == null ? "  |  SCHEMATIC (map imagery not captured)" : "");
+                + (map == null ? "  |  SCHEMATIC (map imagery not captured)" : "")
+                + (hiddenUids.isEmpty() ? "" : "  |  " + hiddenUids.size() + " hidden ("
+                        + (includeHidden && map == null ? "drawn" : "view only") + "; included in analysis)");
         c.drawText(meta, pad, y + 86 * k, text);
         y += header;
 
@@ -310,6 +329,7 @@ public final class PngExporter {
 
         // Back to front: coverage rings, areas, corridors, emplacements.
         for (BasePlanItem item : plan.getAllItems()) {
+            if (skip(item)) continue;
             if (!(item instanceof PointItem) || !item.isValid()) continue;
             PointItem p = (PointItem) item;
             float cx = pr.x(p.position), cy = pr.y(p.position), rad = pr.pixels(PngExportModel.coverageRadiusMeters(p));
@@ -328,6 +348,7 @@ public final class PngExporter {
             }
         }
         for (BasePlanItem item : plan.getAllItems()) {
+            if (skip(item)) continue;
             if (!(item instanceof PolygonItem) || !item.isValid()) continue;
             List<GeoPos> ring = PngExportModel.pointsOf(item);
             if (ring.size() < 3) continue;
@@ -341,6 +362,7 @@ public final class PngExporter {
             c.drawPath(path, stroke);
         }
         for (BasePlanItem item : plan.getAllItems()) {
+            if (skip(item)) continue;
             if (!(item instanceof ThreatCorridor)) continue;
             ThreatCorridor t = (ThreatCorridor) item;
             if (t.points == null || t.points.size() < 2) continue;
@@ -357,6 +379,7 @@ public final class PngExporter {
         }
         Paint dot = new Paint(Paint.ANTI_ALIAS_FLAG);
         for (BasePlanItem item : plan.getAllItems()) {
+            if (skip(item)) continue;
             GeoPos a = item.getAnchor();
             if (a == null || !a.isValid()) continue;
             float x = pr.x(a), y = pr.y(a);

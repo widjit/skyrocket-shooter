@@ -50,6 +50,20 @@ public class KineticEffector extends PointItem {
     public double reloadTimeSec = 5.0;
     public String notes = "";
 
+    // ---- R7 directed-energy (laser) fields - only meaningful when type == DIRECTED_ENERGY.
+    /** Time on target needed per engagement (seconds). */
+    public double beamDwellSec = 3.0;
+    /** Beam director aperture diameter (cm). */
+    public double apertureDiameterCm = 30.0;
+    /** Output power (kW). Optional: null when the operator does not know it. */
+    public Double laserPowerKw;
+    /** Operator-entered effective range (m) used when power is unknown (nullable). */
+    public Double qualitativeEffectiveRangeM;
+    /** Radius (m) of the effective suppression zone around the aim point (replaces frag corridor). */
+    public double suppressionZoneRadiusM = 5.0;
+    /** Fluence (J/cm²) needed to defeat the target within the dwell time. */
+    public double damageFluenceJPerCm2 = 1000.0;
+
     public KineticEffector() {
         super("Kinetic Effector", PlanColors.KE_CLEAR_ZONE);
     }
@@ -84,6 +98,12 @@ public class KineticEffector extends PointItem {
         ammoCount = in.readInt();
         reloadTimeSec = in.readDouble();
         notes = in.readString();
+        beamDwellSec = in.readDouble();
+        apertureDiameterCm = in.readDouble();
+        laserPowerKw = in.readInt() == 1 ? in.readDouble() : null;
+        qualitativeEffectiveRangeM = in.readInt() == 1 ? in.readDouble() : null;
+        suppressionZoneRadiusM = in.readDouble();
+        damageFluenceJPerCm2 = in.readDouble();
         ensureLists();
     }
 
@@ -225,6 +245,16 @@ public class KineticEffector extends PointItem {
         if (type == KineticEffectorType.LASER_GUIDED_ROCKET && laserCode == null) return "laserCode";
         if (ammoCount < 0) return "ammoCount";
         if (!(reloadTimeSec >= 0)) return "reloadTimeSec";
+        if (type == KineticEffectorType.DIRECTED_ENERGY) {
+            if (!(beamDwellSec > 0)) return "beamDwellSec";
+            if (!(apertureDiameterCm > 0)) return "apertureDiameterCm";
+            if (laserPowerKw != null && !(laserPowerKw > 0)) return "laserPowerKw";
+            if (qualitativeEffectiveRangeM != null && !(qualitativeEffectiveRangeM > 0)) {
+                return "qualitativeEffectiveRange";
+            }
+            if (!(suppressionZoneRadiusM >= 0)) return "suppressionZoneRadius";
+            if (!(damageFluenceJPerCm2 > 0)) return "damageFluence";
+        }
         return null;
     }
 
@@ -262,6 +292,12 @@ public class KineticEffector extends PointItem {
         k.ammoCount = ammoCount;
         k.reloadTimeSec = reloadTimeSec;
         k.notes = notes;
+        k.beamDwellSec = beamDwellSec;
+        k.apertureDiameterCm = apertureDiameterCm;
+        k.laserPowerKw = laserPowerKw;
+        k.qualitativeEffectiveRangeM = qualitativeEffectiveRangeM;
+        k.suppressionZoneRadiusM = suppressionZoneRadiusM;
+        k.damageFluenceJPerCm2 = damageFluenceJPerCm2;
         return k;
     }
 
@@ -275,6 +311,7 @@ public class KineticEffector extends PointItem {
                 && Double.compare(position.lon, o.position.lon) == 0
                 && Double.compare(aglMeters, o.aglMeters) == 0
                 && Double.compare(maxEngagementDistMeters, o.maxEngagementDistMeters) == 0
+                && Objects.equals(normalizeSiteUid(siteUid), normalizeSiteUid(o.siteUid))
                 && Double.compare(fragmentationRadiusMeters, o.fragmentationRadiusMeters) == 0
                 && Double.compare(munitionSpeedMps, o.munitionSpeedMps) == 0
                 && Double.compare(reactionTimeSec, o.reactionTimeSec) == 0
@@ -296,11 +333,22 @@ public class KineticEffector extends PointItem {
                 && Objects.equals(laserCode, o.laserCode)
                 && status == o.status && ammoCount == o.ammoCount
                 && Double.compare(reloadTimeSec, o.reloadTimeSec) == 0
-                && Objects.equals(nz(notes), nz(o.notes));
+                && Objects.equals(nz(notes), nz(o.notes))
+                && Double.compare(beamDwellSec, o.beamDwellSec) == 0
+                && Double.compare(apertureDiameterCm, o.apertureDiameterCm) == 0
+                && Objects.equals(laserPowerKw, o.laserPowerKw)
+                && Objects.equals(qualitativeEffectiveRangeM, o.qualitativeEffectiveRangeM)
+                && Double.compare(suppressionZoneRadiusM, o.suppressionZoneRadiusM) == 0
+                && Double.compare(damageFluenceJPerCm2, o.damageFluenceJPerCm2) == 0;
     }
 
     private static String nz(String s) {
         return s == null ? "" : s;
+    }
+
+    /** True for beam weapons, whose munition / detonation / frag / ammo fields do not apply. */
+    public boolean isDirectedEnergy() {
+        return type != null && type.isDirectedEnergy();
     }
 
     /** Munition time of flight to {@code distanceMeters} (constant-speed approximation). */
@@ -357,6 +405,12 @@ public class KineticEffector extends PointItem {
         dest.writeInt(ammoCount);
         dest.writeDouble(reloadTimeSec);
         dest.writeString(notes);
+        dest.writeDouble(beamDwellSec);
+        dest.writeDouble(apertureDiameterCm);
+        writeBoxed(dest, laserPowerKw);
+        writeBoxed(dest, qualitativeEffectiveRangeM);
+        dest.writeDouble(suppressionZoneRadiusM);
+        dest.writeDouble(damageFluenceJPerCm2);
     }
 
     private static void writeBoxed(Parcel dest, Double v) {

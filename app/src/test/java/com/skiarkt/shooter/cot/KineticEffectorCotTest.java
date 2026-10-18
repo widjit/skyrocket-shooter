@@ -108,4 +108,28 @@ public class KineticEffectorCotTest {
         ev.setDetail(new CotDetail("detail"));
         assertNull(KineticEffectorCot.fromCot(ev));
     }
+
+    @Test
+    public void directedEnergyAndSiteRoundTrip() {
+        KineticEffector k = new KineticEffector();
+        k.position = new GeoPos(35, -117);
+        k.type = KineticEffectorType.DIRECTED_ENERGY;
+        k.siteUid = "Bravo";
+        k.beamDwellSec = 4.5;
+        k.apertureDiameterCm = 45;
+        k.laserPowerKw = null;
+        k.qualitativeEffectiveRangeM = 1500.0;
+        k.suppressionZoneRadiusM = 12;
+        k.damageFluenceJPerCm2 = 800;
+        KineticEffector back = KineticEffectorCot.fromCot(KineticEffectorCot.toCot(k));
+        assertNotNull(back);
+        assertNull(back.laserPowerKw);
+        assertEquals(1500.0, back.qualitativeEffectiveRangeM, 1e-9);
+        assertEquals("Bravo", back.siteUid);
+        assertTrue(k.sameContentAs(back));
+        k.laserPowerKw = 25.0;
+        back = KineticEffectorCot.fromCot(KineticEffectorCot.toCot(k));
+        assertEquals(25.0, back.laserPowerKw, 1e-9);
+        assertTrue(k.sameContentAs(back));
+    }
 }

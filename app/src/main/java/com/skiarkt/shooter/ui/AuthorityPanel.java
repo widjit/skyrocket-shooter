@@ -212,13 +212,15 @@ public class AuthorityPanel {
         if (zones.isEmpty()) zoneList.addView(hint("No authority zones yet."));
         for (final EngagementAuthorityZone z : zones) {
             LinearLayout r = row();
+            r.setAlpha(VisibilityUi.alpha(repository, z.uid));
             View sw = new View(pluginContext);
             sw.setBackground(swatchDrawable(z.fillColor | 0xFF000000, z.color | 0xFF000000, false));
             LinearLayout.LayoutParams slp = new LinearLayout.LayoutParams(dp(20), dp(20));
             slp.rightMargin = dp(6);
             r.addView(sw, slp);
-            TextView t = label(z.label + " \u2014 " + z.authorityType.shortTag + " " + signedDistance(z.bufferMeters)
-                    + (z.isBaseMissing(plan) ? "  \u26A0 base missing (snapshot)" : ""));
+            TextView t = label(VisibilityUi.label(pluginContext, repository, z.uid,
+                    z.label + " \u2014 " + z.authorityType.shortTag + " " + signedDistance(z.bufferMeters)
+                    + (z.isBaseMissing(plan) ? "  \u26A0 base missing (snapshot)" : "")));
             t.setPadding(0, dp(8), 0, dp(8));
             t.setOnClickListener(new View.OnClickListener() {
                 @Override
@@ -227,6 +229,7 @@ public class AuthorityPanel {
                 }
             });
             r.addView(t, new LinearLayout.LayoutParams(0, ViewGroup.LayoutParams.WRAP_CONTENT, 1f));
+            r.addView(VisibilityUi.eye(pluginContext, mapView.getContext(), repository, z.uid, z.label), wrap());
             Button del = button("\u2715");
             del.setOnClickListener(new View.OnClickListener() {
                 @Override

@@ -2,6 +2,11 @@ package com.skiarkt.shooter.model;
 
 import android.os.Parcel;
 
+import com.skiarkt.shooter.util.GeoUtils;
+
+import java.util.ArrayList;
+import java.util.List;
+
 /**
  * Building / structure exclusion zone: a footprint polygon extruded upward to
  * {@link #heightAglMeters}. No effector may engage through this volume.
@@ -27,6 +32,21 @@ public class ExclusionZone extends PolygonItem {
     /** Dashed (true) or solid (false) perimeter. */
     public boolean strokeDashed = true;
 
+    // ---- R3 parametric shapes (points are regenerated from these for CIRCLE / RECTANGLE) ----
+    public static final int CIRCLE_SEGMENTS = 64;
+    /** Footprint shape; null (legacy Gson) means {@link ExclusionZoneShape#POLYGON}. */
+    public ExclusionZoneShape shape = ExclusionZoneShape.POLYGON;
+    /** Circle / rectangle center. */
+    public GeoPos center;
+    /** Circle radius (meters). */
+    public double radiusMeters;
+    /** Rectangle east-west size before rotation (meters). */
+    public double rectWidthMeters;
+    /** Rectangle north-south size before rotation (meters). Not the AGL height. */
+    public double rectLengthMeters;
+    /** Rectangle rotation, degrees clockwise from true north. */
+    public double rotationDeg;
+
     public ExclusionZone() {
         super("Exclusion Zone", PlanColors.EXCLUSION_ZONE);
     }
@@ -38,6 +58,83 @@ public class ExclusionZone extends PolygonItem {
         fillOpacity = in.readFloat();
         strokeWidth = in.readDouble();
         strokeDashed = in.readInt() != 0;
+        shape = ExclusionZoneShape.parse(in.readString());
+        center = in.readInt() != 0 ? GeoPos.CREATOR.createFromParcel(in) : null;
+        radiusMeters = in.readDouble();
+        rectWidthMeters = in.readDouble();
+        rectLengthMeters = in.readDouble();
+        rotationDeg = in.readDouble();
+    }
+
+    public ExclusionZoneShape getShape() {
+        return shape == null ? ExclusionZoneShape.POLYGON : shape;
+    }
+
+    /** True when the shape parameters are complete enough to generate a footprint. */
+    public boolean hasShapeParams() {
+        switch (getShape()) {
+            case CIRCLE:
+                return center != null && center.isValid() && radiusMeters > 0;
+            case RECTANGLE:
+                return center != null && center.isValid() && rectWidthMeters > 0
+                        && rectLengthMeters > 0;
+            default:
+                return false;
+        }
+    }
+
+    /** Makes this zone a circle and regenerates its points. */
+    public void setCircle(GeoPos c, double radiusM) {
+        shape = ExclusionZoneShape.CIRCLE;
+        center = new GeoPos(c);
+        radiusMeters = radiusM;
+        regeneratePoints();
+    }
+
+    /** Makes this zone a rotated rectangle (center + size + rotation) and regenerates points. */
+    public void setRectangle(GeoPos c, double widthM, double lengthM, double rotDeg) {
+        shape = ExclusionZoneShape.RECTANGLE;
+        center = new GeoPos(c);
+        rectWidthMeters = widthM;
+        rectLengthMeters = lengthM;
+        rotationDeg = rotDeg;
+        regeneratePoints();
+    }
+
+    /** Axis-aligned (north-up) rectangle from two opposite corners. */
+    public void setRectangleFromCorners(GeoPos a, GeoPos b) {
+        GeoPos c = new GeoPos((a.lat + b.lat) / 2.0, (a.lon + b.lon) / 2.0);
+        double ns = GeoUtils.distanceMeters(new GeoPos(a.lat, c.lon), new GeoPos(b.lat, c.lon));
+        double ew = GeoUtils.distanceMeters(new GeoPos(c.lat, a.lon), new GeoPos(c.lat, b.lon));
+        setRectangle(c, Math.max(ew, 0.5), Math.max(ns, 0.5), 0.0);
+    }
+
+    /**
+     * Rebuilds {@link #points} from the shape parameters (circle = {@link #CIRCLE_SEGMENTS}-gon,
+     * rectangle = 4 rotated corners). No-op for polygons or incomplete parameters.
+     */
+    public void regeneratePoints() {
+        if (!hasShapeParams()) return;
+        List<GeoPos> out = new ArrayList<>();
+        if (getShape() == ExclusionZoneShape.CIRCLE) {
+            for (int i = 0; i < CIRCLE_SEGMENTS; i++) {
+                out.add(GeoUtils.destination(center, 360.0 * i / CIRCLE_SEGMENTS, radiusMeters));
+            }
+        } else {
+            double hw = rectWidthMeters / 2.0, hl = rectLengthMeters / 2.0;
+            double[][] corners = {{-hw, hl}, {hw, hl}, {hw, -hl}, {-hw, -hl}};
+            for (double[] c : corners) {
+                double dist = Math.hypot(c[0], c[1]);
+                double brg = Math.toDegrees(Math.atan2(c[0], c[1])) + rotationDeg;
+                out.add(GeoUtils.destination(center, GeoUtils.normalizeDeg(brg), dist));
+            }
+        }
+        points = out;
+    }
+
+    /** Reverts to a free polygon, keeping the current vertices. */
+    public void convertToPolygon() {
+        shape = ExclusionZoneShape.POLYGON;
     }
 
     /** Perimeter stroke color (alias for {@link #color}). */
@@ -77,6 +174,12 @@ public class ExclusionZone extends PolygonItem {
         z.fillOpacity = fillOpacity;
         z.strokeWidth = strokeWidth;
         z.strokeDashed = strokeDashed;
+        z.shape = getShape();
+        z.center = center == null ? null : new GeoPos(center);
+        z.radiusMeters = radiusMeters;
+        z.rectWidthMeters = rectWidthMeters;
+        z.rectLengthMeters = rectLengthMeters;
+        z.rotationDeg = rotationDeg;
         return z;
     }
 
@@ -99,6 +202,13 @@ public class ExclusionZone extends PolygonItem {
         dest.writeFloat(fillOpacity);
         dest.writeDouble(strokeWidth);
         dest.writeInt(strokeDashed ? 1 : 0);
+        dest.writeString(getShape().name());
+        dest.writeInt(center != null ? 1 : 0);
+        if (center != null) center.writeToParcel(dest, flags);
+        dest.writeDouble(radiusMeters);
+        dest.writeDouble(rectWidthMeters);
+        dest.writeDouble(rectLengthMeters);
+        dest.writeDouble(rotationDeg);
     }
 
     public static final Creator<ExclusionZone> CREATOR = new Creator<ExclusionZone>() {

@@ -22,7 +22,8 @@ import java.util.List;
  * &lt;skiarkt_kinetic type="ROCKET" minRange="50.0" azMin="10.0" azMax="120.0" elMin="-5.0" elMax="85.0"
  *     fragRouteWidth="10.0" munition="HE" detonation="PROXIMITY" restricted="30.0:45.0;200.0:210.0"
  *     minInterceptAlt="15.0" perimeterUid=".." ffCheck="true" sensors="uid1,uid2" designators=".."
- *     laserCode="1688" status="READY" ammo="12" reload="4.0" notes=".."/&gt;
+ *     laserCode="1688" status="READY" ammo="12" reload="4.0" notes=".."
+ *     dwell="3.0" apertureCm="30.0" powerKw="10.0" effRange="1500.0" suppressRadius="5.0" fluence="1000.0"/&gt;
  * </pre>
  * {@link #fromCot} also accepts the legacy {@link CotTypes#KINETIC_EFFECTOR} type.
  */
@@ -76,6 +77,13 @@ public final class KineticEffectorCot {
         x.setAttribute("ammo", String.valueOf(k.ammoCount));
         x.setAttribute("reload", d(k.reloadTimeSec));
         x.setAttribute("notes", k.notes == null ? "" : k.notes);
+        // R7 directed-energy fields (ignored by older builds).
+        x.setAttribute("dwell", d(k.beamDwellSec));
+        x.setAttribute("apertureCm", d(k.apertureDiameterCm));
+        if (k.laserPowerKw != null) x.setAttribute("powerKw", d(k.laserPowerKw));
+        if (k.qualitativeEffectiveRangeM != null) x.setAttribute("effRange", d(k.qualitativeEffectiveRangeM));
+        x.setAttribute("suppressRadius", d(k.suppressionZoneRadiusM));
+        x.setAttribute("fluence", d(k.damageFluenceJPerCm2));
         detail.addChild(x);
     }
 
@@ -114,6 +122,12 @@ public final class KineticEffectorCot {
         k.reloadTimeSec = pd(x, "reload", k.reloadTimeSec);
         String notes = x.getAttribute("notes");
         k.notes = notes == null ? "" : notes;
+        k.beamDwellSec = pd(x, "dwell", k.beamDwellSec);
+        k.apertureDiameterCm = pd(x, "apertureCm", k.apertureDiameterCm);
+        k.laserPowerKw = boxed(x, "powerKw");
+        k.qualitativeEffectiveRangeM = boxed(x, "effRange");
+        k.suppressionZoneRadiusM = pd(x, "suppressRadius", k.suppressionZoneRadiusM);
+        k.damageFluenceJPerCm2 = pd(x, "fluence", k.damageFluenceJPerCm2);
         k.ensureLists();
     }
 

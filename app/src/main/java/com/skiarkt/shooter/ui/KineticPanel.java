@@ -10,6 +10,7 @@ import android.widget.LinearLayout;
 
 import com.atakmap.android.maps.MapView;
 import com.skiarkt.shooter.R;
+import com.skiarkt.shooter.analysis.LaserPerformance;
 import com.skiarkt.shooter.data.PointDefenseRepository;
 import com.skiarkt.shooter.model.AzimuthArc;
 import com.skiarkt.shooter.model.DetonationMode;
@@ -49,8 +50,18 @@ public class KineticPanel extends PointItemPanel<KineticEffector> {
     private DistanceField minInterceptField;
     private EditText perimeterInput;
     private CheckBox ffCheck;
-    private EditText sensorsInput;
-    private EditText designatorsInput;
+    private List<CheckBox> sensorBoxes;
+    private List<CheckBox> designatorBoxes;
+    // R7 directed-energy fields
+    private LinearLayout deBox;
+    private LinearLayout ballisticBox;
+    private LinearLayout ammoBox;
+    private EditText dwellInput;
+    private EditText apertureInput;
+    private EditText powerInput;
+    private EditText qualRangeInput;
+    private DistanceField suppressionField;
+    private EditText fluenceInput;
     private EditText laserCodeInput;
     private EditText ammoInput;
     private EditText reloadInput;
@@ -127,6 +138,7 @@ public class KineticPanel extends PointItemPanel<KineticEffector> {
                 KineticEffectorType prev = selType;
                 selType = selType.next();
                 typeBtn.setText(ctx.getString(R.string.ke_type_fmt, selType.displayName));
+                updateTypeVisibility();
                 // Lasers default to the speed of light; untouched defaults follow the type.
                 if (velocityInput != null) {
                     double cur = parseNumber(velocityInput.getText().toString());
@@ -148,9 +160,10 @@ public class KineticPanel extends PointItemPanel<KineticEffector> {
         restrictedInput = field(form, ctx.getString(R.string.ke_restricted), InputType.TYPE_CLASS_TEXT,
                 arcsText(item.restrictedAzimuths));
 
-        fragRadiusField = distanceField(form, ctx.getString(R.string.ke_frag_radius_fmt, unit),
+        ballisticBox = sub(form);
+        fragRadiusField = distanceField(ballisticBox, ctx.getString(R.string.ke_frag_radius_fmt, unit),
                 item.fragmentationRadiusMeters);
-        fragWidthField = distanceField(form, ctx.getString(R.string.ke_frag_width_fmt, unit),
+        fragWidthField = distanceField(ballisticBox, ctx.getString(R.string.ke_frag_width_fmt, unit),
                 item.fragmentationRouteWidth);
 
         final Button munBtn = button(ctx.getString(R.string.ke_munition_fmt, selMunition.displayName));
@@ -161,7 +174,7 @@ public class KineticPanel extends PointItemPanel<KineticEffector> {
                 munBtn.setText(ctx.getString(R.string.ke_munition_fmt, selMunition.displayName));
             }
         });
-        form.addView(munBtn, matchWrap());
+        ballisticBox.addView(munBtn, matchWrap());
         final Button detBtn = button(ctx.getString(R.string.ke_detonation_fmt, selDetonation.displayName));
         detBtn.setOnClickListener(new View.OnClickListener() {
             @Override
@@ -170,7 +183,20 @@ public class KineticPanel extends PointItemPanel<KineticEffector> {
                 detBtn.setText(ctx.getString(R.string.ke_detonation_fmt, selDetonation.displayName));
             }
         });
-        form.addView(detBtn, matchWrap());
+        ballisticBox.addView(detBtn, matchWrap());
+
+        deBox = sub(form);
+        deBox.addView(heading(ctx.getString(R.string.ke_de_header)));
+        dwellInput = numberField(deBox, ctx.getString(R.string.ke_de_dwell), item.beamDwellSec, false);
+        apertureInput = numberField(deBox, ctx.getString(R.string.ke_de_aperture), item.apertureDiameterCm, false);
+        powerInput = field(deBox, ctx.getString(R.string.ke_de_power), decimal(false), fmtBoxed(item.laserPowerKw));
+        qualRangeInput = field(deBox, ctx.getString(R.string.ke_de_qual_range_fmt, unit), decimal(false),
+                item.qualitativeEffectiveRangeM == null ? "" : settings.formatNumber(item.qualitativeEffectiveRangeM));
+        suppressionField = distanceField(deBox, ctx.getString(R.string.ke_de_suppression_fmt, unit),
+                item.suppressionZoneRadiusM);
+        fluenceInput = numberField(deBox, ctx.getString(R.string.ke_de_fluence), item.damageFluenceJPerCm2, false);
+        deBox.addView(text(ctx.getString(R.string.ke_de_model_note), 0xFF78909C), matchWrap());
+
         velocityInput = numberField(form, ctx.getString(R.string.ke_velocity), item.munitionSpeedMps, false);
 
         minInterceptField = distanceField(form, ctx.getString(R.string.ke_min_intercept_fmt, unit),
@@ -182,10 +208,10 @@ public class KineticPanel extends PointItemPanel<KineticEffector> {
         ffCheck.setTextColor(0xFFFFFFFF);
         ffCheck.setChecked(item.friendlyFireCheckEnabled);
         form.addView(ffCheck, matchWrap());
-        sensorsInput = field(form, ctx.getString(R.string.ke_sensors), InputType.TYPE_CLASS_TEXT,
-                joinList(item.linkedSensorUids));
-        designatorsInput = field(form, ctx.getString(R.string.ke_designators), InputType.TYPE_CLASS_TEXT,
-                joinList(item.linkedLaserDesignatorUids));
+        sensorBoxes = linkPicker(form, ctx.getString(R.string.ke_sensors), new ItemKind[] {ItemKind.SENSOR},
+                item.linkedSensorUids, item.uid);
+        designatorBoxes = linkPicker(form, ctx.getString(R.string.ke_designators),
+                new ItemKind[] {ItemKind.SENSOR, ItemKind.KINETIC_EFFECTOR}, item.linkedLaserDesignatorUids, item.uid);
         laserCodeInput = field(form, ctx.getString(R.string.ke_laser_code), InputType.TYPE_CLASS_NUMBER,
                 item.laserCode == null ? "" : String.valueOf(item.laserCode));
 
@@ -198,11 +224,28 @@ public class KineticPanel extends PointItemPanel<KineticEffector> {
             }
         });
         form.addView(statusBtn, matchWrap());
-        ammoInput = field(form, ctx.getString(R.string.ke_ammo), InputType.TYPE_CLASS_NUMBER,
+        ammoBox = sub(form);
+        ammoInput = field(ammoBox, ctx.getString(R.string.ke_ammo), InputType.TYPE_CLASS_NUMBER,
                 String.valueOf(item.ammoCount));
-        reloadInput = numberField(form, ctx.getString(R.string.ke_reload), item.reloadTimeSec, false);
+        reloadInput = numberField(ammoBox, ctx.getString(R.string.ke_reload), item.reloadTimeSec, false);
         notesInput = field(form, ctx.getString(R.string.ke_notes),
                 InputType.TYPE_CLASS_TEXT | InputType.TYPE_TEXT_FLAG_MULTI_LINE, item.notes);
+        updateTypeVisibility();
+    }
+
+    /** R7: laser fields only for directed energy; frag / munition / ammo fields only otherwise. */
+    private void updateTypeVisibility() {
+        boolean de = selType == KineticEffectorType.DIRECTED_ENERGY;
+        if (deBox != null) deBox.setVisibility(de ? View.VISIBLE : View.GONE);
+        if (ballisticBox != null) ballisticBox.setVisibility(de ? View.GONE : View.VISIBLE);
+        if (ammoBox != null) ammoBox.setVisibility(de ? View.GONE : View.VISIBLE);
+    }
+
+    private LinearLayout sub(LinearLayout form) {
+        LinearLayout l = vertical();
+        l.setPadding(0, 0, 0, 0);
+        form.addView(l, matchWrap());
+        return l;
     }
 
     @Override
@@ -272,8 +315,39 @@ public class KineticPanel extends PointItemPanel<KineticEffector> {
         String per = perimeterInput.getText().toString().trim();
         item.engagementAuthorityPerimeterUid = per.isEmpty() ? null : per;
         item.friendlyFireCheckEnabled = ffCheck.isChecked();
-        item.linkedSensorUids = splitList(sensorsInput.getText().toString());
-        item.linkedLaserDesignatorUids = splitList(designatorsInput.getText().toString());
+        item.linkedSensorUids = checkedUids(sensorBoxes);
+        item.linkedLaserDesignatorUids = checkedUids(designatorBoxes);
+
+        if (selType == KineticEffectorType.DIRECTED_ENERGY) {
+            double dw = parseNumber(dwellInput.getText().toString());
+            if (Double.isNaN(dw) || dw <= 0) err = orFirst(err, R.string.ke_de_dwell);
+            else item.beamDwellSec = dw;
+            double ap = parseNumber(apertureInput.getText().toString());
+            if (Double.isNaN(ap) || ap <= 0) err = orFirst(err, R.string.ke_de_aperture);
+            else item.apertureDiameterCm = ap;
+            String pw = powerInput.getText().toString().trim();
+            if (pw.isEmpty()) item.laserPowerKw = null;
+            else {
+                double v = parseNumber(pw);
+                if (Double.isNaN(v) || v <= 0) err = orFirst(err, R.string.ke_de_power);
+                else item.laserPowerKw = v;
+            }
+            String qr = qualRangeInput.getText().toString().trim();
+            if (qr.isEmpty()) item.qualitativeEffectiveRangeM = null;
+            else {
+                double m = settings.parseDistance(qr);
+                if (Double.isNaN(m) || Double.isInfinite(m) || m <= 0) err = err != null ? err
+                        : ctx.getString(R.string.ke_de_qual_range_fmt, settings.getUnitSystem().abbreviation);
+                else item.qualitativeEffectiveRangeM = m;
+            }
+            double sr = suppressionField.read();
+            if (Double.isNaN(sr) || sr < 0) err = err != null ? err
+                    : ctx.getString(R.string.ke_de_suppression_fmt, settings.getUnitSystem().abbreviation);
+            else item.suppressionZoneRadiusM = sr;
+            double fl = parseNumber(fluenceInput.getText().toString());
+            if (Double.isNaN(fl) || fl <= 0) err = orFirst(err, R.string.ke_de_fluence);
+            else item.damageFluenceJPerCm2 = fl;
+        }
 
         String lc = laserCodeInput.getText().toString().trim();
         if (lc.isEmpty()) {
@@ -305,6 +379,15 @@ public class KineticPanel extends PointItemPanel<KineticEffector> {
     @Override
     String statsText(KineticEffector k) {
         if (!k.isValid()) return null;
+        if (k.isDirectedEnergy()) {
+            LaserPerformance.Source src = LaserPerformance.source(k);
+            int srcRes = src == LaserPerformance.Source.COMPUTED ? R.string.ke_de_src_computed
+                    : src == LaserPerformance.Source.QUALITATIVE ? R.string.ke_de_src_qualitative
+                    : R.string.ke_de_src_max;
+            return ctx.getString(R.string.ke_de_stats_fmt, settings.formatDistance(LaserPerformance.effectiveRangeM(k)),
+                    ctx.getString(srcRes), settings.formatDistance(k.suppressionZoneRadiusM),
+                    k.azimuthSweepDeg(), k.restrictedAzimuths.size());
+        }
         return ctx.getString(R.string.ke_stats_fmt, settings.formatDistance(k.minEngagementRange),
                 settings.formatDistance(k.maxEngagementDistMeters), k.azimuthSweepDeg(),
                 k.restrictedAzimuths.size(), k.timeOfFlightSec(k.maxEngagementDistMeters));
@@ -339,27 +422,5 @@ public class KineticPanel extends PointItemPanel<KineticEffector> {
 
     private static String trim(double v) {
         return v == Math.rint(v) ? String.valueOf((long) v) : String.valueOf(v);
-    }
-
-    private static String joinList(List<String> l) {
-        StringBuilder sb = new StringBuilder();
-        if (l != null) {
-            for (String s : l) {
-                if (s == null || s.isEmpty()) continue;
-                if (sb.length() > 0) sb.append(", ");
-                sb.append(s);
-            }
-        }
-        return sb.toString();
-    }
-
-    private static List<String> splitList(String s) {
-        List<String> out = new ArrayList<>();
-        if (s == null) return out;
-        for (String p : s.split(",")) {
-            String t = p.trim();
-            if (!t.isEmpty()) out.add(t);
-        }
-        return out;
     }
 }

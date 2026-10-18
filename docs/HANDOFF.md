@@ -19,17 +19,21 @@ outside the code.
 - Never merge PRs automatically; the owner reviews them.
 
 ## Current state (as of 2026-10-18)
-- Latest build: **1.0.6 / versionCode 7**, GitHub pre-release `v1.0.6-civ-5.6.0-debug` (debug-signed APK attached).
+- Latest build: **1.0.7 / versionCode 8**, GitHub pre-release `v1.0.7-civ-5.6.0-debug` (debug-signed APK attached).
+- 1.0.7 adds ROADMAP R0 (sites + checkbox linking), R1 (multi-band RF), R3 (circle/rectangle
+  exclusion zones), R7 (directed-energy fields + laser model) and R9 (per-asset visibility).
+  Not verified on a device yet.
 - Work branch: `feature/phase4-kinetic-effectors-v1.0.4`, open as **PR #1**, not merged.
   `main` is still at 1.0.3 until PR #1 is merged.
-- Unit tests: 81 passing (`testCivDebugUnitTest`).
+- Unit tests: 96 passing (`testCivDebugUnitTest`).
 - Done: exclusion zones (polygon), sensors, RF jamming heat map, kinetic effectors (Phase 4 MVP
   including Directed Energy with a speed-of-light default velocity), engagement-authority perimeters
   (ROADMAP R6: `EngagementAuthorityZone`, `PolygonBuffer`, `AuthorityEvaluator`, `AuthorityPanel`,
   `AuthorityZoneOverlay`), CoT sharing, autosave, PNG export.
 - Owner priorities (2026-10-18): threat corridors are deferred; R7 laser power (kW) must stay
   optional (power density only when entered, otherwise qualitative effective range).
-- Next: `docs/ROADMAP.md` (R0 multi-asset sites, remaining Phase 5 core items, R7, R8). R6 still
+- Next: `docs/ROADMAP.md` (R2 sensor types, R4/R5 LGR + masking, R8 walls, R9b per-layer
+  toggles, remaining Phase 5 core items). R6 still
   needs PACE PDF and timeline integration once those exist.
 
 ## Key decisions

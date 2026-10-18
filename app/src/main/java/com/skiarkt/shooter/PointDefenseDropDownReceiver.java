@@ -1,10 +1,13 @@
 package com.skiarkt.shooter;
 
+import android.app.AlertDialog;
 import android.content.Context;
+import android.content.DialogInterface;
 import android.content.Intent;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.Button;
+import android.widget.CheckBox;
 import android.widget.LinearLayout;
 import android.widget.TextView;
 import android.widget.Toast;
@@ -31,6 +34,8 @@ import com.skiarkt.shooter.util.DtedHelper;
 
 import java.io.File;
 import java.io.IOException;
+import java.util.HashSet;
+import java.util.Set;
 
 /**
  * Main side panel. Shows the plan header, a navigation menu for every feature area and
@@ -116,6 +121,21 @@ public class PointDefenseDropDownReceiver extends DropDownReceiver
                 }
             });
             list.addView(b, new LinearLayout.LayoutParams(
+                    LinearLayout.LayoutParams.MATCH_PARENT, LinearLayout.LayoutParams.WRAP_CONTENT));
+        }
+        final int hidden = repository.getVisibility().hiddenCount(allUids());
+        if (hidden > 0) {
+            Button showAll = new Button(pluginContext);
+            showAll.setText(pluginContext.getString(R.string.vis_show_everything)
+                    + pluginContext.getString(R.string.vis_plan_hidden_fmt, hidden));
+            showAll.setAllCaps(false);
+            showAll.setOnClickListener(new View.OnClickListener() {
+                @Override
+                public void onClick(View v) {
+                    repository.getVisibility().showAll();
+                }
+            });
+            list.addView(showAll, new LinearLayout.LayoutParams(
                     LinearLayout.LayoutParams.MATCH_PARENT, LinearLayout.LayoutParams.WRAP_CONTENT));
         }
         menu.findViewById(R.id.btn_save_plan).setOnClickListener(new View.OnClickListener() {
@@ -267,8 +287,18 @@ public class PointDefenseDropDownReceiver extends DropDownReceiver
 
     private void updatePlanSummary() {
         PointDefensePlan plan = repository.getPlan();
-        planSummary.setText(pluginContext.getString(R.string.plan_summary_fmt,
-                plan.name, plan.classification, plan.totalItems()));
+        String text = pluginContext.getString(R.string.plan_summary_fmt,
+                plan.name, plan.classification, plan.totalItems());
+        int hidden = repository.getVisibility().hiddenCount(allUids());
+        if (hidden > 0) text += pluginContext.getString(R.string.vis_plan_hidden_fmt, hidden);
+        planSummary.setText(text);
+    }
+
+    /** UIDs of every item in the current plan (hidden counts ignore stale entries). */
+    private Set<String> allUids() {
+        Set<String> uids = new HashSet<>();
+        for (BasePlanItem it : repository.getPlan().getAllItems()) uids.add(it.uid);
+        return uids;
     }
 
     // --------------------------------------------------------------- actions
@@ -288,6 +318,30 @@ public class PointDefenseDropDownReceiver extends DropDownReceiver
     }
 
     private void exportPng(final View button) {
+        final Set<String> hidden = new HashSet<>();
+        for (String uid : allUids()) if (repository.getVisibility().isHidden(uid)) hidden.add(uid);
+        if (hidden.isEmpty()) {
+            doExportPng(button, hidden, false);
+            return;
+        }
+        final CheckBox include = new CheckBox(getMapView().getContext());
+        include.setText(pluginContext.getString(R.string.png_include_hidden));
+        include.setChecked(false);
+        new AlertDialog.Builder(getMapView().getContext())
+                .setTitle(pluginContext.getString(R.string.png_options_title))
+                .setMessage(pluginContext.getString(R.string.vis_hidden_count_fmt, hidden.size()))
+                .setView(include)
+                .setPositiveButton(pluginContext.getString(R.string.png_export), new DialogInterface.OnClickListener() {
+                    @Override
+                    public void onClick(DialogInterface d, int which) {
+                        doExportPng(button, hidden, include.isChecked());
+                    }
+                })
+                .setNegativeButton(pluginContext.getString(R.string.pt_cancel), null)
+                .show();
+    }
+
+    private void doExportPng(final View button, Set<String> hidden, boolean includeHidden) {
         File dir = repository.getStorageDir();
         if (dir == null) {
             toast(pluginContext.getString(R.string.msg_no_storage));
@@ -298,7 +352,7 @@ public class PointDefenseDropDownReceiver extends DropDownReceiver
         // Deep copy: the image is composed on a background thread.
         PointDefensePlan snapshot = repository.parseJson(repository.toJson());
         new PngExporter(getMapView(), snapshot, settings.getUnitSystem(), settings.getPrecision(),
-                new File(dir, EXPORT_SUBDIR)).export(new PngExporter.Callback() {
+                new File(dir, EXPORT_SUBDIR)).setHiddenUids(hidden, includeHidden).export(new PngExporter.Callback() {
             @Override
             public void onExported(File file, boolean usedMapCapture) {
                 button.setEnabled(true);

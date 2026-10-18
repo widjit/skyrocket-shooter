@@ -75,6 +75,18 @@
     <string name="ez_list_empty">No exclusion zones yet. Tap \"Draw New Zone\" and tap the map to place vertices.</string>
     <string name="ez_list_item_fmt">%1$s \u2014 %2$s AGL, %3$d vertices</string>
     <string name="ez_draw_hint_polygon">Draw mode: tap the map to add vertices. Pan / zoom still work. Tap the first vertex or Close Polygon to finish.</string>
+    <string name="ez_new_circle">New Circle</string>
+    <string name="ez_new_rect">New Rectangle</string>
+    <string name="ez_draw_hint_circle">Circle: tap the center, then a point on the edge.</string>
+    <string name="ez_draw_hint_rect">Rectangle: tap one corner, then the opposite corner.</string>
+    <string name="ez_shape_fmt">Shape: %1$s</string>
+    <string name="ez_radius_fmt">Radius (%1$s)</string>
+    <string name="ez_rect_width_fmt">Width E-W (%1$s)</string>
+    <string name="ez_rect_length_fmt">Length N-S (%1$s)</string>
+    <string name="ez_rotation">Rotation (deg clockwise from north)</string>
+    <string name="ez_center_fmt">Center lat, lon</string>
+    <string name="ez_convert_polygon">Convert to free polygon</string>
+    <string name="ez_invalid_shape">Shape size must be positive and center valid</string>
     <string name="ez_draw_hint_line">Ingress line: tap the start point, then the end point.</string>
     <string name="ez_draw_count_fmt">Vertices: %1$d</string>
     <string name="ez_undo">Undo</string>
@@ -216,4 +228,68 @@
     <string name="ke_reload">Reload time (s)</string>
     <string name="ke_notes">Notes</string>
     <string name="ke_stats_fmt">Envelope %1$s\u2013%2$s, sector %3$.0f\u00B0, %4$d restricted arc(s). Time of flight to max range: %5$.1f s.</string>
+    <!-- R0 sites -->
+    <string name="site_add_to">Add to site</string>
+    <string name="site_header">Sites</string>
+    <string name="site_btn_fmt">Site: %1$s</string>
+    <string name="site_none">None</string>
+    <string name="site_new">New site…</string>
+    <string name="site_new_hint">Site name</string>
+    <string name="site_choose">Choose site</string>
+    <string name="site_none_defined">No sites defined yet. Create one from an asset edit form.</string>
+    <string name="site_move_title">Move whole site?</string>
+    <string name="site_move_msg_fmt">Also move the %1$d other asset(s) in site "%2$s" by the same offset (%3$s)?</string>
+    <string name="site_move_yes">Move site</string>
+    <string name="site_move_no">Only this asset</string>
+    <string name="site_moved_fmt">Moved %1$d site member(s)</string>
+    <!-- R9 visibility -->
+    <string name="vis_show_all">Show all</string>
+    <string name="vis_hide_all">Hide all</string>
+    <string name="vis_hidden_count_fmt">%1$d hidden (view only; still counted in analysis)</string>
+    <string name="vis_hidden_suffix">" (hidden)"</string>
+    <string name="vis_site_hidden_fmt">" – %1$d hidden"</string>
+    <string name="vis_show">Show</string>
+    <string name="vis_hide">Hide</string>
+    <string name="vis_solo_fmt">Showing only %1$s (long-press again to restore)</string>
+    <string name="vis_solo_end">Visibility restored</string>
+    <string name="vis_show_everything">Show everything</string>
+    <string name="vis_plan_hidden_fmt">" • %1$d hidden"</string>
+    <string name="png_include_hidden">Include hidden assets in schematic</string>
+    <string name="png_options_title">PNG export</string>
+    <string name="png_export">Export</string>
+    <!-- links -->
+    <string name="link_unknown_fmt">Unknown asset (%1$s)</string>
+    <string name="link_none">No eligible assets in plan</string>
+    <string name="link_kind_sensors">Sensors</string>
+    <string name="link_kind_kinetic">Kinetic effectors</string>
+    <string name="link_kind_nk">Non-kinetic effectors</string>
+    <string name="link_sensors">Cueing sensors</string>
+    <!-- R7 directed energy -->
+    <string name="ke_de_header">Directed energy (laser)</string>
+    <string name="ke_de_dwell">Beam dwell time (s)</string>
+    <string name="ke_de_aperture">Beam director aperture (cm)</string>
+    <string name="ke_de_power">Laser power (kW, blank = unknown)</string>
+    <string name="ke_de_qual_range_fmt">Qualitative effective range (%1$s, blank = none)</string>
+    <string name="ke_de_suppression_fmt">Suppression zone radius (%1$s)</string>
+    <string name="ke_de_fluence">Damage fluence threshold (J/cm²)</string>
+    <string name="ke_de_model_note">Planning-grade model: diffraction-limited spot, clear air, no turbulence or thermal blooming. Not a weapons-effects tool.</string>
+    <string name="ke_de_src_computed">computed from power</string>
+    <string name="ke_de_src_qualitative">qualitative</string>
+    <string name="ke_de_src_max">max range</string>
+    <string name="ke_de_stats_fmt">Effective range %1$s (%2$s), suppression %3$s, sector %4$.0f°, %5$d restricted arc(s).</string>
+    <!-- R1 bands -->
+    <string name="nk_bands_header">RF bands</string>
+    <string name="nk_bands_hint">Without bands the single-band fields above are used.</string>
+    <string name="nk_band_add">Add band</string>
+    <string name="nk_band_preset">Preset</string>
+    <string name="nk_band_clear">Clear</string>
+    <string name="nk_bands_none">No bands (single-band mode)</string>
+    <string name="nk_band_title_fmt">Band %1$d: %2$s</string>
+    <string name="nk_band_label">Label</string>
+    <string name="nk_band_freq">Frequency (MHz)</string>
+    <string name="nk_band_eirp">EIRP (dBm)</string>
+    <string name="nk_band_thr">Threshold (dBm)</string>
+    <string name="nk_band_range_fmt">Max range (%1$s)</string>
+    <string name="nk_band_invalid_fmt">Band %1$d has invalid values</string>
+    <string name="nk_bands_stats_fmt">Bands: %1$d of %2$d enabled, heatmap %3$s</string>
 </resources>

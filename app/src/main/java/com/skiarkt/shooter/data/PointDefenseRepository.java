@@ -42,7 +42,11 @@ import java.util.concurrent.TimeUnit;
  * thread, so UI listeners should hop to the main thread if needed.
  */
 public final class PointDefenseRepository {
-    public enum ChangeType { ITEM_ADDED, ITEM_UPDATED, ITEM_REMOVED, PLAN_REPLACED, PLAN_METADATA }
+    public enum ChangeType {
+        ITEM_ADDED, ITEM_UPDATED, ITEM_REMOVED, PLAN_REPLACED, PLAN_METADATA,
+        /** R9: local per-asset visibility changed (plan content unchanged, nothing shared). */
+        VISIBILITY
+    }
 
     public interface PlanChangeListener {
         /** @param item affected item, or null for plan-level changes. */
@@ -68,7 +72,20 @@ public final class PointDefenseRepository {
     private ScheduledFuture<?> pendingAutosave;
     private long autosaveDelayMs = DEFAULT_AUTOSAVE_DELAY_MS;
 
+    private final VisibilityStore visibility = new VisibilityStore();
+
     private PointDefenseRepository() {
+        visibility.setListener(new VisibilityStore.Listener() {
+            @Override
+            public void onVisibilityChanged() {
+                notifyListeners(ChangeType.VISIBILITY, null);
+            }
+        });
+    }
+
+    /** R9 per-device visibility (never shared, never part of the plan JSON / CoT). */
+    public VisibilityStore getVisibility() {
+        return visibility;
     }
 
     public static PointDefenseRepository getInstance() {
@@ -102,6 +119,7 @@ public final class PointDefenseRepository {
             }
             restore = storageDir != null && plan.totalItems() == 0;
         }
+        visibility.attach(storageDir == null ? null : new File(storageDir, VisibilityStore.FILE_NAME));
         if (restore) restoreAutosave();
     }
 
@@ -211,7 +229,7 @@ public final class PointDefenseRepository {
     }
 
     private void notifyListeners(ChangeType type, BasePlanItem item) {
-        scheduleAutosave();
+        if (type != ChangeType.VISIBILITY) scheduleAutosave();
         for (PlanChangeListener l : listeners) {
             try {
                 l.onPlanChanged(type, item);

@@ -13,6 +13,6 @@ ext {
     atakVersion = project.findProperty('atakVersion') ?: '5.6.0'
     atakFlavor = project.findProperty('atakFlavor') ?: 'CIV'
     atakApiVersion = "com.atakmap.app@${atakVersion}.${atakFlavor}" // informational; per-flavour value is set in app/build.gradle
-    pluginVersionName = '1.0.6'
-    pluginVersionCode = 7
+    pluginVersionName = '1.0.7'
+    pluginVersionCode = 8
 }

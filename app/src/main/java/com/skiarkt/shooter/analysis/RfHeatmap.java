@@ -36,6 +36,90 @@ public final class RfHeatmap {
         public double terrainLossDb = 40.0;
         public double radiusM = 1000.0;
         public double cellM = DEFAULT_CELL_M;
+        /**
+         * R1 multi-band: when non-empty, each cell's value is the combined jamming margin
+         * (rx - band threshold) over these bands, re-expressed as rx relative to
+         * {@link #thresholdDbm} so the usual banding / classification still apply.
+         */
+        public final List<Band> bands = new ArrayList<>();
+        /** true = weakest band (min margin), false = union (max margin). */
+        public boolean combineWeakest;
+
+        /** Cache-key fragment for the band configuration ("" when single band). */
+        public String bandsKey() {
+            if (bands.isEmpty()) return "";
+            StringBuilder sb = new StringBuilder(combineWeakest ? "W" : "U");
+            for (Band b : bands) {
+                sb.append(String.format(java.util.Locale.US, "|%.3f:%.2f:%.2f:%.1f",
+                        b.txDbm, b.frequencyMhz, b.thresholdDbm, b.maxRangeM));
+            }
+            return sb.toString();
+        }
+    }
+
+    /** One band of a multi-band jammer. */
+    public static final class Band {
+        public final double txDbm, frequencyMhz, thresholdDbm, maxRangeM;
+
+        public Band(double txDbm, double frequencyMhz, double thresholdDbm, double maxRangeM) {
+            this.txDbm = txDbm;
+            this.frequencyMhz = frequencyMhz;
+            this.thresholdDbm = thresholdDbm;
+            this.maxRangeM = maxRangeM;
+        }
+    }
+
+    /**
+     * Heat map parameters for an effector (R1-aware). Multi-band effectors with at least one
+     * enabled band use the combined-band model; otherwise the legacy single band is used.
+     */
+    public static Params forEffector(com.skiarkt.shooter.model.NonKineticEffector n,
+            double globalFrequencyMhz, double globalThresholdDbm, double terrainLossDb) {
+        Params p = new Params();
+        p.txDbm = n.eirpDbm;
+        p.frequencyMhz = n.effectiveFrequencyMhz(globalFrequencyMhz);
+        p.thresholdDbm = n.effectiveThresholdDbm(globalThresholdDbm);
+        p.terrainLossDb = terrainLossDb;
+        p.radiusM = n.maxEngagementDistMeters;
+        p.cellM = DEFAULT_CELL_M;
+        List<com.skiarkt.shooter.model.RfBand> enabled = n.enabledBands();
+        if (!enabled.isEmpty()) {
+            p.combineWeakest = n.getHeatmapMode() == com.skiarkt.shooter.model.RfHeatmapMode.WEAKEST;
+            double reach = 0;
+            for (com.skiarkt.shooter.model.RfBand b : enabled) {
+                double cap = b.rangeCapMeters(n.maxEngagementDistMeters);
+                reach = Math.max(reach, cap);
+                p.bands.add(new Band(b.eirpDbm, b.frequencyMhz, b.thresholdDbm, cap));
+            }
+            if (reach > 0) p.radiusM = reach;
+        }
+        return p;
+    }
+
+    /** Sentinel margin for a band that cannot reach a cell (beyond its max range). */
+    static final double OUT_OF_RANGE_MARGIN_DB = -200.0;
+
+    /**
+     * Combined jamming margin (dB above threshold) at distance {@code d}; NaN when no band
+     * reaches the cell in union mode.
+     */
+    public static double combinedMarginDb(Params p, double d, boolean visible) {
+        double best = Double.NEGATIVE_INFINITY, worst = Double.POSITIVE_INFINITY;
+        boolean anyInRange = false;
+        for (Band b : p.bands) {
+            double m;
+            if (b.maxRangeM > 0 && d > b.maxRangeM) {
+                m = OUT_OF_RANGE_MARGIN_DB;
+            } else {
+                anyInRange = true;
+                m = RfPropagation.receivedPowerDbm(b.txDbm, d, b.frequencyMhz, visible, p.terrainLossDb)
+                        - b.thresholdDbm;
+            }
+            best = Math.max(best, m);
+            worst = Math.min(worst, m);
+        }
+        if (!anyInRange && !p.combineWeakest) return Double.NaN;
+        return p.combineWeakest ? worst : best;
     }
 
     /** @param los viewshed for the effector (may be null = assume LOS everywhere). */
@@ -64,7 +148,18 @@ public final class RfHeatmap {
                 }
                 double bearing = GeoUtils.normalizeDeg(Math.toDegrees(Math.atan2(x, y)));
                 boolean visible = los == null || los.isVisible(bearing, Math.min(d, los.rangeM));
-                double rx = RfPropagation.receivedPowerDbm(p.txDbm, d, p.frequencyMhz, visible, p.terrainLossDb);
+                double rx;
+                if (p.bands.isEmpty()) {
+                    rx = RfPropagation.receivedPowerDbm(p.txDbm, d, p.frequencyMhz, visible, p.terrainLossDb);
+                } else {
+                    double margin = combinedMarginDb(p, d, visible);
+                    if (Double.isNaN(margin)) {
+                        r.bands[idx] = -1;
+                        r.rxDbm[idx] = Float.NaN;
+                        continue;
+                    }
+                    rx = p.thresholdDbm + margin;
+                }
                 r.rxDbm[idx] = (float) rx;
                 r.bands[idx] = RfPropagation.band(rx, p.thresholdDbm, GRADIENT_STEPS);
                 inside++;

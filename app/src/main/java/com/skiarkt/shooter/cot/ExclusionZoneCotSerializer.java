@@ -4,6 +4,8 @@ import com.atakmap.coremap.cot.event.CotDetail;
 import com.atakmap.coremap.cot.event.CotEvent;
 import com.skiarkt.shooter.model.BasePlanItem;
 import com.skiarkt.shooter.model.ExclusionZone;
+import com.skiarkt.shooter.model.ExclusionZoneShape;
+import com.skiarkt.shooter.model.GeoPos;
 import com.skiarkt.shooter.model.PlanColors;
 
 /**
@@ -64,6 +66,17 @@ public final class ExclusionZoneCotSerializer {
         skiarkt.setAttribute("fillOpacity", Float.toString(z.fillOpacity));
         skiarkt.setAttribute("strokeWidth", Double.toString(z.strokeWidth));
         skiarkt.setAttribute("strokeDashed", String.valueOf(z.strokeDashed));
+        if (z.getShape() != ExclusionZoneShape.POLYGON && z.hasShapeParams()) {
+            skiarkt.setAttribute("shape", z.getShape().name());
+            skiarkt.setAttribute("center", z.center.toCotString());
+            if (z.getShape() == ExclusionZoneShape.CIRCLE) {
+                skiarkt.setAttribute("radius", Double.toString(z.radiusMeters));
+            } else {
+                skiarkt.setAttribute("rectWidth", Double.toString(z.rectWidthMeters));
+                skiarkt.setAttribute("rectLength", Double.toString(z.rectLengthMeters));
+                skiarkt.setAttribute("rotation", Double.toString(z.rotationDeg));
+            }
+        }
 
         add(detail, CotTypes.DETAIL_FILL_COLOR, String.valueOf(z.getFillArgb()));
         add(detail, DETAIL_STROKE_WEIGHT, Double.toString(z.strokeWidth));
@@ -107,7 +120,36 @@ public final class ExclusionZoneCotSerializer {
             Integer s = stroke == null ? null : parseInt(stroke.getAttribute("value"));
             if (s != null) z.color = s;
         }
+        decodeShape(skiarkt, z);
         z.normalizeStyle();
+    }
+
+    /** R3: restores circle / rectangle parameters; points stay as transmitted if params bad. */
+    static void decodeShape(CotDetail skiarkt, ExclusionZone z) {
+        ExclusionZoneShape shape = ExclusionZoneShape.parse(skiarkt.getAttribute("shape"));
+        if (shape == ExclusionZoneShape.POLYGON) {
+            z.shape = ExclusionZoneShape.POLYGON;
+            return;
+        }
+        GeoPos c = GeoPos.fromCotString(skiarkt.getAttribute("center"));
+        z.shape = shape;
+        z.center = c;
+        if (shape == ExclusionZoneShape.CIRCLE) {
+            double r = parseDouble(skiarkt.getAttribute("radius"));
+            z.radiusMeters = Double.isNaN(r) ? 0 : r;
+        } else {
+            double w = parseDouble(skiarkt.getAttribute("rectWidth"));
+            double l = parseDouble(skiarkt.getAttribute("rectLength"));
+            double rot = parseDouble(skiarkt.getAttribute("rotation"));
+            z.rectWidthMeters = Double.isNaN(w) ? 0 : w;
+            z.rectLengthMeters = Double.isNaN(l) ? 0 : l;
+            z.rotationDeg = Double.isNaN(rot) ? 0 : rot;
+        }
+        if (z.hasShapeParams()) {
+            z.regeneratePoints();
+        } else {
+            z.shape = ExclusionZoneShape.POLYGON; // fall back to the transmitted vertices
+        }
     }
 
     private static void add(CotDetail detail, String element, String value) {
