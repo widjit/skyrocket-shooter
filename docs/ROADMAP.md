@@ -1,10 +1,10 @@
 # SKY ROCKET SHOOTER (SKIARKT) — Roadmap
 
-Released: **1.0.5** (ATAK-CIV 5.6.0) — exclusion zones (polygon), sensors, RF jamming heat map,
-kinetic effectors (including Directed Energy / laser at speed-of-light default), CoT sharing,
-autosave persistence.
+Released: **1.0.6** (ATAK-CIV 5.6.0) — exclusion zones (polygon), sensors, RF jamming heat map,
+kinetic effectors (including Directed Energy / laser at speed-of-light default), engagement-authority
+perimeters (R6), CoT sharing, autosave persistence.
 
-Items below are planned, not implemented. Everything new is saved and shared as CoT, like the
+Items below are planned, not implemented, unless marked **Implemented**. Everything new is saved and shared as CoT, like the
 existing objects. All distances follow the global unit setting (ft / m / km).
 
 ---
@@ -111,7 +111,29 @@ Output: an overlay of where a target can be **lased and engaged**, where it is *
 masked from the seeker**, and where it **can't be lased at all**. It also lists the best
 designator position(s) for each launcher. Results feed into the engagement timeline.
 
-## R6. Engagement-authority perimeters (buffers)
+## R6. Engagement-authority perimeters (buffers)  — **Implemented in 1.0.6**
+
+**Status (1.0.6):** new *Engagement Authority* section in the side panel.
+- Zones are created from an exclusion zone, a defended asset, or a drawn boundary. Each has a type,
+  label, signed buffer (positive = outward, negative = inward, ±100 km max), color, fill opacity,
+  dashed outline and remarks. Linked zones follow later edits to their base; the base outline is
+  also stored as a snapshot so a zone shared over CoT (`b-m-p-skiarkt-authzone`) still works on a
+  device that lacks the base item.
+- Containment is exact (signed distance to the base perimeter vs. buffer). The map ring is a
+  round-joined offset outline; on highly concave shapes the drawn ring is approximate.
+- Rule engine: a point authorizes an effector class only when inside a zone of that class and
+  outside every non-hostile zone (non-hostile always wins).
+- *Authority check* in the panel samples every kinetic / NK effector's engagement envelope (respects
+  min range and restricted azimuths) and flags: no authority zone, envelope outside authority,
+  envelope overlapping weapons hold, effector inside weapons hold, linked zone of the wrong class.
+  A kinetic effector's *engagement authority perimeter UID* can name one zone to restrict it to.
+- Zones are drawn on the map and in the PNG export.
+
+**Still to do:** PACE PDF output (PACE not built yet), engagement-timeline / best-effector
+integration (timeline not built yet), R3 shapes (circle / rectangle / line) as bases.
+
+Original requirement:
+
 Buffer zones offset from a base perimeter (a defended asset, an exclusion zone, or a drawn boundary).
 Each zone has its own distance, color, and label:
 - **Non-kinetic engagement authority**: area where RF/NK effectors are authorized.
@@ -131,8 +153,11 @@ Phase 4 added Directed Energy as a kinetic type with speed-of-light velocity def
 don't apply to beam weapons (munition type, detonation mode, frag radius, ammo count / reload time)
 are still shown in the panel but mean nothing for a laser. Planned work:
 - Hide / grey out inapplicable fields when Directed Energy is selected.
-- Add laser-specific fields: beam dwell time, aperture diameter, power density at range, and an
-  effective suppression zone (replaces frag corridor).
+- Add laser-specific fields: beam dwell time, aperture diameter, and an effective suppression zone
+  (replaces frag corridor).
+- **Laser power (kW) is optional.** Operators often won't know it. When power (and aperture) is
+  entered, compute power density at range (W/cm²) and derive the effective range from it. When it
+  is blank, use the operator-entered qualitative effective range instead — never block on it.
 - Overlay: replace concentric frag rings with a beam-intensity gradient along the threat vector
   (complements the Phase 5 dynamic-frag-cylinder item for projectiles).
 
@@ -219,14 +244,19 @@ The planner can show or hide each asset's map drawing individually.
 ---
 
 ### Phase 5 core items (previously planned)
-Threat ingress corridors, sensor gap analysis, engagement timeline (detect → jam → kinetic),
+Sensor gap analysis, engagement timeline (detect → jam → kinetic),
 MSA rings, friendly-fire deconfliction / best-effector designation, dynamic fragmentation
 cylinder along threat vector, PACE plan PDF, full-plan CoT import/export, WinTAK push/pull.
+
+### Deferred (later)
+Threat ingress corridors — pushed down the road at the user's request (October 2026). The data
+model and the corridor input for the minimum-intercept calculator stay as they are; the corridor
+editor, corridor-based gap analysis and per-corridor timelines wait until after the items above.
 
 ### Dependencies
 R0 (site grouping) is independent of all others and ships first.
 R2 (designators) → R4 (LGR) → R5 (masking).
-R3 (shapes) → R6 (buffers can use any shape).
+R3 (shapes) → R6 (R6 is shipped for polygons; new R3 shapes become bases when added).
 R1 is independent.
 R7 depends only on the Directed Energy type added in 1.0.5.
 R8 (walls) is independent for measurement and drawing. Its masking rule (R8c) shares the clearance

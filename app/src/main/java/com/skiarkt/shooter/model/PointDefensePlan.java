@@ -24,6 +24,7 @@ public class PointDefensePlan {
     public List<KineticEffector> kineticEffectors = new ArrayList<>();
     public List<DefendedAsset> defendedAssets = new ArrayList<>();
     public List<ThreatCorridor> threatCorridors = new ArrayList<>();
+    public List<EngagementAuthorityZone> authorityZones = new ArrayList<>();
 
     /** Live (mutable) list for a given kind. */
     @SuppressWarnings("unchecked")
@@ -35,6 +36,7 @@ public class PointDefensePlan {
             case KINETIC_EFFECTOR: return (List<T>) kineticEffectors;
             case DEFENDED_ASSET: return (List<T>) defendedAssets;
             case THREAT_CORRIDOR: return (List<T>) threatCorridors;
+            case AUTHORITY_ZONE: return (List<T>) authorityZones;
             default: return Collections.emptyList();
         }
     }
@@ -73,6 +75,10 @@ public class PointDefensePlan {
         if (kineticEffectors == null) kineticEffectors = new ArrayList<>();
         if (defendedAssets == null) defendedAssets = new ArrayList<>();
         if (threatCorridors == null) threatCorridors = new ArrayList<>();
+        if (authorityZones == null) authorityZones = new ArrayList<>();
+        for (EngagementAuthorityZone z : authorityZones) {
+            if (z != null) z.normalize();
+        }
         if (classification == null) classification = DEFAULT_CLASSIFICATION;
         for (KineticEffector k : kineticEffectors) {
             if (k != null) k.ensureLists();

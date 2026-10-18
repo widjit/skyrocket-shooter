@@ -10,6 +10,7 @@ public enum FeatureSection {
     NON_KINETIC(R.string.section_non_kinetic, R.string.desc_non_kinetic, 3, ItemKind.NON_KINETIC_EFFECTOR),
     KINETIC(R.string.section_kinetic, R.string.desc_kinetic, 4, ItemKind.KINETIC_EFFECTOR),
     DEFENDED_ASSETS(R.string.section_defended_assets, R.string.desc_defended_assets, 2, ItemKind.DEFENDED_ASSET),
+    AUTHORITY(R.string.section_authority, R.string.desc_authority, 5, ItemKind.AUTHORITY_ZONE),
     THREAT_CORRIDORS(R.string.section_threat_corridors, R.string.desc_threat_corridors, 4, ItemKind.THREAT_CORRIDOR),
     GAP_ANALYSIS(R.string.section_gap_analysis, R.string.desc_gap_analysis, 4, null),
     TIMELINE(R.string.section_timeline, R.string.desc_timeline, 5, null),

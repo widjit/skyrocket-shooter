@@ -16,6 +16,7 @@ import com.atakmap.map.opengl.GLMapSurface;
 import com.atakmap.map.opengl.GLMapView;
 import com.skiarkt.shooter.model.BasePlanItem;
 import com.skiarkt.shooter.model.DefendedAsset;
+import com.skiarkt.shooter.model.EngagementAuthorityZone;
 import com.skiarkt.shooter.model.GeoPos;
 import com.skiarkt.shooter.model.PlanColors;
 import com.skiarkt.shooter.model.PointDefensePlan;
@@ -328,8 +329,11 @@ public final class PngExporter {
         }
         for (BasePlanItem item : plan.getAllItems()) {
             if (!(item instanceof PolygonItem) || !item.isValid()) continue;
-            Path path = path(((PolygonItem) item).points, pr, true);
+            List<GeoPos> ring = PngExportModel.pointsOf(item);
+            if (ring.size() < 3) continue;
+            Path path = path(ring, pr, true);
             int fillColor = item instanceof DefendedAsset ? ((DefendedAsset) item).fillColor
+                    : item instanceof EngagementAuthorityZone ? ((EngagementAuthorityZone) item).getFillArgb()
                     : PlanColors.withAlpha(item.color, 0.30f);
             fill.setColor(fillColor);
             stroke.setColor(item.color | 0xFF000000);

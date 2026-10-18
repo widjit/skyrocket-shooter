@@ -1,6 +1,8 @@
 package com.skiarkt.shooter.export;
 
 import com.skiarkt.shooter.model.BasePlanItem;
+import com.skiarkt.shooter.analysis.PolygonBuffer;
+import com.skiarkt.shooter.model.EngagementAuthorityZone;
 import com.skiarkt.shooter.model.ExclusionZone;
 import com.skiarkt.shooter.model.GeoPos;
 import com.skiarkt.shooter.model.ItemKind;
@@ -86,6 +88,11 @@ public final class PngExportModel {
         }
         if (item instanceof ExclusionZone) {
             return " - height " + UnitConverter.format(((ExclusionZone) item).heightAglMeters, u, d) + " AGL";
+        }
+        if (item instanceof EngagementAuthorityZone) {
+            EngagementAuthorityZone z = (EngagementAuthorityZone) item;
+            return " - " + z.authorityType.displayName + ", buffer " + (z.bufferMeters > 0 ? "+" : "")
+                    + UnitConverter.format(z.bufferMeters, u, d);
         }
         if (item instanceof ThreatCorridor) {
             ThreatCorridor c = (ThreatCorridor) item;
@@ -186,6 +193,10 @@ public final class PngExportModel {
 
     /** Polygon / polyline vertices of an item (empty for point items). */
     public static List<GeoPos> pointsOf(BasePlanItem item) {
+        if (item instanceof EngagementAuthorityZone) {
+            EngagementAuthorityZone z = (EngagementAuthorityZone) item;
+            return new ArrayList<>(PolygonBuffer.offsetRing(z.points, z.bufferMeters));
+        }
         if (item instanceof PolygonItem && ((PolygonItem) item).points != null) return ((PolygonItem) item).points;
         if (item instanceof ThreatCorridor && ((ThreatCorridor) item).points != null) {
             return ((ThreatCorridor) item).points;

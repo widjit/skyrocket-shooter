@@ -5,7 +5,9 @@ import com.atakmap.coremap.cot.event.CotEvent;
 import com.atakmap.coremap.cot.event.CotPoint;
 import com.atakmap.coremap.maps.time.CoordinatedTime;
 import com.skiarkt.shooter.model.BasePlanItem;
+import com.skiarkt.shooter.model.AuthorityType;
 import com.skiarkt.shooter.model.DefendedAsset;
+import com.skiarkt.shooter.model.EngagementAuthorityZone;
 import com.skiarkt.shooter.model.ExclusionZone;
 import com.skiarkt.shooter.model.GeoPos;
 import com.skiarkt.shooter.model.ItemKind;
@@ -181,6 +183,17 @@ public final class CotSerializer {
                 KineticEffectorCot.encodeInto(k, detail);
                 break;
             }
+            case AUTHORITY_ZONE: {
+                EngagementAuthorityZone z = (EngagementAuthorityZone) item;
+                skiarkt.setAttribute("authorityType", z.authorityType.name());
+                skiarkt.setAttribute("bufferM", d(z.bufferMeters));
+                if (z.baseUid != null) skiarkt.setAttribute("baseUid", z.baseUid);
+                skiarkt.setAttribute("fillColor", String.valueOf(z.fillColor));
+                skiarkt.setAttribute("fillOpacity", Float.toString(z.fillOpacity));
+                skiarkt.setAttribute("dashed", String.valueOf(z.strokeDashed));
+                addColor(detail, CotTypes.DETAIL_FILL_COLOR, z.getFillArgb());
+                break;
+            }
             case THREAT_CORRIDOR: {
                 ThreatCorridor c = (ThreatCorridor) item;
                 skiarkt.setAttribute("width", d(c.widthMeters));
@@ -276,6 +289,18 @@ public final class CotSerializer {
                 k.clearZoneColor = pi(skiarkt, "clearZoneColor", k.clearZoneColor);
                 KineticEffectorCot.decodeFrom(ev.getDetail(), k);
                 item = k;
+                break;
+            }
+            case AUTHORITY_ZONE: {
+                EngagementAuthorityZone z = new EngagementAuthorityZone();
+                z.authorityType = AuthorityType.fromName(skiarkt.getAttribute("authorityType"), AuthorityType.KINETIC);
+                z.bufferMeters = pd(skiarkt, "bufferM", 0.0);
+                z.baseUid = skiarkt.getAttribute("baseUid");
+                z.fillColor = pi(skiarkt, "fillColor", z.authorityType.defaultColor);
+                z.fillOpacity = (float) pd(skiarkt, "fillOpacity", z.fillOpacity);
+                z.strokeDashed = pb(skiarkt, "dashed", z.strokeDashed);
+                z.normalize();
+                item = z;
                 break;
             }
             case THREAT_CORRIDOR: {

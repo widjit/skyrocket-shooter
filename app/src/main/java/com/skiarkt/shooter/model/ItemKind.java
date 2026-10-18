@@ -7,7 +7,8 @@ public enum ItemKind {
     NON_KINETIC_EFFECTOR("nke", "Non-Kinetic Effector"),
     KINETIC_EFFECTOR("ke", "Kinetic Effector"),
     DEFENDED_ASSET("defasset", "Defended Asset"),
-    THREAT_CORRIDOR("corridor", "Threat Corridor");
+    THREAT_CORRIDOR("corridor", "Threat Corridor"),
+    AUTHORITY_ZONE("authzone", "Engagement Authority Zone");
 
     /** Short code used in CoT types and file names. */
     public final String code;

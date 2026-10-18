@@ -22,6 +22,7 @@ import com.skiarkt.shooter.overlay.OverlayManager;
 import com.skiarkt.shooter.settings.SettingsManager;
 import com.skiarkt.shooter.ui.ExclusionZonePanel;
 import com.skiarkt.shooter.ui.FeatureSection;
+import com.skiarkt.shooter.ui.AuthorityPanel;
 import com.skiarkt.shooter.ui.KineticPanel;
 import com.skiarkt.shooter.ui.NonKineticPanel;
 import com.skiarkt.shooter.ui.SensorPanel;
@@ -54,6 +55,7 @@ public class PointDefenseDropDownReceiver extends DropDownReceiver
     private SensorPanel sensorPanel;
     private NonKineticPanel nonKineticPanel;
     private KineticPanel kineticPanel;
+    private AuthorityPanel authorityPanel;
 
     private final View rootView;
     private final TextView planSummary;
@@ -186,6 +188,12 @@ public class PointDefenseDropDownReceiver extends DropDownReceiver
                         overlayManager, backToMenu());
             }
             view = kineticPanel.createView();
+        } else if (section == FeatureSection.AUTHORITY) {
+            if (authorityPanel == null) {
+                authorityPanel = new AuthorityPanel(pluginContext, getMapView(), settings, repository,
+                        overlayManager, backToMenu());
+            }
+            view = authorityPanel.createView();
         } else if (section == FeatureSection.SETTINGS) {
             view = new SettingsPanel(pluginContext, settings, repository, new Runnable() {
                 @Override
@@ -214,6 +222,7 @@ public class PointDefenseDropDownReceiver extends DropDownReceiver
         if (keep != FeatureSection.SENSORS && sensorPanel != null) sensorPanel.onHidden();
         if (keep != FeatureSection.NON_KINETIC && nonKineticPanel != null) nonKineticPanel.onHidden();
         if (keep != FeatureSection.KINETIC && kineticPanel != null) kineticPanel.onHidden();
+        if (keep != FeatureSection.AUTHORITY && authorityPanel != null) authorityPanel.onHidden();
     }
 
     private View createPlaceholder(FeatureSection section) {
@@ -335,6 +344,9 @@ public class PointDefenseDropDownReceiver extends DropDownReceiver
                 } else if (currentSection == FeatureSection.KINETIC) {
                     updatePlanSummary();
                     if (kineticPanel != null) kineticPanel.refresh();
+                } else if (currentSection == FeatureSection.AUTHORITY) {
+                    updatePlanSummary();
+                    if (authorityPanel != null) authorityPanel.refresh();
                 } else if (currentSection != FeatureSection.SETTINGS) showSection(currentSection);
                 else updatePlanSummary();
             }
@@ -348,6 +360,7 @@ public class PointDefenseDropDownReceiver extends DropDownReceiver
         if (sensorPanel != null) sensorPanel.dispose();
         if (nonKineticPanel != null) nonKineticPanel.dispose();
         if (kineticPanel != null) kineticPanel.dispose();
+        if (authorityPanel != null) authorityPanel.dispose();
     }
 
     @Override

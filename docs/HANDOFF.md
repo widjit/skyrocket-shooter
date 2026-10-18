@@ -18,14 +18,19 @@ outside the code.
 - Obstruction walls are hard barriers: shooting in front of them is allowed, through them never (ROADMAP R8).
 - Never merge PRs automatically; the owner reviews them.
 
-## Current state (as of 2026-10-17)
-- Latest build: **1.0.5 / versionCode 6**, GitHub pre-release `v1.0.5-civ-5.6.0-debug` (debug-signed APK attached).
+## Current state (as of 2026-10-18)
+- Latest build: **1.0.6 / versionCode 7**, GitHub pre-release `v1.0.6-civ-5.6.0-debug` (debug-signed APK attached).
 - Work branch: `feature/phase4-kinetic-effectors-v1.0.4`, open as **PR #1**, not merged.
   `main` is still at 1.0.3 until PR #1 is merged.
-- Unit tests: 73 passing (`testCivDebugUnitTest`).
+- Unit tests: 81 passing (`testCivDebugUnitTest`).
 - Done: exclusion zones (polygon), sensors, RF jamming heat map, kinetic effectors (Phase 4 MVP
-  including Directed Energy with a speed-of-light default velocity), CoT sharing, autosave, PNG export.
-- Next: `docs/ROADMAP.md` (R0 multi-asset sites first, Phase 5 core items, R7, R8).
+  including Directed Energy with a speed-of-light default velocity), engagement-authority perimeters
+  (ROADMAP R6: `EngagementAuthorityZone`, `PolygonBuffer`, `AuthorityEvaluator`, `AuthorityPanel`,
+  `AuthorityZoneOverlay`), CoT sharing, autosave, PNG export.
+- Owner priorities (2026-10-18): threat corridors are deferred; R7 laser power (kW) must stay
+  optional (power density only when entered, otherwise qualitative effective range).
+- Next: `docs/ROADMAP.md` (R0 multi-asset sites, remaining Phase 5 core items, R7, R8). R6 still
+  needs PACE PDF and timeline integration once those exist.
 
 ## Key decisions
 - **Java, not Kotlin.** There is no Kotlin toolchain, and the ATAK SDK jar has Kotlin 2.2 metadata.
@@ -35,6 +40,9 @@ outside the code.
   a `siteUid`, and link them with checkbox pickers. A combined "site panel" was considered and rejected.
 - Effective ranges are **radii** from the weapon center, not diameters.
 - Fragmentation is drawn as static rings for now; the cylinder along the threat vector is Phase 5.
+- Authority zones store a signed buffer from a base polygon. Linked zones (`baseUid`) follow the live
+  base and keep a `points` snapshot for CoT recipients. Containment uses exact signed distance;
+  the drawn ring is an approximation on very concave shapes. Non-hostile zones always win.
 
 ## Gotchas
 - `app/src/main/assets/plugin.xml`: `<plugin>` must have **no attributes**, or ATAK silently loads

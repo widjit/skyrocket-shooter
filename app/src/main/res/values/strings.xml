@@ -15,6 +15,7 @@
     <string name="section_non_kinetic">Non-Kinetic Effectors</string>
     <string name="section_kinetic">Kinetic Effectors</string>
     <string name="section_defended_assets">Defended Assets</string>
+    <string name="section_authority">Engagement Authority</string>
     <string name="section_threat_corridors">Threat Corridors</string>
     <string name="section_gap_analysis">Gap Analysis</string>
     <string name="section_timeline">Engagement Timeline</string>
@@ -27,6 +28,7 @@
     <string name="desc_non_kinetic">Place RF effectors and render terrain-aware jamming effectiveness heat maps.</string>
     <string name="desc_kinetic">Place kinetic effectors; model fragmentation along the full munition path (3D cylinder) and compute minimum intercept altitude over exclusion zones.</string>
     <string name="desc_defended_assets">Outline the assets being defended and assign priorities.</string>
+    <string name="desc_authority">Buffer perimeters offset from exclusion zones, defended assets or a drawn boundary: non-kinetic authority, kinetic authority and non-hostile (weapons hold) zones, with effector authority checks.</string>
     <string name="desc_threat_corridors">Define likely sUAS ingress corridors with width, speed and altitude.</string>
     <string name="desc_gap_analysis">Identify detection and engagement coverage gaps around defended assets and along corridors.</string>
     <string name="desc_timeline">Detect-to-defeat timeline and engagement sequence per corridor, with best-effector designation and friendly-fire deconfliction.</string>
@@ -205,7 +207,7 @@
     <string name="ke_velocity">Munition velocity (m/s)</string>
     <string name="ke_restricted">Restricted azimuths (e.g. 30-45; 200-210)</string>
     <string name="ke_min_intercept_fmt">Min intercept altitude AGL (%1$s)</string>
-    <string name="ke_perimeter_uid">Engagement authority perimeter UID (optional)</string>
+    <string name="ke_perimeter_uid">Engagement authority zone / perimeter UID (optional)</string>
     <string name="ke_ff_check">Friendly-fire check enabled</string>
     <string name="ke_sensors">Linked sensor UIDs (comma separated)</string>
     <string name="ke_designators">Linked laser designator UIDs (comma separated)</string>
