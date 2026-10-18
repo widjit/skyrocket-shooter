@@ -1,11 +1,34 @@
 # SKY ROCKET SHOOTER (SKIARKT) — Roadmap
 
-Current build: **1.0.8** (ATAK-CIV 5.6.0, debug pre-release). Released: **1.0.6** — exclusion zones (polygon), sensors, RF jamming heat map,
-kinetic effectors (including Directed Energy / laser at speed-of-light default), engagement-authority
-perimeters (R6), CoT sharing, autosave persistence.
+Current build: **1.0.8** (ATAK-CIV 5.6.0, debug pre-release, shared for feedback). Feature summary
+and install steps are in the [README](../README.md).
 
 Items below are planned, not implemented, unless marked **Implemented**. Everything new is saved and shared as CoT, like the
 existing objects. All distances follow the global unit setting (ft / m / km).
+
+## Phases
+
+The R-items are grouped into phases. Phases 1–2 are done. **Phase 3 is next**, and it is the main
+thing I want feedback on.
+
+| Phase | Theme | Status | Items |
+|---|---|---|---|
+| 1 | Foundation | ✅ Done (1.0.0–1.0.3) | Plugin framework, data model, CoT schema, settings, DTED helper, polygon exclusion zones, minimum safe intercept altitude, sensors with terrain masking, RF jammer heat maps |
+| 2 | Assets and planning workflow | ✅ Done (1.0.4–1.0.8) | Kinetic effectors, directed energy (R7), multi-band RF (R1), zone shapes (R3), engagement authority (R6), sites and linking (R0), visibility (R9), sensor types and fields (R2, partial), preset catalog (R10) |
+| 3 | **Detection and intercept analysis** | ⏭️ Next | Drone detection simulation (R12), detection-floor probe and heat maps (R13), kinetic / non-kinetic intercept heat maps (R14), sensor gap analysis, type-aware filters (rest of R2: night / IR-only coverage) |
+| 4 | Sensors in depth and obstacles | Planned | Optics/IR definition and DRI rings (R11), field-measured walls and "never through it" masking (R8) |
+| 5 | Laser-guided engagements | Planned | Laser-guided rocket with designator pairing (R4), laser-masking analysis (R5) |
+| 6 | Engagement decision support | Planned | Engagement timeline (detect → decide → defeat), best-effector recommendation, friendly-fire deconfliction, MSA rings, dynamic frag cylinder along the threat vector |
+| 7 | Briefing, sharing and release | Planned | PACE plan PDF, full-plan import/export (CoT / KMZ / data package), WinTAK push/pull, decision-maker briefing export, TAK.gov-signed release build |
+| Later | Deferred | — | Threat ingress corridors: corridor editor, corridor-based gap analysis, per-corridor timelines |
+
+**Why this order:** Phase 3 turns the plan you have already laid out into answers: what can see a
+drone here, how low can it fly undetected, and can I engage it? Phase 4 makes those answers more
+accurate (optics detail, walls). Phases 5–6 build on them for engagement decisions, and Phase 7
+packages everything for briefing and for release ATAK.
+
+**Feedback wanted:** is this the right order? What is missing? Which Phase 3 item would you use first?
+Please use [GitHub Issues](https://github.com/widjit/skyrocket-shooter/issues).
 
 ---
 
@@ -199,7 +222,7 @@ are still shown in the panel but mean nothing for a laser. Planned work:
   entered, compute power density at range (W/cm²) and derive the effective range from it. When it
   is blank, use the operator-entered qualitative effective range instead — never block on it.
 - Overlay: replace concentric frag rings with a beam-intensity gradient along the threat vector
-  (complements the Phase 5 dynamic-frag-cylinder item for projectiles).
+  (complements the Phase 6 dynamic-frag-cylinder item for projectiles).
 
 ## R8. Field-measured obstacle walls (laser range finder + basic trigonometry)  *(long-term)*
 
@@ -413,13 +436,14 @@ at this spot before I can intercept it?"*
 
 ---
 
-### Phase 5 core items (previously planned)
-Sensor gap analysis, engagement timeline (detect → jam → kinetic),
-MSA rings, friendly-fire deconfliction / best-effector designation, dynamic fragmentation
-cylinder along threat vector, PACE plan PDF, full-plan CoT import/export, WinTAK push/pull.
+### Items without an R-number
+These are listed under their phase in the [Phases](#phases) table: sensor gap analysis (Phase 3);
+engagement timeline (detect → jam → kinetic), best-effector designation, friendly-fire
+deconfliction, MSA rings, dynamic fragmentation cylinder (Phase 6); PACE plan PDF, full-plan CoT
+import/export, WinTAK push/pull (Phase 7).
 
 ### Deferred (later)
-Threat ingress corridors — pushed down the road at the user's request (October 2026). The data
+Threat ingress corridors — deferred in October 2026 to prioritise the analysis layers. The data
 model and the corridor input for the minimum-intercept calculator stay as they are; the corridor
 editor, corridor-based gap analysis and per-corridor timelines wait until after the items above.
 
@@ -436,7 +460,9 @@ R10 (preset catalog) builds on R2's min-range / elevation fields. R11 (optics / 
 and the existing terrain/building line-of-sight mask.
 R12 (detection simulation) uses R2 (min range, elevation, day/night), R10 (per-class preset ranges)
 and the line-of-sight mask; it gains DRI output once R11 lands and could later feed sensor gap
-analysis (Phase 5).
+analysis (Phase 3).
 R13 (detection-floor probe / heat maps) is built on R12's per-sensor check. R14 (intercept heat maps)
 reuses R13's grid/altitude engine, plus the existing kinetic shot-safety/clearance engine, R1 (RF
-bands), R7 (directed energy) and R8c (walls). Both feed the Phase 5 sensor gap analysis.
+bands), R7 (directed energy) and R8c (walls). Both feed the Phase 3 sensor gap analysis.
+R8 (walls) arrives in Phase 4. Until then, R14 respects exclusion-zone heights, and walls are added to
+the same clearance check when R8 lands.
