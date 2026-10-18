@@ -26,6 +26,8 @@ groups:
 The plugin shows terrain-masked sensor coverage, models RF jammer effectiveness, works out safe
 intercept altitudes, and shares the whole plan with other ATAK / WinTAK users as Cursor-on-Target (CoT).
 
+***Shooters Known Intercepter ATAK Rapid Knowledge Tool***
+
 > **Planning and visualization tool only.** It is not a fire-control system. Ranges come from public
 > datasheets or what the operator enters. See [SECURITY.md](SECURITY.md) before any operational use.
 
