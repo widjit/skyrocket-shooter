@@ -2,6 +2,9 @@ package com.skiarkt.shooter.model;
 
 import android.os.Parcel;
 
+import java.util.ArrayList;
+import java.util.List;
+
 /**
  * RF jammer / non-kinetic defeat system. The heat map uses a three-stop gradient:
  * {@link #heatmapColor} (effective, rx >= threshold), {@link #marginalColor} (within the
@@ -24,6 +27,15 @@ public class NonKineticEffector extends PointItem {
     public boolean useGlobalFrequency = true;
     /** RF output power / EIRP (dBm). */
     public double eirpDbm = 47.0;
+    /** R0b: sensors that cue this effector (uids). */
+    public List<String> linkedSensorUids = new ArrayList<>();
+    /**
+     * R1 multi-band jamming. Empty = legacy single band ({@link #frequencyMhz}, {@link #eirpDbm},
+     * threshold); otherwise these bands replace the single-band values for analysis.
+     */
+    public List<RfBand> bands = new ArrayList<>();
+    /** How enabled bands are combined into one heat map (null = UNION). */
+    public RfHeatmapMode heatmapMode = RfHeatmapMode.UNION;
 
     public NonKineticEffector() {
         super("RF Effector", PlanColors.NKE_HEATMAP);
@@ -40,6 +52,36 @@ public class NonKineticEffector extends PointItem {
         useGlobalFrequency = in.readInt() != 0;
         marginalColor = in.readInt();
         insufficientColor = in.readInt();
+        in.readStringList(linkedSensorUids);
+        bands = RfBand.decodeList(in.readString());
+        heatmapMode = RfHeatmapMode.parse(in.readString());
+    }
+
+    public void ensureLists() {
+        if (linkedSensorUids == null) linkedSensorUids = new ArrayList<>();
+        if (bands == null) bands = new ArrayList<>();
+        if (heatmapMode == null) heatmapMode = RfHeatmapMode.UNION;
+    }
+
+    public boolean isMultiBand() {
+        return bands != null && !bands.isEmpty();
+    }
+
+    public RfHeatmapMode getHeatmapMode() {
+        return heatmapMode == null ? RfHeatmapMode.UNION : heatmapMode;
+    }
+
+    /** Enabled, valid bands (empty for legacy single-band effectors). */
+    public List<RfBand> enabledBands() {
+        List<RfBand> out = new ArrayList<>();
+        if (bands == null) return out;
+        for (RfBand b : bands) if (b != null && b.enabled && b.isValid()) out.add(b);
+        return out;
+    }
+
+    /** Replaces the band list with a drone-class preset using current single-band defaults. */
+    public void applyPreset(DroneClassPreset preset, double globalThresholdDbm) {
+        bands = preset.bands(eirpDbm, effectiveThresholdDbm(globalThresholdDbm), 0.0);
     }
 
     public double effectiveThresholdDbm(double globalThresholdDbm) {
@@ -72,6 +114,11 @@ public class NonKineticEffector extends PointItem {
         n.frequencyMhz = frequencyMhz;
         n.useGlobalFrequency = useGlobalFrequency;
         n.eirpDbm = eirpDbm;
+        n.linkedSensorUids = linkedSensorUids == null ? new ArrayList<String>()
+                : new ArrayList<>(linkedSensorUids);
+        n.bands = new ArrayList<>();
+        if (bands != null) for (RfBand b : bands) if (b != null) n.bands.add(b.copy());
+        n.heatmapMode = getHeatmapMode();
         return n;
     }
 
@@ -97,6 +144,10 @@ public class NonKineticEffector extends PointItem {
         dest.writeInt(useGlobalFrequency ? 1 : 0);
         dest.writeInt(marginalColor);
         dest.writeInt(insufficientColor);
+        ensureLists();
+        dest.writeStringList(linkedSensorUids);
+        dest.writeString(RfBand.encodeList(bands));
+        dest.writeString(getHeatmapMode().name());
     }
 
     public static final Creator<NonKineticEffector> CREATOR = new Creator<NonKineticEffector>() {

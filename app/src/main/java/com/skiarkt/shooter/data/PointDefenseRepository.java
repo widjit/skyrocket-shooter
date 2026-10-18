@@ -42,7 +42,11 @@ import java.util.concurrent.TimeUnit;
  * thread, so UI listeners should hop to the main thread if needed.
  */
 public final class PointDefenseRepository {
-    public enum ChangeType { ITEM_ADDED, ITEM_UPDATED, ITEM_REMOVED, PLAN_REPLACED, PLAN_METADATA }
+    public enum ChangeType {
+        ITEM_ADDED, ITEM_UPDATED, ITEM_REMOVED, PLAN_REPLACED, PLAN_METADATA,
+        /** R9: local per-asset visibility changed (plan content unchanged, nothing shared). */
+        VISIBILITY
+    }
 
     public interface PlanChangeListener {
         /** @param item affected item, or null for plan-level changes. */
@@ -68,7 +72,26 @@ public final class PointDefenseRepository {
     private ScheduledFuture<?> pendingAutosave;
     private long autosaveDelayMs = DEFAULT_AUTOSAVE_DELAY_MS;
 
+    private final VisibilityStore visibility = new VisibilityStore();
+    private final CustomPresetStore presets = new CustomPresetStore();
+
     private PointDefenseRepository() {
+        visibility.setListener(new VisibilityStore.Listener() {
+            @Override
+            public void onVisibilityChanged() {
+                notifyListeners(ChangeType.VISIBILITY, null);
+            }
+        });
+    }
+
+    /** R9 per-device visibility (never shared, never part of the plan JSON / CoT). */
+    public VisibilityStore getVisibility() {
+        return visibility;
+    }
+
+    /** R10 local sensor preset catalog (never shared, never part of the plan JSON / CoT). */
+    public CustomPresetStore getPresetStore() {
+        return presets;
     }
 
     public static PointDefenseRepository getInstance() {
@@ -102,6 +125,8 @@ public final class PointDefenseRepository {
             }
             restore = storageDir != null && plan.totalItems() == 0;
         }
+        visibility.attach(storageDir == null ? null : new File(storageDir, VisibilityStore.FILE_NAME));
+        presets.attach(storageDir == null ? null : new File(storageDir, CustomPresetStore.FILE_NAME));
         if (restore) restoreAutosave();
     }
 
@@ -160,12 +185,18 @@ public final class PointDefenseRepository {
     private void writeAutosave() {
         File file = autosaveFile();
         if (file == null) return;
-        try {
-            saveToFile(file);
-        } catch (IOException | RuntimeException e) {
-            android.util.Log.e(TAG, "Autosave to " + file + " failed", e);
+        // Serialise writers: a debounced background write may overlap a synchronous flush,
+        // and both use the same .tmp file.
+        synchronized (autosaveWriteLock) {
+            try {
+                saveToFile(file);
+            } catch (IOException | RuntimeException e) {
+                android.util.Log.e(TAG, "Autosave to " + file + " failed", e);
+            }
         }
     }
+
+    private final Object autosaveWriteLock = new Object();
 
     /** Cancels any pending debounced write and saves synchronously (call on unload). */
     public void flushAutosave() {
@@ -205,7 +236,7 @@ public final class PointDefenseRepository {
     }
 
     private void notifyListeners(ChangeType type, BasePlanItem item) {
-        scheduleAutosave();
+        if (type != ChangeType.VISIBILITY) scheduleAutosave();
         for (PlanChangeListener l : listeners) {
             try {
                 l.onPlanChanged(type, item);

@@ -15,6 +15,7 @@
     <string name="section_non_kinetic">Non-Kinetic Effectors</string>
     <string name="section_kinetic">Kinetic Effectors</string>
     <string name="section_defended_assets">Defended Assets</string>
+    <string name="section_authority">Engagement Authority</string>
     <string name="section_threat_corridors">Threat Corridors</string>
     <string name="section_gap_analysis">Gap Analysis</string>
     <string name="section_timeline">Engagement Timeline</string>
@@ -27,6 +28,7 @@
     <string name="desc_non_kinetic">Place RF effectors and render terrain-aware jamming effectiveness heat maps.</string>
     <string name="desc_kinetic">Place kinetic effectors; model fragmentation along the full munition path (3D cylinder) and compute minimum intercept altitude over exclusion zones.</string>
     <string name="desc_defended_assets">Outline the assets being defended and assign priorities.</string>
+    <string name="desc_authority">Buffer perimeters offset from exclusion zones, defended assets or a drawn boundary: non-kinetic authority, kinetic authority and non-hostile (weapons hold) zones, with effector authority checks.</string>
     <string name="desc_threat_corridors">Define likely sUAS ingress corridors with width, speed and altitude.</string>
     <string name="desc_gap_analysis">Identify detection and engagement coverage gaps around defended assets and along corridors.</string>
     <string name="desc_timeline">Detect-to-defeat timeline and engagement sequence per corridor, with best-effector designation and friendly-fire deconfliction.</string>
@@ -73,6 +75,18 @@
     <string name="ez_list_empty">No exclusion zones yet. Tap \"Draw New Zone\" and tap the map to place vertices.</string>
     <string name="ez_list_item_fmt">%1$s \u2014 %2$s AGL, %3$d vertices</string>
     <string name="ez_draw_hint_polygon">Draw mode: tap the map to add vertices. Pan / zoom still work. Tap the first vertex or Close Polygon to finish.</string>
+    <string name="ez_new_circle">New Circle</string>
+    <string name="ez_new_rect">New Rectangle</string>
+    <string name="ez_draw_hint_circle">Circle: tap the center, then a point on the edge.</string>
+    <string name="ez_draw_hint_rect">Rectangle: tap one corner, then the opposite corner.</string>
+    <string name="ez_shape_fmt">Shape: %1$s</string>
+    <string name="ez_radius_fmt">Radius (%1$s)</string>
+    <string name="ez_rect_width_fmt">Width E-W (%1$s)</string>
+    <string name="ez_rect_length_fmt">Length N-S (%1$s)</string>
+    <string name="ez_rotation">Rotation (deg clockwise from north)</string>
+    <string name="ez_center_fmt">Center lat, lon</string>
+    <string name="ez_convert_polygon">Convert to free polygon</string>
+    <string name="ez_invalid_shape">Shape size must be positive and center valid</string>
     <string name="ez_draw_hint_line">Ingress line: tap the start point, then the end point.</string>
     <string name="ez_draw_count_fmt">Vertices: %1$d</string>
     <string name="ez_undo">Undo</string>
@@ -182,4 +196,151 @@
     <string name="nk_marker_color">Marker / ring color</string>
     <string name="nk_opacity_fmt">Heat map opacity (this effector): %1$d%%</string>
     <string name="nk_stats_fmt">Effective over %1$.0f%% of the engagement circle, marginal %2$.0f%%. Free-space range at threshold: %3$s.</string>
+
+    <!-- Kinetic effectors (Phase 4) -->
+    <string name="ke_new">Add Kinetic Effector</string>
+    <string name="ke_list_header">Kinetic Effectors</string>
+    <string name="ke_list_empty">No kinetic effectors yet. Tap \"Add Kinetic Effector\" and tap the map.</string>
+    <string name="ke_list_item_fmt">%1$s \u2014 %2$s, %3$s\u2013%4$s</string>
+    <string name="ke_edit_title_new">New Kinetic Effector</string>
+    <string name="ke_edit_title">Edit Kinetic Effector</string>
+    <string name="ke_type_fmt">Type: %1$s</string>
+    <string name="ke_type_directed_energy">Directed Energy</string>
+    <string name="ke_munition_fmt">Munition: %1$s</string>
+    <string name="ke_detonation_fmt">Detonation: %1$s</string>
+    <string name="ke_status_fmt">Status: %1$s</string>
+    <string name="ke_min_range_fmt">Min engagement range / dead zone (%1$s)</string>
+    <string name="ke_az_min">Azimuth min (\u00B0 true, blank = 360\u00B0)</string>
+    <string name="ke_az_max">Azimuth max (\u00B0 true, blank = 360\u00B0)</string>
+    <string name="ke_el_min">Elevation min (\u00B0)</string>
+    <string name="ke_el_max">Elevation max (\u00B0)</string>
+    <string name="ke_frag_radius_fmt">Fragmentation radius (%1$s)</string>
+    <string name="ke_frag_width_fmt">Fragmentation route width (%1$s)</string>
+    <string name="ke_velocity">Munition velocity (m/s)</string>
+    <string name="ke_restricted">Restricted azimuths (e.g. 30-45; 200-210)</string>
+    <string name="ke_min_intercept_fmt">Min intercept altitude AGL (%1$s)</string>
+    <string name="ke_perimeter_uid">Engagement authority zone / perimeter UID (optional)</string>
+    <string name="ke_ff_check">Friendly-fire check enabled</string>
+    <string name="ke_sensors">Linked sensor UIDs (comma separated)</string>
+    <string name="ke_designators">Linked laser designator UIDs (comma separated)</string>
+    <string name="ke_laser_code">Laser PRF code (1111\u20131788, laser-guided rockets)</string>
+    <string name="ke_ammo">Ammo count</string>
+    <string name="ke_reload">Reload time (s)</string>
+    <string name="ke_notes">Notes</string>
+    <string name="ke_stats_fmt">Envelope %1$s\u2013%2$s, sector %3$.0f\u00B0, %4$d restricted arc(s). Time of flight to max range: %5$.1f s.</string>
+    <!-- R0 sites -->
+    <string name="site_add_to">Add to site</string>
+    <string name="site_header">Sites</string>
+    <string name="site_btn_fmt">Site: %1$s</string>
+    <string name="site_none">None</string>
+    <string name="site_new">New site…</string>
+    <string name="site_new_hint">Site name</string>
+    <string name="site_choose">Choose site</string>
+    <string name="site_none_defined">No sites defined yet. Create one from an asset edit form.</string>
+    <string name="site_move_title">Move whole site?</string>
+    <string name="site_move_msg_fmt">Also move the %1$d other asset(s) in site "%2$s" by the same offset (%3$s)?</string>
+    <string name="site_move_yes">Move site</string>
+    <string name="site_move_no">Only this asset</string>
+    <string name="site_moved_fmt">Moved %1$d site member(s)</string>
+    <!-- R9 visibility -->
+    <string name="vis_show_all">Show all</string>
+    <string name="vis_hide_all">Hide all</string>
+    <string name="vis_hidden_count_fmt">%1$d hidden (view only; still counted in analysis)</string>
+    <string name="vis_hidden_suffix">" (hidden)"</string>
+    <string name="vis_site_hidden_fmt">" – %1$d hidden"</string>
+    <string name="vis_show">Show</string>
+    <string name="vis_hide">Hide</string>
+    <string name="vis_solo_fmt">Showing only %1$s (long-press again to restore)</string>
+    <string name="vis_solo_end">Visibility restored</string>
+    <string name="vis_show_everything">Show everything</string>
+    <string name="vis_plan_hidden_fmt">" • %1$d hidden"</string>
+    <string name="png_include_hidden">Include hidden assets in schematic</string>
+    <string name="png_options_title">PNG export</string>
+    <string name="png_export">Export</string>
+    <!-- links -->
+    <string name="link_unknown_fmt">Unknown asset (%1$s)</string>
+    <string name="link_none">No eligible assets in plan</string>
+    <string name="link_kind_sensors">Sensors</string>
+    <string name="link_kind_kinetic">Kinetic effectors</string>
+    <string name="link_kind_nk">Non-kinetic effectors</string>
+    <string name="link_sensors">Cueing sensors</string>
+    <!-- R7 directed energy -->
+    <string name="ke_de_header">Directed energy (laser)</string>
+    <string name="ke_de_dwell">Beam dwell time (s)</string>
+    <string name="ke_de_aperture">Beam director aperture (cm)</string>
+    <string name="ke_de_power">Laser power (kW, blank = unknown)</string>
+    <string name="ke_de_qual_range_fmt">Qualitative effective range (%1$s, blank = none)</string>
+    <string name="ke_de_suppression_fmt">Suppression zone radius (%1$s)</string>
+    <string name="ke_de_fluence">Damage fluence threshold (J/cm²)</string>
+    <string name="ke_de_model_note">Planning-grade model: diffraction-limited spot, clear air, no turbulence or thermal blooming. Not a weapons-effects tool.</string>
+    <string name="ke_de_src_computed">computed from power</string>
+    <string name="ke_de_src_qualitative">qualitative</string>
+    <string name="ke_de_src_max">max range</string>
+    <string name="ke_de_stats_fmt">Effective range %1$s (%2$s), suppression %3$s, sector %4$.0f°, %5$d restricted arc(s).</string>
+    <!-- R1 bands -->
+    <string name="nk_bands_header">RF bands</string>
+    <string name="nk_bands_hint">Without bands the single-band fields above are used.</string>
+    <string name="nk_band_add">Add band</string>
+    <string name="nk_band_preset">Preset</string>
+    <string name="nk_band_clear">Clear</string>
+    <string name="nk_bands_none">No bands (single-band mode)</string>
+    <string name="nk_band_title_fmt">Band %1$d: %2$s</string>
+    <string name="nk_band_label">Label</string>
+    <string name="nk_band_freq">Frequency (MHz)</string>
+    <string name="nk_band_eirp">EIRP (dBm)</string>
+    <string name="nk_band_thr">Threshold (dBm)</string>
+    <string name="nk_band_range_fmt">Max range (%1$s)</string>
+    <string name="nk_band_invalid_fmt">Band %1$d has invalid values</string>
+    <string name="nk_bands_stats_fmt">Bands: %1$d of %2$d enabled, heatmap %3$s</string>
+    <!-- Radar presets (C-sUAS catalog) -->
+    <string name="sn_preset">Radar preset…</string>
+    <string name="sn_preset_title">Radar model</string>
+    <string name="sn_preset_target_fmt">%1$s — target class</string>
+    <string name="sn_preset_target_item_fmt">%1$s (%2$s)</string>
+    <string name="sn_preset_panels_fmt">%1$s — panels</string>
+    <string name="sn_preset_panel_item_fmt">%1$d panel(s) — %2$.0f° azimuth</string>
+    <string name="sn_preset_applied_fmt">%1$s: %2$s, %3$.0f° FOV. %4$s</string>
+    <string name="sn_preset_note_fmt">Elevation %1$s, min range %2$s. Nominal data-sheet values; adjust for siting and RCS.</string>
+    <string name="sn_preset_min_na">n/a</string>
+    <string name="layers_header">Layers (this device only; analysis unaffected)</string>
+    <string name="layer_coverage">Coverage</string>
+    <string name="layer_mask">Terrain mask</string>
+    <string name="layer_engage">Engage ring</string>
+    <string name="layer_minrange">Min-range (blind) ring</string>
+    <string name="layer_bands">Frag / beam bands</string>
+    <string name="layer_maxring">Max ring</string>
+    <string name="layer_minring">Min ring</string>
+    <string name="layer_sector">Sector outline</string>
+    <string name="layer_restricted">No-fire wedges</string>
+    <string name="layer_effective">Effective / suppression rings</string>
+    <string name="layer_heatmap">Heat map</string>
+    <string name="layer_ring">Range ring</string>
+    <string name="layer_marker">Marker</string>
+    <string name="sn_min_range_fmt">Min range / blind zone (%1$s)</string>
+    <string name="sn_elev_min">Elevation min (deg, blank = unknown)</string>
+    <string name="sn_elev_max">Elevation max (deg, blank = unknown)</string>
+    <string name="sn_day_night">Day / night capability</string>
+    <string name="sn_lasing_range_fmt">Max lasing range (%1$s, 0 = sensor range)</string>
+    <string name="sn_prf">PRF code (e.g. 1688)</string>
+    <string name="sn_divergence">Beam divergence (mrad)</string>
+    <string name="sp_header">Sensor presets (this device)</string>
+    <string name="sp_edit">Edit</string>
+    <string name="sp_reset">Reset</string>
+    <string name="sp_delete">Delete</string>
+    <string name="sp_add">Add custom preset</string>
+    <string name="sp_edited_suffix">" (edited)"</string>
+    <string name="sp_custom_suffix">" (custom)"</string>
+    <string name="sp_edit_title_fmt">Edit preset: %1$s</string>
+    <string name="sp_add_title">New custom preset</string>
+    <string name="sp_name">Name</string>
+    <string name="sp_short">Short name (label prefix)</string>
+    <string name="sp_desc">Description</string>
+    <string name="sp_panel_az">Azimuth per panel (deg)</string>
+    <string name="sp_min_range">Min range (m)</string>
+    <string name="sp_elev_min">Elevation min (deg, blank = unknown)</string>
+    <string name="sp_elev_max">Elevation max (deg, blank = unknown)</string>
+    <string name="sp_target_fmt">Target class %1$d (blank = unused)</string>
+    <string name="sp_range_fmt">Range %1$d (m)</string>
+    <string name="sp_invalid">Preset not saved: needs a name, panel azimuth 1-360 and at least one target class with range above min range.</string>
+    <string name="sp_saved">Preset saved</string>
 </resources>

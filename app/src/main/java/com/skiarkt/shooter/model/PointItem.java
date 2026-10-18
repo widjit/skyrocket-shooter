@@ -9,6 +9,11 @@ public abstract class PointItem extends BasePlanItem {
     public double aglMeters = 2.0;
     /** Maximum engagement / detection distance (meters). */
     public double maxEngagementDistMeters = 1000.0;
+    /**
+     * R0 site grouping: uid of the site this emplacement belongs to (null = standalone).
+     * Members of a site share a ring overlay and can be moved together.
+     */
+    public String siteUid;
 
     protected PointItem(String labelPrefix, int defaultColor) {
         super(labelPrefix, defaultColor);
@@ -19,6 +24,16 @@ public abstract class PointItem extends BasePlanItem {
         position = in.readParcelable(GeoPos.class.getClassLoader());
         aglMeters = in.readDouble();
         maxEngagementDistMeters = in.readDouble();
+        siteUid = in.readString();
+    }
+
+    public boolean hasSite() {
+        return siteUid != null && !siteUid.trim().isEmpty();
+    }
+
+    /** Normalizes a blank site uid to null. */
+    public static String normalizeSiteUid(String s) {
+        return s == null || s.trim().isEmpty() ? null : s.trim();
     }
 
     protected void writePoint(Parcel dest, int flags) {
@@ -26,6 +41,7 @@ public abstract class PointItem extends BasePlanItem {
         dest.writeParcelable(position, flags);
         dest.writeDouble(aglMeters);
         dest.writeDouble(maxEngagementDistMeters);
+        dest.writeString(siteUid);
     }
 
     /** Copies base + point fields (deep-copying the position) into {@code dst}. */
@@ -39,6 +55,7 @@ public abstract class PointItem extends BasePlanItem {
         dst.position = position == null ? new GeoPos() : new GeoPos(position);
         dst.aglMeters = aglMeters;
         dst.maxEngagementDistMeters = maxEngagementDistMeters;
+        dst.siteUid = siteUid;
     }
 
     @Override

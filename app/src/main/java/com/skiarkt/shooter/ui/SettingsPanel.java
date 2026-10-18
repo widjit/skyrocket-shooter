@@ -71,6 +71,8 @@ public class SettingsPanel {
         losRangeStep = v.findViewById(R.id.los_range_step);
         losAngularStep = v.findViewById(R.id.los_angular_step);
         losTargetAgl = v.findViewById(R.id.los_target_agl);
+        new SensorPresetsUi(pluginContext, repository.getPresetStore(),
+                (android.widget.LinearLayout) v.findViewById(R.id.sensor_presets_container)).populate();
         String unit = settings.getUnitSystem().abbreviation;
         ((TextView) v.findViewById(R.id.los_range_step_label))
                 .setText(pluginContext.getString(R.string.settings_los_range_step_fmt, unit));

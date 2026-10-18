@@ -14,6 +14,7 @@ public final class CotTypes {
     public static final String KINETIC_EFFECTOR = PREFIX + ItemKind.KINETIC_EFFECTOR.code;
     public static final String DEFENDED_ASSET = PREFIX + ItemKind.DEFENDED_ASSET.code;
     public static final String THREAT_CORRIDOR = PREFIX + ItemKind.THREAT_CORRIDOR.code;
+    public static final String AUTHORITY_ZONE = PREFIX + ItemKind.AUTHORITY_ZONE.code;
     public static final String PLAN = PREFIX + "plan";
 
     /** "h-g-i-g-o": human generated, GIGO (manually placed planning object). */
@@ -38,6 +39,7 @@ public final class CotTypes {
     /** @return the item kind for a CoT type, or null if not a SKIARKT item type. */
     public static ItemKind kindForType(String type) {
         if (type == null || !type.startsWith(PREFIX)) return null;
+        if (KineticEffectorCot.COT_TYPE.equals(type)) return ItemKind.KINETIC_EFFECTOR;
         return ItemKind.fromCode(type.substring(PREFIX.length()));
     }
 

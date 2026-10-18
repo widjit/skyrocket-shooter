@@ -97,7 +97,8 @@ public class CoverageEngine {
     public static String heatKey(NonKineticEffector n, SweepParams p, RfHeatmap.Params rf) {
         return String.format(Locale.US, "N|%.7f|%.7f|%.2f|%.1f|%.3f|%.2f|%.2f|%.2f|%.2f|%.3f|%.2f|%.2f",
                 n.position.lat, n.position.lon, n.aglMeters, rf.radiusM, rf.txDbm, rf.frequencyMhz,
-                rf.thresholdDbm, rf.terrainLossDb, rf.cellM, p.angularStepDeg, p.rangeStepM, p.targetAglM);
+                rf.thresholdDbm, rf.terrainLossDb, rf.cellM, p.angularStepDeg, p.rangeStepM, p.targetAglM)
+                + rf.bandsKey();
     }
 
     /** Cached terrain mask for the sensor's current parameters, or null (scheduled). */

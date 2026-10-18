@@ -25,6 +25,7 @@ import com.skiarkt.shooter.analysis.InterceptAltitudeResult;
 import com.skiarkt.shooter.data.PointDefenseRepository;
 import com.skiarkt.shooter.model.BasePlanItem;
 import com.skiarkt.shooter.model.ExclusionZone;
+import com.skiarkt.shooter.model.ExclusionZoneShape;
 import com.skiarkt.shooter.model.GeoPos;
 import com.skiarkt.shooter.model.ItemKind;
 import com.skiarkt.shooter.model.PlanColors;
@@ -62,7 +63,7 @@ public class ExclusionZonePanel {
             0xFF616161  // grey
     };
 
-    private enum DrawPurpose { NEW_ZONE, REDRAW, INGRESS_LINE }
+    private enum DrawPurpose { NEW_ZONE, NEW_CIRCLE, NEW_RECT, REDRAW, INGRESS_LINE }
 
     private final Context pluginContext;
     private final MapView mapView;
@@ -114,6 +115,12 @@ public class ExclusionZonePanel {
     private CheckBox dashedCheck;
     private LinearLayout fillSwatches;
     private LinearLayout strokeSwatches;
+    // R3 shape parameter inputs (null for polygons)
+    private EditText centerInput;
+    private EditText radiusInput;
+    private EditText rectWidthInput;
+    private EditText rectLengthInput;
+    private EditText rotationInput;
 
     public ExclusionZonePanel(Context pluginContext, MapView mapView, SettingsManager settings,
             PointDefenseRepository repository, DtedHelper dtedHelper, OverlayManager overlayManager,
@@ -209,6 +216,18 @@ public class ExclusionZonePanel {
                 startDraw(DrawPurpose.NEW_ZONE);
             }
         });
+        v.findViewById(R.id.ez_btn_new_circle).setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                startDraw(DrawPurpose.NEW_CIRCLE);
+            }
+        });
+        v.findViewById(R.id.ez_btn_new_rect).setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                startDraw(DrawPurpose.NEW_RECT);
+            }
+        });
         v.findViewById(R.id.ez_btn_draw_line).setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
@@ -254,6 +273,7 @@ public class ExclusionZonePanel {
             LinearLayout row = new LinearLayout(pluginContext);
             row.setOrientation(LinearLayout.HORIZONTAL);
             row.setGravity(android.view.Gravity.CENTER_VERTICAL);
+            row.setAlpha(VisibilityUi.alpha(repository, z.uid));
 
             View swatch = new View(pluginContext);
             swatch.setBackground(swatchDrawable(z.getFillArgb() | 0xFF000000, z.getStrokeColor(), false));
@@ -263,8 +283,9 @@ public class ExclusionZonePanel {
             row.addView(swatch, slp);
 
             TextView text = new TextView(pluginContext);
-            text.setText(pluginContext.getString(R.string.ez_list_item_fmt, z.label,
-                    settings.formatDistance(z.heightAglMeters), z.points.size()));
+            text.setText(VisibilityUi.label(pluginContext, repository, z.uid,
+                    pluginContext.getString(R.string.ez_list_item_fmt, z.label,
+                    settings.formatDistance(z.heightAglMeters), z.points.size())));
             text.setTextColor(0xFFFFFFFF);
             text.setPadding(0, dp(8), 0, dp(8));
             text.setOnClickListener(new View.OnClickListener() {
@@ -274,6 +295,9 @@ public class ExclusionZonePanel {
                 }
             });
             row.addView(text, new LinearLayout.LayoutParams(0, ViewGroup.LayoutParams.WRAP_CONTENT, 1f));
+            row.addView(VisibilityUi.eye(pluginContext, mapView.getContext(), repository, z.uid, z.label),
+                    new LinearLayout.LayoutParams(ViewGroup.LayoutParams.WRAP_CONTENT,
+                            ViewGroup.LayoutParams.WRAP_CONTENT));
 
             Button del = new Button(pluginContext);
             del.setText("\u2715");
@@ -406,16 +430,21 @@ public class ExclusionZonePanel {
                         : settings.getColor(SettingsManager.ColorKey.EXCLUSION_ZONE));
         if (purpose == DrawPurpose.REDRAW) showList(); // need the draw bar
         drawPurpose = purpose;
-        boolean ok = drawTool.begin(purpose == DrawPurpose.INGRESS_LINE
+        boolean twoTap = purpose == DrawPurpose.INGRESS_LINE || purpose == DrawPurpose.NEW_CIRCLE
+                || purpose == DrawPurpose.NEW_RECT;
+        boolean ok = drawTool.begin(twoTap
                 ? ExclusionZoneDrawTool.Mode.LINE : ExclusionZoneDrawTool.Mode.POLYGON, color, drawListener);
         if (!ok) {
             toast(pluginContext.getString(R.string.ez_draw_unavailable));
             if (purpose == DrawPurpose.REDRAW && pendingRedraw != null) showEdit(pendingRedraw, editingIsNew);
             return;
         }
-        ((TextView) listView.findViewById(R.id.ez_draw_hint)).setText(purpose == DrawPurpose.INGRESS_LINE
-                ? R.string.ez_draw_hint_line : R.string.ez_draw_hint_polygon);
-        closeButton.setVisibility(purpose == DrawPurpose.INGRESS_LINE ? View.GONE : View.VISIBLE);
+        int hint = purpose == DrawPurpose.INGRESS_LINE ? R.string.ez_draw_hint_line
+                : purpose == DrawPurpose.NEW_CIRCLE ? R.string.ez_draw_hint_circle
+                : purpose == DrawPurpose.NEW_RECT ? R.string.ez_draw_hint_rect
+                : R.string.ez_draw_hint_polygon;
+        ((TextView) listView.findViewById(R.id.ez_draw_hint)).setText(hint);
+        closeButton.setVisibility(twoTap ? View.GONE : View.VISIBLE);
         drawBar.setVisibility(View.VISIBLE);
         listSection.setVisibility(View.GONE);
     }
@@ -436,30 +465,29 @@ public class ExclusionZonePanel {
                 ExclusionZone z = pendingRedraw;
                 pendingRedraw = null;
                 z.points = new ArrayList<>(vertices);
+                z.convertToPolygon(); // a hand-drawn footprint replaces circle / rectangle params
                 showEdit(z, editingIsNew);
                 return;
             }
-            ExclusionZone z = new ExclusionZone();
+            ExclusionZone z = newStyledZone();
             z.points = new ArrayList<>(vertices);
-            z.label = "Zone " + (repository.getPlan().count(ItemKind.EXCLUSION_ZONE) + 1);
-            int stroke = settings.getColor(SettingsManager.ColorKey.EXCLUSION_ZONE);
-            z.setStrokeColor(stroke);
-            z.fillColor = stroke;
-            z.fillOpacity = 1f - settings.getZoneFillTransparency();
-            z.normalizeStyle();
             showEdit(z, true);
         }
 
         @Override
         public void onLineComplete(GeoPos start, GeoPos end) {
-            List<GeoPos> line = new ArrayList<>();
-            line.add(start);
-            line.add(end);
-            drawnLine = line;
-            selectedSource = line;
-            exitDrawBar();
-            populateSources();
-            computeIntercept();
+            if (drawPurpose == DrawPurpose.NEW_CIRCLE || drawPurpose == DrawPurpose.NEW_RECT) {
+                ExclusionZone z = newStyledZone();
+                if (drawPurpose == DrawPurpose.NEW_CIRCLE) {
+                    z.setCircle(start, Math.max(1.0, GeoUtils.distanceMeters(start, end)));
+                } else {
+                    z.setRectangleFromCorners(start, end);
+                }
+                exitDrawBar();
+                showEdit(z, true);
+                return;
+            }
+            onIngressLine(start, end);
         }
 
         @Override
@@ -473,6 +501,29 @@ public class ExclusionZonePanel {
             exitDrawBar();
         }
     };
+
+    /** New zone pre-styled with the configured exclusion-zone colors. */
+    private ExclusionZone newStyledZone() {
+        ExclusionZone z = new ExclusionZone();
+        z.label = "Zone " + (repository.getPlan().count(ItemKind.EXCLUSION_ZONE) + 1);
+        int stroke = settings.getColor(SettingsManager.ColorKey.EXCLUSION_ZONE);
+        z.setStrokeColor(stroke);
+        z.fillColor = stroke;
+        z.fillOpacity = 1f - settings.getZoneFillTransparency();
+        z.normalizeStyle();
+        return z;
+    }
+
+    private void onIngressLine(GeoPos start, GeoPos end) {
+        List<GeoPos> line = new ArrayList<>();
+        line.add(start);
+        line.add(end);
+        drawnLine = line;
+        selectedSource = line;
+        exitDrawBar();
+        populateSources();
+        computeIntercept();
+    }
 
     private void exitDrawBar() {
         if (drawBar != null) drawBar.setVisibility(View.GONE);
@@ -497,6 +548,7 @@ public class ExclusionZonePanel {
         v.findViewById(R.id.ez_warning).setVisibility(
                 PolygonDrawState.isSelfIntersecting(zone.points) ? View.VISIBLE : View.GONE);
 
+        buildShapeParams((LinearLayout) v.findViewById(R.id.ez_shape_params), zone);
         labelInput = v.findViewById(R.id.ez_label);
         heightInput = v.findViewById(R.id.ez_height);
         remarksInput = v.findViewById(R.id.ez_remarks);
@@ -613,12 +665,117 @@ public class ExclusionZonePanel {
             toast(pluginContext.getString(R.string.ez_invalid_height));
             return null;
         }
+        if (!readShapeParams(z)) {
+            toast(pluginContext.getString(R.string.ez_invalid_shape));
+            return null;
+        }
         if (!z.isValid()) return null;
         z.touch();
         editing = null;
         repository.upsert(z);
         showList();
         return z;
+    }
+
+    /** R3: circle / rectangle parameter editor (hidden for free polygons). */
+    private void buildShapeParams(LinearLayout box, final ExclusionZone zone) {
+        centerInput = radiusInput = rectWidthInput = rectLengthInput = rotationInput = null;
+        box.removeAllViews();
+        if (zone.getShape() == ExclusionZoneShape.POLYGON || !zone.hasShapeParams()) {
+            box.setVisibility(View.GONE);
+            return;
+        }
+        box.setVisibility(View.VISIBLE);
+        String unit = settings.getUnitSystem().abbreviation;
+        box.addView(label(pluginContext.getString(R.string.ez_shape_fmt, zone.getShape().displayName)));
+        box.addView(label(pluginContext.getString(R.string.ez_center_fmt)));
+        centerInput = input(String.format(java.util.Locale.US, "%.6f, %.6f",
+                zone.center.lat, zone.center.lon), false);
+        box.addView(centerInput);
+        if (zone.getShape() == ExclusionZoneShape.CIRCLE) {
+            box.addView(label(pluginContext.getString(R.string.ez_radius_fmt, unit)));
+            radiusInput = input(settings.formatNumber(zone.radiusMeters), true);
+            box.addView(radiusInput);
+        } else {
+            box.addView(label(pluginContext.getString(R.string.ez_rect_width_fmt, unit)));
+            rectWidthInput = input(settings.formatNumber(zone.rectWidthMeters), true);
+            box.addView(rectWidthInput);
+            box.addView(label(pluginContext.getString(R.string.ez_rect_length_fmt, unit)));
+            rectLengthInput = input(settings.formatNumber(zone.rectLengthMeters), true);
+            box.addView(rectLengthInput);
+            box.addView(label(pluginContext.getString(R.string.ez_rotation)));
+            rotationInput = input(String.format(java.util.Locale.US, "%.1f", zone.rotationDeg), true);
+            box.addView(rotationInput);
+        }
+        Button convert = new Button(pluginContext);
+        convert.setText(R.string.ez_convert_polygon);
+        convert.setAllCaps(false);
+        convert.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                readForm(zone);
+                readShapeParams(zone);
+                zone.convertToPolygon();
+                showEdit(zone, editingIsNew);
+            }
+        });
+        box.addView(convert);
+    }
+
+    /**
+     * Applies the shape inputs and regenerates the footprint. Untouched distance fields keep
+     * the stored value (formatNumber round-trips may lose precision). False when invalid.
+     */
+    private boolean readShapeParams(ExclusionZone z) {
+        if (centerInput == null || z.getShape() == ExclusionZoneShape.POLYGON) return true;
+        GeoPos c = GeoPos.fromCotString(centerInput.getText().toString().replace(' ', ','
+                ).replaceAll(",+", ","));
+        if (c == null) return false;
+        c.altHae = Double.NaN;
+        if (z.getShape() == ExclusionZoneShape.CIRCLE) {
+            double r = distanceOr(radiusInput, z.radiusMeters);
+            if (!(r > 0)) return false;
+            z.setCircle(c, r);
+        } else {
+            double w = distanceOr(rectWidthInput, z.rectWidthMeters);
+            double l = distanceOr(rectLengthInput, z.rectLengthMeters);
+            double rot;
+            try {
+                rot = Double.parseDouble(rotationInput.getText().toString().trim());
+            } catch (NumberFormatException e) {
+                return false;
+            }
+            if (!(w > 0) || !(l > 0) || Double.isInfinite(rot)) return false;
+            z.setRectangle(c, w, l, GeoUtils.normalizeDeg(rot));
+        }
+        return true;
+    }
+
+    private double distanceOr(EditText in, double stored) {
+        String t = in.getText().toString().trim();
+        if (t.equals(settings.formatNumber(stored))) return stored;
+        return settings.parseDistance(t);
+    }
+
+    private TextView label(String text) {
+        TextView t = new TextView(pluginContext);
+        t.setText(text);
+        t.setTextColor(0xFFCCCCCC);
+        t.setPadding(0, dp(4), 0, 0);
+        return t;
+    }
+
+    private EditText input(String value, boolean numeric) {
+        EditText e = new EditText(pluginContext);
+        e.setSingleLine(true);
+        e.setText(value);
+        e.setTextColor(0xFFFFFFFF);
+        if (numeric) {
+            e.setInputType(android.text.InputType.TYPE_CLASS_NUMBER
+                    | android.text.InputType.TYPE_NUMBER_FLAG_DECIMAL
+                    | android.text.InputType.TYPE_NUMBER_FLAG_SIGNED);
+        }
+        return e;
     }
 
     private void confirmDelete(final String uid, final String label, final boolean fromEditor) {

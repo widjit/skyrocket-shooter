@@ -5,7 +5,9 @@ import com.atakmap.coremap.cot.event.CotEvent;
 import com.atakmap.coremap.cot.event.CotPoint;
 import com.atakmap.coremap.maps.time.CoordinatedTime;
 import com.skiarkt.shooter.model.BasePlanItem;
+import com.skiarkt.shooter.model.AuthorityType;
 import com.skiarkt.shooter.model.DefendedAsset;
+import com.skiarkt.shooter.model.EngagementAuthorityZone;
 import com.skiarkt.shooter.model.ExclusionZone;
 import com.skiarkt.shooter.model.GeoPos;
 import com.skiarkt.shooter.model.ItemKind;
@@ -13,7 +15,10 @@ import com.skiarkt.shooter.model.KineticEffector;
 import com.skiarkt.shooter.model.NonKineticEffector;
 import com.skiarkt.shooter.model.PointDefensePlan;
 import com.skiarkt.shooter.model.PointItem;
+import com.skiarkt.shooter.model.RfBand;
+import com.skiarkt.shooter.model.RfHeatmapMode;
 import com.skiarkt.shooter.model.PolygonItem;
+import com.skiarkt.shooter.model.DayNight;
 import com.skiarkt.shooter.model.SensorItem;
 import com.skiarkt.shooter.model.SensorType;
 import com.skiarkt.shooter.model.ThreatCorridor;
@@ -125,12 +130,34 @@ public final class CotSerializer {
         return ev;
     }
 
+    /** Comma-joined uid list (uids never contain commas in TAK). */
+    static String joinUids(java.util.List<String> uids) {
+        StringBuilder sb = new StringBuilder();
+        for (String u : uids) {
+            if (u == null || u.trim().isEmpty()) continue;
+            if (sb.length() > 0) sb.append(',');
+            sb.append(u.trim());
+        }
+        return sb.toString();
+    }
+
+    static java.util.List<String> splitUids(String s) {
+        java.util.List<String> out = new java.util.ArrayList<>();
+        if (s == null) return out;
+        for (String u : s.split(",")) {
+            String t = u.trim();
+            if (!t.isEmpty() && !out.contains(t)) out.add(t);
+        }
+        return out;
+    }
+
     private static void encodeSpecific(BasePlanItem item, CotDetail skiarkt, CotDetail detail) {
         if (item instanceof PointItem) {
             PointItem p = (PointItem) item;
             skiarkt.setAttribute("agl", d(p.aglMeters));
             skiarkt.setAttribute("maxEng", d(p.maxEngagementDistMeters));
             if (p.position != null) skiarkt.setAttribute("pos", p.position.toCotString());
+            if (p.hasSite()) skiarkt.setAttribute("siteUid", p.siteUid.trim());
         }
         if (item instanceof PolygonItem) {
             addLinks(detail, ((PolygonItem) item).points);
@@ -155,6 +182,20 @@ public final class CotSerializer {
                 skiarkt.setAttribute("beamWidth", d(s.beamWidthDeg));
                 skiarkt.setAttribute("azimuth", d(s.azimuthDeg));
                 skiarkt.setAttribute("opacity", Float.toString(s.opacity));
+                if (s.linkedSensorUids != null && !s.linkedSensorUids.isEmpty()) {
+                    skiarkt.setAttribute("linkedSensors", joinUids(s.linkedSensorUids));
+                }
+                // R2 (optional attributes; absent on older peers -> defaults).
+                if (s.minRangeMeters > 0) skiarkt.setAttribute("minRange", d(s.minRangeMeters));
+                if (!Double.isNaN(s.elevationMinDeg)) skiarkt.setAttribute("elevMin", d(s.elevationMinDeg));
+                if (!Double.isNaN(s.elevationMaxDeg)) skiarkt.setAttribute("elevMax", d(s.elevationMaxDeg));
+                s.ensureLists();
+                skiarkt.setAttribute("dayNight", s.dayNight.name());
+                if (s.type == SensorType.LASER_DESIGNATOR) {
+                    skiarkt.setAttribute("maxLasingRange", d(s.maxLasingRangeMeters));
+                    skiarkt.setAttribute("laserPrf", String.valueOf(s.laserPrfCode));
+                    skiarkt.setAttribute("beamDivergence", d(s.beamDivergenceMrad));
+                }
                 break;
             }
             case NON_KINETIC_EFFECTOR: {
@@ -168,6 +209,13 @@ public final class CotSerializer {
                 skiarkt.setAttribute("useGlobalFreq", String.valueOf(n.useGlobalFrequency));
                 skiarkt.setAttribute("marginalColor", String.valueOf(n.marginalColor));
                 skiarkt.setAttribute("insufficientColor", String.valueOf(n.insufficientColor));
+                if (n.linkedSensorUids != null && !n.linkedSensorUids.isEmpty()) {
+                    skiarkt.setAttribute("linkedSensors", joinUids(n.linkedSensorUids));
+                }
+                if (n.isMultiBand()) {
+                    skiarkt.setAttribute("bands", RfBand.encodeList(n.bands));
+                    skiarkt.setAttribute("heatmapMode", n.getHeatmapMode().name());
+                }
                 break;
             }
             case KINETIC_EFFECTOR: {
@@ -178,6 +226,18 @@ public final class CotSerializer {
                 skiarkt.setAttribute("noShootColor", String.valueOf(k.noShootColor));
                 skiarkt.setAttribute("fragZoneColor", String.valueOf(k.fragZoneColor));
                 skiarkt.setAttribute("clearZoneColor", String.valueOf(k.clearZoneColor));
+                KineticEffectorCot.encodeInto(k, detail);
+                break;
+            }
+            case AUTHORITY_ZONE: {
+                EngagementAuthorityZone z = (EngagementAuthorityZone) item;
+                skiarkt.setAttribute("authorityType", z.authorityType.name());
+                skiarkt.setAttribute("bufferM", d(z.bufferMeters));
+                if (z.baseUid != null) skiarkt.setAttribute("baseUid", z.baseUid);
+                skiarkt.setAttribute("fillColor", String.valueOf(z.fillColor));
+                skiarkt.setAttribute("fillOpacity", Float.toString(z.fillOpacity));
+                skiarkt.setAttribute("dashed", String.valueOf(z.strokeDashed));
+                addColor(detail, CotTypes.DETAIL_FILL_COLOR, z.getFillArgb());
                 break;
             }
             case THREAT_CORRIDOR: {
@@ -246,6 +306,14 @@ public final class CotSerializer {
                 s.beamWidthDeg = pd(skiarkt, "beamWidth", s.beamWidthDeg);
                 s.azimuthDeg = pd(skiarkt, "azimuth", s.azimuthDeg);
                 s.opacity = (float) Math.max(0, Math.min(1, pd(skiarkt, "opacity", s.opacity)));
+                s.linkedSensorUids = splitUids(skiarkt.getAttribute("linkedSensors"));
+                s.minRangeMeters = Math.max(0, pd(skiarkt, "minRange", s.minRangeMeters));
+                s.elevationMinDeg = pd(skiarkt, "elevMin", s.elevationMinDeg);
+                s.elevationMaxDeg = pd(skiarkt, "elevMax", s.elevationMaxDeg);
+                s.dayNight = DayNight.fromName(skiarkt.getAttribute("dayNight"), DayNight.DAY_NIGHT);
+                s.maxLasingRangeMeters = Math.max(0, pd(skiarkt, "maxLasingRange", s.maxLasingRangeMeters));
+                s.laserPrfCode = pi(skiarkt, "laserPrf", s.laserPrfCode);
+                s.beamDivergenceMrad = Math.max(0, pd(skiarkt, "beamDivergence", s.beamDivergenceMrad));
                 item = s;
                 break;
             }
@@ -262,6 +330,9 @@ public final class CotSerializer {
                 n.useGlobalFrequency = pb(skiarkt, "useGlobalFreq", skiarkt.getAttribute("freqMhz") == null);
                 n.marginalColor = pi(skiarkt, "marginalColor", n.marginalColor);
                 n.insufficientColor = pi(skiarkt, "insufficientColor", n.insufficientColor);
+                n.linkedSensorUids = splitUids(skiarkt.getAttribute("linkedSensors"));
+                n.bands = RfBand.decodeList(skiarkt.getAttribute("bands"));
+                n.heatmapMode = RfHeatmapMode.parse(skiarkt.getAttribute("heatmapMode"));
                 item = n;
                 break;
             }
@@ -273,7 +344,20 @@ public final class CotSerializer {
                 k.noShootColor = pi(skiarkt, "noShootColor", k.noShootColor);
                 k.fragZoneColor = pi(skiarkt, "fragZoneColor", k.fragZoneColor);
                 k.clearZoneColor = pi(skiarkt, "clearZoneColor", k.clearZoneColor);
+                KineticEffectorCot.decodeFrom(ev.getDetail(), k);
                 item = k;
+                break;
+            }
+            case AUTHORITY_ZONE: {
+                EngagementAuthorityZone z = new EngagementAuthorityZone();
+                z.authorityType = AuthorityType.fromName(skiarkt.getAttribute("authorityType"), AuthorityType.KINETIC);
+                z.bufferMeters = pd(skiarkt, "bufferM", 0.0);
+                z.baseUid = skiarkt.getAttribute("baseUid");
+                z.fillColor = pi(skiarkt, "fillColor", z.authorityType.defaultColor);
+                z.fillOpacity = (float) pd(skiarkt, "fillOpacity", z.fillOpacity);
+                z.strokeDashed = pb(skiarkt, "dashed", z.strokeDashed);
+                z.normalize();
+                item = z;
                 break;
             }
             case THREAT_CORRIDOR: {
@@ -314,6 +398,7 @@ public final class CotSerializer {
                         hae >= CotTypes.COT_UNKNOWN ? Double.NaN : hae);
             }
             p.position = pos != null ? pos : new GeoPos();
+            p.siteUid = PointItem.normalizeSiteUid(skiarkt.getAttribute("siteUid"));
         }
         return item;
     }

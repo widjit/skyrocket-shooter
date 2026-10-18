@@ -24,6 +24,7 @@ public class PointDefensePlan {
     public List<KineticEffector> kineticEffectors = new ArrayList<>();
     public List<DefendedAsset> defendedAssets = new ArrayList<>();
     public List<ThreatCorridor> threatCorridors = new ArrayList<>();
+    public List<EngagementAuthorityZone> authorityZones = new ArrayList<>();
 
     /** Live (mutable) list for a given kind. */
     @SuppressWarnings("unchecked")
@@ -35,6 +36,7 @@ public class PointDefensePlan {
             case KINETIC_EFFECTOR: return (List<T>) kineticEffectors;
             case DEFENDED_ASSET: return (List<T>) defendedAssets;
             case THREAT_CORRIDOR: return (List<T>) threatCorridors;
+            case AUTHORITY_ZONE: return (List<T>) authorityZones;
             default: return Collections.emptyList();
         }
     }
@@ -73,7 +75,60 @@ public class PointDefensePlan {
         if (kineticEffectors == null) kineticEffectors = new ArrayList<>();
         if (defendedAssets == null) defendedAssets = new ArrayList<>();
         if (threatCorridors == null) threatCorridors = new ArrayList<>();
+        if (authorityZones == null) authorityZones = new ArrayList<>();
+        for (EngagementAuthorityZone z : authorityZones) {
+            if (z != null) z.normalize();
+        }
         if (classification == null) classification = DEFAULT_CLASSIFICATION;
+        for (KineticEffector k : kineticEffectors) {
+            if (k != null) k.ensureLists();
+        }
+        for (SensorItem s : sensors) {
+            if (s != null) s.ensureLists();
+        }
+        for (NonKineticEffector n : nonKineticEffectors) {
+            if (n != null) n.ensureLists();
+        }
+    }
+
+    // ------------------------------------------------------- kinetic effectors
+
+    public KineticEffector findKineticEffector(String effectorUid) {
+        if (effectorUid == null || kineticEffectors == null) return null;
+        for (KineticEffector k : kineticEffectors) {
+            if (k != null && effectorUid.equals(k.uid)) return k;
+        }
+        return null;
+    }
+
+    /** Adds {@code e} (replacing any existing effector with the same uid). */
+    public void addKineticEffector(KineticEffector e) {
+        if (e == null) return;
+        if (kineticEffectors == null) kineticEffectors = new ArrayList<>();
+        if (!updateKineticEffector(e)) kineticEffectors.add(e);
+        touch();
+    }
+
+    /** Replaces the effector with the same uid; returns false when not present. */
+    public boolean updateKineticEffector(KineticEffector e) {
+        if (e == null || kineticEffectors == null) return false;
+        for (int i = 0; i < kineticEffectors.size(); i++) {
+            KineticEffector k = kineticEffectors.get(i);
+            if (k != null && k.uid != null && k.uid.equals(e.uid)) {
+                kineticEffectors.set(i, e);
+                touch();
+                return true;
+            }
+        }
+        return false;
+    }
+
+    public boolean removeKineticEffector(String effectorUid) {
+        KineticEffector k = findKineticEffector(effectorUid);
+        if (k == null) return false;
+        kineticEffectors.remove(k);
+        touch();
+        return true;
     }
 
     public void touch() {
