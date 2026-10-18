@@ -357,6 +357,60 @@ sensors can detect it?"*
 - Unit-test the per-sensor check (geometry + reasons) as a pure model function, independent of the
   map UI.
 
+## R13. Minimum detection altitude — point probe and heat maps  *(pending)*
+The reverse of R12: instead of asking "can a drone at this height be seen?", it asks *"how high does a
+drone have to be at this spot before something detects it?"*
+
+### R13a. Point probe
+- Tap a location (probe mode) to get the **lowest altitude AGL at which at least one sensor detects a
+  drone there**, reported separately for **Group 1** and **Group 2**.
+- The probe also shows which sensor detects first, the altitude band that is detected (some spots
+  have a ceiling as well as a floor, e.g. above a radar's elevation limit or inside a blind ring), and
+  "not detected at any altitude up to the class ceiling" when that applies.
+- The calculation searches altitude from 0 AGL up to the class ceiling (Group 1 1,200 ft, Group 2
+  3,500 ft) in user-set steps (default 10 m), running R12's per-sensor check for every sensor at
+  each height.
+
+### R13b. Detection-floor heat map
+- A separate analysis layer: a grid over the plan area (or the current view), with each cell
+  coloured by its minimum detection altitude. Low (detected near the ground) is green, high is
+  amber/red, and never detected is hatched or black.
+- **Two maps: Group 1 and Group 2.** Each uses that class's sensor ranges (R10 preset target
+  classes) and altitude ceiling.
+- **All sensors are combined:** the cell value is the lowest floor across every sensor, including
+  min-range blind rings, azimuth/elevation limits, terrain/building masking and day/night (with a
+  day/night toggle).
+- A legend with altitude bands, an adjustable grid resolution, and a "Recompute" button. Results
+  are cached until a sensor, the terrain data or the settings change.
+
+## R14. Intercept heat maps — kinetic and non-kinetic  *(pending)*
+The same idea as R13b, but for engaging the drone rather than detecting it: *"how high must a drone be
+at this spot before I can intercept it?"*
+- **Kinetic layer:** the minimum (and maximum) altitude at which at least one kinetic effector can
+  legally engage. It takes into account effector min/max range and altitude, azimuth sectors and
+  restricted wedges, elevation limits, and line of sight. It follows the existing shot-safety rules:
+  never at or through protected assets (including their exclusion height), and shooting short of an
+  obstruction wall is allowed but never through it.
+- **Non-kinetic layer:** the minimum altitude at which at least one RF/non-kinetic effector is
+  effective. It takes into account the effector's effective range per frequency band (R1), its
+  azimuth and line of sight. Directed energy (R7) follows its own type rules.
+- **Group 1 and Group 2 versions of each layer**, so there are four intercept maps in total.
+- An optional **"detect-and-engage" view**: cells where a drone is detected (R13b) AND can be
+  engaged, which highlights spots that are seen but cannot be engaged, and engageable spots with no
+  detection.
+- A point probe like R13a reports the intercept floor/ceiling and which effector(s) can engage.
+
+### Layer management (R13 + R14)
+- Each heat map is its own **toggleable analysis layer**: Detection G1, Detection G2,
+  Kinetic G1, Kinetic G2, Non-kinetic G1 and Non-kinetic G2 (plus optional detect-and-engage).
+  They are **all off by default** so the map stays uncluttered.
+- Toggles live in one *Analysis layers* panel (and in the R9 visibility controls). Turning one on
+  shows only that layer, unless the user deliberately stacks them. Opacity is adjustable per layer.
+- The layers are view-only and local, like R9: nothing is sent over CoT, and hiding a layer never
+  changes the analysis. They are included in PNG/PDF export only when visible.
+- Calculation runs in the background with progress and cancel, using a coarse grid first and then
+  refining.
+
 ---
 
 ### Phase 5 core items (previously planned)
@@ -383,3 +437,6 @@ and the existing terrain/building line-of-sight mask.
 R12 (detection simulation) uses R2 (min range, elevation, day/night), R10 (per-class preset ranges)
 and the line-of-sight mask; it gains DRI output once R11 lands and could later feed sensor gap
 analysis (Phase 5).
+R13 (detection-floor probe / heat maps) is built on R12's per-sensor check. R14 (intercept heat maps)
+reuses R13's grid/altitude engine, plus the existing kinetic shot-safety/clearance engine, R1 (RF
+bands), R7 (directed energy) and R8c (walls). Both feed the Phase 5 sensor gap analysis.
