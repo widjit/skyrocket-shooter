@@ -311,6 +311,52 @@ channels; Detect/Recognise/Identify (DRI) range rings for Group 1 and Group 2 UA
 terrain/building mask so blind spots are preserved.
 - Builds on R2 (EO / IR_THERMAL types and the day/night field).
 
+## R12. Drone detection simulation  *(pending)*
+Answers the question: *"If a Group 1 or Group 2 drone is at this point and altitude, which of my
+sensors can detect it?"*
+
+**Inputs**
+- A point on the map: long-press, drop a marker or type in coordinates (MGRS / lat-lon).
+- Drone altitude, entered as AGL or MSL. The default is AGL; MSL is converted using the elevation
+  data under the point.
+- Drone class: **Group 1** (< 20 lb, < 1,200 ft AGL, < 100 kt) or **Group 2** (21–55 lb,
+  < 3,500 ft AGL, < 250 kt). Out-of-envelope altitudes get a warning but are still evaluated.
+
+**Checks for every sensor in the plan**
+1. **Range:** slant range from the sensor to the drone. Must be ≥ min range (the radar blind ring,
+   R2) and ≤ the class range. For presets the class range comes from the preset's target-class
+   ranges (R10), e.g. a micro/Group 1 versus a small/Group 2 entry. Otherwise it is the sensor's
+   own range.
+2. **Azimuth:** the bearing falls inside the sensor's azimuth / beam width.
+3. **Elevation:** the look-up angle falls inside the sensor's elevation min/max (R2).
+4. **Line of sight:** terrain and building masking along the ray, using the same mask as the
+   coverage overlay, evaluated at the drone's height.
+5. **Type rules:** imaging sensors (camera / EO-IR / IR-thermal) respect day/night (with a time-of-day
+   toggle). Laser designators are listed as "can designate" if within max lasing range, not as a
+   detector. For RF detectors the drone is assumed to be emitting, with a toggle to mark it as RF-silent.
+   Once R11 is in, imaging sensors also report Detect / Recognise / Identify.
+6. **Hidden assets** (R9) are still evaluated, because visibility is view-only.
+
+**Output**
+- A results list for each sensor: ✅ DETECTS / ❌ NO, with the first reason it fails (out of range,
+  inside blind ring, outside azimuth, outside elevation, terrain-masked, building-masked,
+  day-only at night). It also shows slant range and margin.
+- On the map: a drone marker at the point, plus lines to each sensor: solid green if it detects,
+  dashed red if blocked (marking the masking point where known).
+- A summary line, e.g. "Detected by 2 of 5 sensors (RPS-42 #1, EO/IR #2)", with a warning when
+  **zero** sensors detect it.
+- Optional follow-ons: drag the drone marker to update live; sweep altitude to report the lowest
+  detectable altitude at that point; an "Effectors able to engage" section reusing the existing
+  shot-safety rules (never through or at protected assets, never through obstruction walls).
+
+**Notes**
+- The calculation is local only. Nothing is broadcast over CoT unless the user shares the
+  simulation marker.
+- Range values are nominal datasheet figures; RCS, clutter and weather are not modelled in the
+  first version.
+- Unit-test the per-sensor check (geometry + reasons) as a pure model function, independent of the
+  map UI.
+
 ---
 
 ### Phase 5 core items (previously planned)
@@ -334,3 +380,6 @@ engine with exclusion-zone heights and feeds the engagement timeline and R5 mask
 R9 (visibility) is independent and works with today's asset types. The per-site toggle needs R0.
 R10 (preset catalog) builds on R2's min-range / elevation fields. R11 (optics / DRI rings) needs R2
 and the existing terrain/building line-of-sight mask.
+R12 (detection simulation) uses R2 (min range, elevation, day/night), R10 (per-class preset ranges)
+and the line-of-sight mask; it gains DRI output once R11 lands and could later feed sensor gap
+analysis (Phase 5).
