@@ -83,6 +83,49 @@ public final class PolygonBuffer {
         return !Double.isNaN(sd) && sd <= bufferM;
     }
 
+    /**
+     * A polygon with its local frame and projected vertices computed once, for repeated
+     * {@link #contains} tests against many points. Results are identical to the static
+     * {@link PolygonBuffer#signedDistance} / {@link PolygonBuffer#contains}; the polygon must
+     * not be modified while a Prepared instance is in use.
+     */
+    public static final class Prepared {
+        private final List<GeoPos> poly;
+        private final Frame frame;
+        private final double[][] xy;
+
+        public Prepared(List<GeoPos> poly) {
+            this.poly = poly;
+            if (usable(poly)) {
+                frame = new Frame(poly);
+                xy = new double[poly.size()][];
+                for (int i = 0; i < xy.length; i++) xy[i] = frame.xy(poly.get(i));
+            } else {
+                frame = null;
+                xy = null;
+            }
+        }
+
+        public double signedDistance(GeoPos p) {
+            if (p == null || frame == null) return Double.NaN;
+            double[] q = frame.xy(p);
+            double best = Double.POSITIVE_INFINITY;
+            int n = xy.length;
+            double[] a = xy[n - 1];
+            for (int i = 0; i < n; i++) {
+                double[] b = xy[i];
+                best = Math.min(best, segDist(q[0], q[1], a[0], a[1], b[0], b[1]));
+                a = b;
+            }
+            return GeoUtils.pointInPolygon(p, poly) ? -best : best;
+        }
+
+        public boolean contains(GeoPos p, double bufferM) {
+            double sd = signedDistance(p);
+            return !Double.isNaN(sd) && sd <= bufferM;
+        }
+    }
+
     /** Display outline of the buffered polygon; empty when an inward buffer collapses it. */
     public static List<GeoPos> offsetRing(List<GeoPos> poly, double bufferM) {
         return offsetRing(poly, bufferM, DEFAULT_ARC_STEP_DEG);
