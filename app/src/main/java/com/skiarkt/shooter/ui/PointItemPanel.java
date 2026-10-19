@@ -875,13 +875,7 @@ abstract class PointItemPanel<T extends PointItem> {
     }
 
     static double parseNumber(String s) {
-        if (s == null) return Double.NaN;
-        try {
-            double v = Double.parseDouble(s.trim().replace(',', '.'));
-            return Double.isInfinite(v) ? Double.NaN : v;
-        } catch (NumberFormatException e) {
-            return Double.NaN;
-        }
+        return com.skiarkt.shooter.util.Numbers.parseLenient(s);
     }
 
     /** Swatch row; {@code holder[0]} receives the chosen color. */
@@ -939,11 +933,7 @@ abstract class PointItemPanel<T extends PointItem> {
     }
 
     protected GradientDrawable swatchDrawable(int fill, boolean selected) {
-        GradientDrawable d = new GradientDrawable();
-        d.setColor(fill);
-        d.setCornerRadius(dp(4));
-        d.setStroke(selected ? dp(3) : dp(1), selected ? 0xFFFFC107 : 0xFF000000);
-        return d;
+        return Swatches.drawable(ctx, fill, 0xFF000000, selected);
     }
 
     protected LinearLayout vertical() {
@@ -1013,15 +1003,5 @@ abstract class PointItemPanel<T extends PointItem> {
 
     protected void toast(String msg) {
         Toast.makeText(mapView.getContext(), msg, Toast.LENGTH_SHORT).show();
-    }
-
-    abstract static class SimpleSeek implements SeekBar.OnSeekBarChangeListener {
-        @Override
-        public void onStartTrackingTouch(SeekBar seekBar) {
-        }
-
-        @Override
-        public void onStopTrackingTouch(SeekBar seekBar) {
-        }
     }
 }

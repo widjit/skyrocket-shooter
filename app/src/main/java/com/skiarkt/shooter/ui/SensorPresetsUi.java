@@ -187,12 +187,6 @@ final class SensorPresetsUi {
 
     /** Blank / invalid = NaN. */
     static double parse(EditText e) {
-        String t = e.getText().toString().trim().replace(',', '.');
-        if (t.isEmpty()) return Double.NaN;
-        try {
-            return Double.parseDouble(t);
-        } catch (NumberFormatException ex) {
-            return Double.NaN;
-        }
+        return com.skiarkt.shooter.util.Numbers.parseLenient(e.getText().toString());
     }
 }
