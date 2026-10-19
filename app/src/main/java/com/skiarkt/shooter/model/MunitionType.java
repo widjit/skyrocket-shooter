@@ -1,5 +1,7 @@
 package com.skiarkt.shooter.model;
 
+import com.skiarkt.shooter.util.EnumUtils;
+
 /** Munition payload of a kinetic effector. */
 public enum MunitionType {
     HE("HE"),
@@ -16,16 +18,11 @@ public enum MunitionType {
 
     /** Next constant (wraps) - used by cycling UI buttons. */
     public MunitionType next() {
-        MunitionType[] all = values();
-        return all[(ordinal() + 1) % all.length];
+        return EnumUtils.next(this);
     }
 
     /** Lenient lookup by constant name; {@code dflt} when null / unknown. */
     public static MunitionType fromName(String s, MunitionType dflt) {
-        if (s == null) return dflt;
-        for (MunitionType v : values()) {
-            if (v.name().equalsIgnoreCase(s.trim())) return v;
-        }
-        return dflt;
+        return EnumUtils.fromName(MunitionType.class, s, dflt);
     }
 }

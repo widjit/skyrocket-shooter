@@ -1,5 +1,7 @@
 package com.skiarkt.shooter.model;
 
+import com.skiarkt.shooter.util.EnumUtils;
+
 /** Operational status of an effector. */
 public enum EffectorStatus {
     READY("Ready"),
@@ -15,16 +17,11 @@ public enum EffectorStatus {
 
     /** Next constant (wraps) - used by cycling UI buttons. */
     public EffectorStatus next() {
-        EffectorStatus[] all = values();
-        return all[(ordinal() + 1) % all.length];
+        return EnumUtils.next(this);
     }
 
     /** Lenient lookup by constant name; {@code dflt} when null / unknown. */
     public static EffectorStatus fromName(String s, EffectorStatus dflt) {
-        if (s == null) return dflt;
-        for (EffectorStatus v : values()) {
-            if (v.name().equalsIgnoreCase(s.trim())) return v;
-        }
-        return dflt;
+        return EnumUtils.fromName(EffectorStatus.class, s, dflt);
     }
 }

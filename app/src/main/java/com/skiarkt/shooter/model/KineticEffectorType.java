@@ -1,5 +1,7 @@
 package com.skiarkt.shooter.model;
 
+import com.skiarkt.shooter.util.EnumUtils;
+
 /** Kinetic effector weapon class. */
 public enum KineticEffectorType {
     RIFLE("Rifle"),
@@ -33,16 +35,11 @@ public enum KineticEffectorType {
 
     /** Next constant (wraps) - used by cycling UI buttons. */
     public KineticEffectorType next() {
-        KineticEffectorType[] all = values();
-        return all[(ordinal() + 1) % all.length];
+        return EnumUtils.next(this);
     }
 
     /** Lenient lookup by constant name; {@code dflt} when null / unknown. */
     public static KineticEffectorType fromName(String s, KineticEffectorType dflt) {
-        if (s == null) return dflt;
-        for (KineticEffectorType v : values()) {
-            if (v.name().equalsIgnoreCase(s.trim())) return v;
-        }
-        return dflt;
+        return EnumUtils.fromName(KineticEffectorType.class, s, dflt);
     }
 }
