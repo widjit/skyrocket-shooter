@@ -11,7 +11,7 @@
 [![License: Apache 2.0](https://img.shields.io/badge/License-Apache_2.0-blue.svg)](LICENSE)
 ![ATAK](https://img.shields.io/badge/ATAK--CIV-5.6.0-green.svg)
 ![Status](https://img.shields.io/badge/status-debug_pre--release-orange.svg)
-![Version](https://img.shields.io/badge/version-1.0.8-lightgrey.svg)
+![Version](https://img.shields.io/badge/version-1.0.9-lightgrey.svg)
 
 SKIARKT is an ATAK-CIV plugin for **counter-small-UAS (C-sUAS) point defense**. It is used by three
 groups:
@@ -35,7 +35,7 @@ intercept altitudes, and shares the whole plan with other ATAK / WinTAK users as
 
 ## 📣 Status: looking for feedback
 
-**1.0.8 is a debug pre-release** for ATAK developer builds (the developer ATAK-CIV 5.6.0 from the
+**1.0.9 is a debug pre-release** for ATAK developer builds (the developer ATAK-CIV 5.6.0 from the
 SDK). It is debug-signed, so **Play Store / release ATAK will not load it**. It has passed its JVM unit
 tests but has had very little on-device testing. Expect rough edges.
 
@@ -56,11 +56,11 @@ Open an issue at [GitHub Issues](https://github.com/widjit/skyrocket-shooter/iss
 screenshots and "this is how we actually do it" notes are all welcome.
 
 Download: [Releases](https://github.com/widjit/skyrocket-shooter/releases) (latest:
-`v1.0.8-civ-5.6.0-debug`).
+`v1.0.9-civ-5.6.0-debug`).
 
 ---
 
-## Features (1.0.8)
+## Features (1.0.9)
 
 ### Plan, save and share
 - Side panel opened from the ATAK toolbar, with sections for each asset type and back navigation.
@@ -146,7 +146,7 @@ off by default.
 1. Install the **developer ATAK-CIV 5.6.0** APK that comes with the SDK from [tak.gov](https://tak.gov).
    Uninstall any Play Store ATAK first, because they share a package name.
 2. Download the APK from [Releases](https://github.com/widjit/skyrocket-shooter/releases) and run
-   `adb install -r SKIARKT-1.0.8-civ-5.6.0-debug.apk`.
+   `adb install -r SKIARKT-1.0.9-civ-5.6.0-debug.apk`.
 3. In ATAK go to **☰ → Plugins**. Tap the sync arrows if the list is empty, tick
    **SKY ROCKET SHOOTER (SKIARKT)** and choose **Load**.
 4. Open **☰ → SKY ROCKET SHOOTER**. For logs, run `adb logcat | grep -i skiarkt`.

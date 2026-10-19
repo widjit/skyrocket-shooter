@@ -1,6 +1,6 @@
 # SKY ROCKET SHOOTER (SKIARKT) — Roadmap
 
-Current build: **1.0.8** (ATAK-CIV 5.6.0, debug pre-release, shared for feedback). Feature summary
+Current build: **1.0.9** (ATAK-CIV 5.6.0, debug pre-release, shared for feedback). Feature summary
 and install steps are in the [README](../README.md).
 
 Items below are planned, not implemented, unless marked **Implemented**. Everything new is saved and shared as CoT, like the
