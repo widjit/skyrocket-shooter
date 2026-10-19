@@ -423,18 +423,10 @@ public class AuthorityPanel {
         opacitySeek.setMax(100);
         opacitySeek.setProgress(Math.round(zone.fillOpacity * 100));
         opacityLabel.setText("Fill opacity: " + opacitySeek.getProgress() + "%");
-        opacitySeek.setOnSeekBarChangeListener(new SeekBar.OnSeekBarChangeListener() {
+        opacitySeek.setOnSeekBarChangeListener(new SimpleSeek() {
             @Override
             public void onProgressChanged(SeekBar s, int p, boolean u) {
                 opacityLabel.setText("Fill opacity: " + p + "%");
-            }
-
-            @Override
-            public void onStartTrackingTouch(SeekBar s) {
-            }
-
-            @Override
-            public void onStopTrackingTouch(SeekBar s) {
             }
         });
         v.addView(opacitySeek);
@@ -577,11 +569,7 @@ public class AuthorityPanel {
     }
 
     private GradientDrawable swatchDrawable(int fill, int border, boolean selected) {
-        GradientDrawable d = new GradientDrawable();
-        d.setColor(fill);
-        d.setCornerRadius(dp(4));
-        d.setStroke(selected ? dp(3) : dp(1), selected ? 0xFFFFC107 : border);
-        return d;
+        return Swatches.drawable(pluginContext, fill, border, selected);
     }
 
     private LinearLayout column() {

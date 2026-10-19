@@ -189,7 +189,10 @@ public final class AuthorityEvaluator {
             }
         }
 
-        // Area-weighted polar sampling of the engagement envelope.
+        // Area-weighted polar sampling of the engagement envelope. Zone geometry is projected
+        // once here instead of once per sample (same results as inside()).
+        PolygonBuffer.Prepared[] holdGeo = prepare(holdZones, plan);
+        PolygonBuffer.Prepared[] authGeo = prepare(authZones, plan);
         double maxR = eff.maxEngagementDistMeters;
         double minR = eff instanceof KineticEffector ? ((KineticEffector) eff).minEngagementRange : 0.0;
         double wAuth = 0, wHold = 0, wUnauth = 0;
@@ -201,8 +204,8 @@ public final class AuthorityEvaluator {
                     if (eff instanceof KineticEffector && !((KineticEffector) eff).isBearingAllowed(brg)) continue;
                     GeoPos p = GeoUtils.destination(eff.position, brg, r);
                     boolean hold = false;
-                    for (EngagementAuthorityZone h : holdZones) {
-                        if (inside(p, h, plan)) {
+                    for (int k = 0; k < holdGeo.length; k++) {
+                        if (holdGeo[k].contains(p, holdZones.get(k).bufferMeters)) {
                             hold = true;
                             break;
                         }
@@ -212,8 +215,8 @@ public final class AuthorityEvaluator {
                         continue;
                     }
                     boolean auth = false;
-                    for (EngagementAuthorityZone z : authZones) {
-                        if (inside(p, z, plan)) {
+                    for (int k = 0; k < authGeo.length; k++) {
+                        if (authGeo[k].contains(p, authZones.get(k).bufferMeters)) {
                             auth = true;
                             break;
                         }
@@ -229,5 +232,11 @@ public final class AuthorityEvaluator {
         if (fh > 0) flags.add(Flag.ENVELOPE_IN_NON_HOSTILE);
         if (fu > 0 && !authZones.isEmpty()) flags.add(Flag.ENVELOPE_EXCEEDS_AUTHORITY);
         return new EffectorCheck(eff, cls, fa, fh, fu, flags);
+    }
+
+    private static PolygonBuffer.Prepared[] prepare(List<EngagementAuthorityZone> zones, PointDefensePlan plan) {
+        PolygonBuffer.Prepared[] out = new PolygonBuffer.Prepared[zones.size()];
+        for (int i = 0; i < out.length; i++) out[i] = new PolygonBuffer.Prepared(zones.get(i).resolveBase(plan));
+        return out;
     }
 }

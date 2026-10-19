@@ -89,18 +89,10 @@ public class SettingsPanel {
         };
         unitGroup.setOnCheckedChangeListener(previewUpdater);
         precisionGroup.setOnCheckedChangeListener(previewUpdater);
-        SeekBar.OnSeekBarChangeListener seekUpdater = new SeekBar.OnSeekBarChangeListener() {
+        SeekBar.OnSeekBarChangeListener seekUpdater = new SimpleSeek() {
             @Override
             public void onProgressChanged(SeekBar seekBar, int progress, boolean fromUser) {
                 updateSeekLabels();
-            }
-
-            @Override
-            public void onStartTrackingTouch(SeekBar seekBar) {
-            }
-
-            @Override
-            public void onStopTrackingTouch(SeekBar seekBar) {
             }
         };
         heatmapSeek.setOnSeekBarChangeListener(seekUpdater);
@@ -195,11 +187,7 @@ public class SettingsPanel {
     }
 
     private static double parse(EditText e) {
-        try {
-            return Double.parseDouble(e.getText().toString().trim().replace(',', '.'));
-        } catch (NumberFormatException ex) {
-            return Double.NaN;
-        }
+        return com.skiarkt.shooter.util.Numbers.parseLenient(e.getText().toString());
     }
 
     private void updatePreview() {

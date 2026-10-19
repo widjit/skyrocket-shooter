@@ -822,11 +822,7 @@ public class ExclusionZonePanel {
     }
 
     private GradientDrawable swatchDrawable(int fill, int border, boolean selected) {
-        GradientDrawable d = new GradientDrawable();
-        d.setColor(fill);
-        d.setCornerRadius(dp(4));
-        d.setStroke(selected ? dp(3) : dp(1), selected ? 0xFFFFC107 : border);
-        return d;
+        return Swatches.drawable(pluginContext, fill, border, selected);
     }
 
     private int strokeWidthPx() {
@@ -855,15 +851,5 @@ public class ExclusionZonePanel {
 
     private void toast(String msg) {
         Toast.makeText(mapView.getContext(), msg, Toast.LENGTH_SHORT).show();
-    }
-
-    private abstract static class SimpleSeek implements SeekBar.OnSeekBarChangeListener {
-        @Override
-        public void onStartTrackingTouch(SeekBar seekBar) {
-        }
-
-        @Override
-        public void onStopTrackingTouch(SeekBar seekBar) {
-        }
     }
 }

@@ -193,7 +193,6 @@
     <string name="nk_color_effective">Effective color (rx \u2265 threshold)</string>
     <string name="nk_color_marginal">Marginal color (within 10 dB below)</string>
     <string name="nk_color_insufficient">Insufficient color</string>
-    <string name="nk_marker_color">Marker / ring color</string>
     <string name="nk_opacity_fmt">Heat map opacity (this effector): %1$d%%</string>
     <string name="nk_stats_fmt">Effective over %1$.0f%% of the engagement circle, marginal %2$.0f%%. Free-space range at threshold: %3$s.</string>
 
@@ -205,7 +204,6 @@
     <string name="ke_edit_title_new">New Kinetic Effector</string>
     <string name="ke_edit_title">Edit Kinetic Effector</string>
     <string name="ke_type_fmt">Type: %1$s</string>
-    <string name="ke_type_directed_energy">Directed Energy</string>
     <string name="ke_munition_fmt">Munition: %1$s</string>
     <string name="ke_detonation_fmt">Detonation: %1$s</string>
     <string name="ke_status_fmt">Status: %1$s</string>

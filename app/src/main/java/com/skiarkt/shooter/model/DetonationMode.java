@@ -1,5 +1,7 @@
 package com.skiarkt.shooter.model;
 
+import com.skiarkt.shooter.util.EnumUtils;
+
 /** Munition fuzing / detonation mode. */
 public enum DetonationMode {
     PROXIMITY("Proximity"),
@@ -14,16 +16,11 @@ public enum DetonationMode {
 
     /** Next constant (wraps) - used by cycling UI buttons. */
     public DetonationMode next() {
-        DetonationMode[] all = values();
-        return all[(ordinal() + 1) % all.length];
+        return EnumUtils.next(this);
     }
 
     /** Lenient lookup by constant name; {@code dflt} when null / unknown. */
     public static DetonationMode fromName(String s, DetonationMode dflt) {
-        if (s == null) return dflt;
-        for (DetonationMode v : values()) {
-            if (v.name().equalsIgnoreCase(s.trim())) return v;
-        }
-        return dflt;
+        return EnumUtils.fromName(DetonationMode.class, s, dflt);
     }
 }
