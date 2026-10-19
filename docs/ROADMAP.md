@@ -19,7 +19,7 @@ thing I want feedback on.
 | 4 | Sensors in depth and obstacles | Planned | Optics/IR definition and DRI rings (R11), field-measured walls and "never through it" masking (R8) |
 | 5 | Laser-guided engagements | Planned | Laser-guided rocket with designator pairing (R4), laser-masking analysis (R5) |
 | 6 | Engagement decision support | Planned | Engagement timeline (detect → decide → defeat), best-effector recommendation, friendly-fire deconfliction, MSA rings, dynamic frag cylinder along the threat vector |
-| 7 | Briefing, sharing and release | Planned | PACE plan PDF, full-plan import/export (CoT / KMZ / data package), WinTAK push/pull, decision-maker briefing export, TAK.gov-signed release build |
+| 7 | Briefing, sharing and release | Planned | PACE plan PDF, KMZ / KML export (R15), full-plan import/export (CoT / data package), WinTAK push/pull, decision-maker briefing export, TAK.gov-signed release build |
 | Later | Deferred | — | Threat ingress corridors: corridor editor, corridor-based gap analysis, per-corridor timelines |
 
 **Why this order:** Phase 3 turns the plan you have already laid out into answers: what can see a
@@ -434,6 +434,22 @@ at this spot before I can intercept it?"*
 - Calculation runs in the background with progress and cancel, using a coarse grid first and then
   refining.
 
+## R15. KMZ / KML export  *(pending)*
+Export the plan, or the visible part of it, as **KMZ** (zipped KML with icons) so it can be opened
+in Google Earth, ArcGIS, QGIS and other GIS tools, and handed to people without ATAK.
+- **Contents:** exclusion zones (with height as extruded polygons), engagement-authority zones,
+  sensors and effectors as placemarks (with their key fields in the description balloon), sensor
+  coverage and terrain-mask polygons, kinetic range rings / frag bands, and min-range blind rings.
+- **Analysis layers:** RF heat maps and, once built, the R13/R14 heat maps are exported as ground
+  overlays (PNG + lat/lon box) inside the KMZ.
+- **Folder structure:** grouped by type and site (R0), and it follows R9 visibility. There is an option
+  to include hidden assets, as with PNG export.
+- **Styling:** follows plugin colours and opacity. Altitude modes: `clampToGround` for 2D,
+  `relativeToGround` for zone heights.
+- **Classification and author** from Settings go into the document name/description, as in PNG export.
+- **Plain KML** (no images) is available as an option for tools that don't accept KMZ.
+- Export only. Importing KML/KMZ back into a plan is part of the Phase 7 full-plan import/export work.
+
 ---
 
 ### Items without an R-number
@@ -466,3 +482,5 @@ reuses R13's grid/altitude engine, plus the existing kinetic shot-safety/clearan
 bands), R7 (directed energy) and R8c (walls). Both feed the Phase 3 sensor gap analysis.
 R8 (walls) arrives in Phase 4. Until then, R14 respects exclusion-zone heights, and walls are added to
 the same clearance check when R8 lands.
+R15 (KMZ / KML export) is independent. It reuses the overlay geometry and R9 visibility, and adds
+R13/R14 heat maps as ground overlays once they exist.

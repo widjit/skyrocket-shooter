@@ -117,7 +117,7 @@ Download: [Releases](https://github.com/widjit/skyrocket-shooter/releases) (late
 
 ## 🗺️ Roadmap
 
-The full roadmap, with the detail and status of every item (R0–R14), is in
+The full roadmap, with the detail and status of every item (R0–R15), is in
 **[docs/ROADMAP.md](docs/ROADMAP.md)**. The phases at a glance:
 
 | Phase | Theme | Status | Main items |
@@ -128,7 +128,7 @@ The full roadmap, with the detail and status of every item (R0–R14), is in
 | 4 | Sensors in depth and obstacles | Planned | Optics/IR resolution, zoom, FOV and DRI rings (R11), field-measured walls with "never through it" masking (R8) |
 | 5 | Laser-guided engagements | Planned | Laser-guided rocket with designator pairing (R4), laser-masking analysis (R5) |
 | 6 | Engagement decision support | Planned | Engagement timeline (detect → decide → defeat), best-effector recommendation, friendly-fire deconfliction, MSA rings, dynamic frag cylinder |
-| 7 | Briefing, sharing and release | Planned | PACE plan PDF, full-plan import/export (CoT / KMZ / data package), WinTAK push/pull, TAK.gov-signed release |
+| 7 | Briefing, sharing and release | Planned | PACE plan PDF, KMZ / KML export for Google Earth and GIS (R15), full-plan import/export (CoT / data package), WinTAK push/pull, TAK.gov-signed release |
 | Later | Deferred | — | Threat ingress corridors (editor, corridor gap analysis, per-corridor timelines) |
 
 **Phase 3 in one sentence:** tap a spot and see which sensors would detect a Group 1 or Group 2 drone
