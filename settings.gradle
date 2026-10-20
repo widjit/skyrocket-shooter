@@ -26,7 +26,7 @@ dependencyResolutionManagement {
     }
 }
 
-rootProject.name = 'skiarkt_shooter'
+rootProject.name = 'btlrckt'
 include ':app'
 // Compile-only mirror of the ATAK 4.8 SDK API surface used by this plugin.
 // Used automatically when the real ATAK SDK (sdk/main.jar) is not present.

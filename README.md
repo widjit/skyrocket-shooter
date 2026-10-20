@@ -1,10 +1,10 @@
 <p align="center">
-  <img src="assets/skiarkt_logo_bw.png" alt="BOTTLE ROCKET (BTL RCKT) logo" width="320"/>
+  <img src="assets/btlrckt_logo_bw.png" alt="BOTTLE ROCKET (BTL RCKT) logo" width="320"/>
 </p>
 
 # BOTTLE ROCKET (BTL RCKT)
 
-**B**ase **T**rial **L**ayout · **R**equired **C**overage **K**nowledge **T**ool
+**B**ase **T**actical **L**ayout · **R**equired **C**overage **K**nowledge **T**ool
 
 *Formerly SKY ROCKET SHOOTER (SKIARKT).*
 
@@ -13,7 +13,7 @@
 [![License: Apache 2.0](https://img.shields.io/badge/License-Apache_2.0-blue.svg)](LICENSE)
 ![ATAK](https://img.shields.io/badge/ATAK--CIV-5.6.0-green.svg)
 ![Status](https://img.shields.io/badge/status-debug_pre--release-orange.svg)
-![Version](https://img.shields.io/badge/version-1.0.9-lightgrey.svg)
+![Version](https://img.shields.io/badge/version-1.0.10-lightgrey.svg)
 
 BTL RCKT is an ATAK-CIV plugin for **counter-small-UAS (C-sUAS) point defense**. It is used by three
 groups:
@@ -28,12 +28,12 @@ groups:
 The plugin shows terrain-masked sensor coverage, models RF jammer effectiveness, works out safe
 intercept altitudes, and shares the whole plan with other ATAK / WinTAK users as Cursor-on-Target (CoT).
 
-***Base Trial Layout Required Coverage Knowledge Tool***
+***Base Tactical Layout Required Coverage Knowledge Tool***
 
-> **About the name:** the display name changed from SKIARKT to BTL RCKT. The internal IDs did not
-> change, so existing installs upgrade normally and saved plans and shared CoT keep working. These
-> IDs still use "skiarkt": the package `com.skiarkt.shooter`, the `b-m-p-skiarkt-*` CoT types, the
-> `skiarkt_shooter` folder, and the release-signing variable names.
+> **About the name (1.0.10):** the project was renamed from SKIARKT to BTL RCKT, internal IDs
+> included. The package is now `com.btlrckt.bottlerocket` and the CoT types are `b-m-p-btlrckt-*`.
+> **Uninstall the old `com.skiarkt.shooter` plugin before installing 1.0.10.** Plans, presets and
+> CoT from 1.0.9 and earlier don't carry over.
 
 > **Planning and visualization tool only.** It is not a fire-control system. Ranges come from public
 > datasheets or what the operator enters. See [SECURITY.md](SECURITY.md) before any operational use.
@@ -42,7 +42,7 @@ intercept altitudes, and shares the whole plan with other ATAK / WinTAK users as
 
 ## 📣 Status: looking for feedback
 
-**1.0.9 is a debug pre-release** for ATAK developer builds (the developer ATAK-CIV 5.6.0 from the
+**1.0.10 is a debug pre-release** for ATAK developer builds (the developer ATAK-CIV 5.6.0 from the
 SDK). It is debug-signed, so **Play Store / release ATAK will not load it**. It has passed its JVM unit
 tests but has had very little on-device testing. Expect rough edges.
 
@@ -57,21 +57,21 @@ The most useful feedback right now:
    systems or parameters are missing?
 4. **Safety rules:** do the "never shoot at or through protected assets / walls" rules match how you
    would plan?
-5. **Bugs and crashes:** please attach `adb logcat | grep -i skiarkt` output where possible.
+5. **Bugs and crashes:** please attach `adb logcat | grep -i btlrckt` output where possible.
 
 Open an issue at [GitHub Issues](https://github.com/widjit/skyrocket-shooter/issues). Sketches,
 screenshots and "this is how we actually do it" notes are all welcome.
 
 Download: [Releases](https://github.com/widjit/skyrocket-shooter/releases) (latest:
-`v1.0.9-civ-5.6.0-debug`).
+`v1.0.10-civ-5.6.0-debug`).
 
 ---
 
-## Features (1.0.9)
+## Features (1.0.10)
 
 ### Plan, save and share
 - Side panel opened from the ATAK toolbar, with sections for each asset type and back navigation.
-- Plans are autosaved as JSON (`/sdcard/atak/tools/skiarkt_shooter/*.skiarktplan.json`).
+- Plans are autosaved as JSON (`/sdcard/atak/tools/btlrckt/*.btlrcktplan.json`).
 - Every object is shared as CoT, so plans round-trip between ATAK and WinTAK over TAK Server or mesh.
   Older plans and CoT still load when new fields are added.
 - Settings: units (ft / m / km), display precision, default colours, transparency, CoT stale time,
@@ -153,11 +153,10 @@ off by default.
 1. Install the **developer ATAK-CIV 5.6.0** APK that comes with the SDK from [tak.gov](https://tak.gov).
    Uninstall any Play Store ATAK first, because they share a package name.
 2. Download the APK from [Releases](https://github.com/widjit/skyrocket-shooter/releases) and run
-   `adb install -r SKIARKT-1.0.9-civ-5.6.0-debug.apk`.
+   `adb install -r BTLRCKT-1.0.10-civ-5.6.0-debug.apk`.
 3. In ATAK go to **☰ → Plugins**. Tap the sync arrows if the list is empty, tick
-   **BOTTLE ROCKET (BTL RCKT)** and choose **Load**. (Builds 1.0.9 and earlier still show the old name,
-   **SKY ROCKET SHOOTER (SKIARKT)**.)
-4. Open **☰ → BOTTLE ROCKET (BTL RCKT)**. For logs, run `adb logcat | grep -i skiarkt`.
+   **BOTTLE ROCKET (BTL RCKT)** and choose **Load**.
+4. Open **☰ → BOTTLE ROCKET (BTL RCKT)**. For logs, run `adb logcat | grep -i btlrckt`.
 
 **Play Store / release ATAK** (CIV, MIL, GOV) only loads plugins signed through the TAK.gov
 third-party pipeline. That is part of Phase 7; see [Release builds](#release-builds-and-takgov) below.
@@ -195,17 +194,17 @@ Build anything you install in the field against the real SDK (option 1 or 2), no
 ### Release builds and TAK.gov
 The build **refuses to sign a release with the debug keystore**. Use your own release key:
 ```bash
-scripts/make_release_keystore.sh "CN=Your Org, O=Your Org, C=US"   # writes keystores/skiarkt-release.jks + keystore.properties (git-ignored)
+scripts/make_release_keystore.sh "CN=Your Org, O=Your Org, C=US"   # writes keystores/btlrckt-release.jks + keystore.properties (git-ignored)
 ./gradlew assembleCivRelease
 ```
-CI can use `SKIARKT_KEYSTORE`, `SKIARKT_KEYSTORE_PASSWORD`, `SKIARKT_KEY_ALIAS` and `SKIARKT_KEY_PASSWORD` instead.
+CI can use `BTLRCKT_KEYSTORE`, `BTLRCKT_KEYSTORE_PASSWORD`, `BTLRCKT_KEY_ALIAS` and `BTLRCKT_KEY_PASSWORD` instead.
 If no key is configured, the release APK is left unsigned, which is the form the TAK.gov pipeline needs.
 For release ATAK, run `scripts/package_for_takgov.sh` and submit the zip to the TAK.gov **Third-Party
 Plugin** pipeline (ATAK 5.6.0 / CIV). Gov / Mil deployments also need your organisation's accreditation
 process; see [SECURITY.md](SECURITY.md).
 
 ### Plugin model (ATAK 5.x `IPlugin`)
-- `app/src/main/assets/plugin.xml` declares one extension: `gov.tak.api.plugin.IPlugin` → `com.skiarkt.shooter.plugin.PluginLifecycle`.
+- `app/src/main/assets/plugin.xml` declares one extension: `gov.tak.api.plugin.IPlugin` → `com.btlrckt.bottlerocket.plugin.PluginLifecycle`.
 - `PluginLifecycle` extends `com.atak.plugins.impl.AbstractPlugin` and registers the toolbar tool and the map component.
 - An ATAK-CIV 4.6.0 build (legacy plugin model) is kept at tag **`v1.0.0-civ4.6.0`**. This branch is 5.x only.
 
@@ -214,14 +213,14 @@ process; see [SECURITY.md](SECURITY.md).
 ## CoT schema
 | Object | CoT type |
 |---|---|
-| Plan header | `b-m-p-skiarkt-plan` |
-| Exclusion zone | `b-m-p-skiarkt-exczone` |
-| Sensor | `b-m-p-skiarkt-sensor` |
-| Non-kinetic effector | `b-m-p-skiarkt-nke` |
-| Kinetic effector | `b-m-p-skiarkt-kinetic` |
-| Engagement-authority zone | `b-m-p-skiarkt-authzone` |
-| Defended asset | `b-m-p-skiarkt-defasset` |
-| Threat corridor | `b-m-p-skiarkt-corridor` |
+| Plan header | `b-m-p-btlrckt-plan` |
+| Exclusion zone | `b-m-p-btlrckt-exczone` |
+| Sensor | `b-m-p-btlrckt-sensor` |
+| Non-kinetic effector | `b-m-p-btlrckt-nke` |
+| Kinetic effector | `b-m-p-btlrckt-kinetic` |
+| Engagement-authority zone | `b-m-p-btlrckt-authzone` |
+| Defended asset | `b-m-p-btlrckt-defasset` |
+| Threat corridor | `b-m-p-btlrckt-corridor` |
 
 - Common attributes: `how="h-g-i-g-o"`, stale time 30 days by default (configurable), label in
   `<contact callsign>`, free text in `<remarks>`.
@@ -235,7 +234,7 @@ process; see [SECURITY.md](SECURITY.md).
 ## Project layout
 ```
 ├── app/                         plugin APK module
-│   └── src/main/java/com/skiarkt/shooter/
+│   └── src/main/java/com/btlrckt/bottlerocket/
 │       ├── plugin/              PluginLifecycle (IPlugin / AbstractPlugin), toolbar tool
 │       ├── model/  data/  cot/  settings/  util/
 │       ├── analysis/            intercept altitude, LOS sweep, RF propagation / heat map, coverage engine
@@ -256,6 +255,6 @@ process; see [SECURITY.md](SECURITY.md).
 - TAK Product Center, SDK and plugin signing: [tak.gov](https://tak.gov)
 
 ## License
-Licensed under the [Apache License 2.0](LICENSE). Copyright 2026 BTL RCKT (formerly SKIARKT) Contributors.
+Licensed under the [Apache License 2.0](LICENSE). Copyright 2026 BTL RCKT Contributors.
 
 ATAK, WinTAK and the TAK SDK belong to their respective owners and are not covered by this license.

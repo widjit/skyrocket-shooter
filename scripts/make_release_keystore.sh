@@ -5,9 +5,9 @@
 #   usage: scripts/make_release_keystore.sh ["CN=Your Org, O=Your Org, C=US"]
 set -euo pipefail
 cd "$(dirname "$0")/.."
-DNAME="${1:-CN=SKIARKT Release, O=SKIARKT, C=US}"
-KS=keystores/skiarkt-release.jks
-ALIAS=skiarkt
+DNAME="${1:-CN=BTL RCKT Release, O=BTL RCKT, C=US}"
+KS=keystores/btlrckt-release.jks
+ALIAS=btlrckt
 [ -f "$KS" ] && { echo "Refusing to overwrite existing $KS"; exit 1; }
 mkdir -p keystores
 read -r -s -p "Keystore password (min 6 chars): " PW; echo

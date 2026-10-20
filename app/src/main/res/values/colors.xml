@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <color name="skiarkt_header_bg">#FF1B2631</color>
-    <color name="skiarkt_accent">#FFFFC107</color>
-    <color name="skiarkt_text">#FFFFFFFF</color>
-    <color name="skiarkt_text_dim">#FFB0BEC5</color>
+    <color name="btlrckt_header_bg">#FF1B2631</color>
+    <color name="btlrckt_accent">#FFFFC107</color>
+    <color name="btlrckt_text">#FFFFFFFF</color>
+    <color name="btlrckt_text_dim">#FFB0BEC5</color>
 </resources>

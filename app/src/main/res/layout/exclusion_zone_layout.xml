@@ -20,7 +20,7 @@
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:text="@string/section_exclusion_zones"
-            android:textColor="@color/skiarkt_accent"
+            android:textColor="@color/btlrckt_accent"
             android:textSize="17sp"
             android:textStyle="bold" />
 
@@ -30,7 +30,7 @@
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:layout_marginTop="6dp"
-            android:background="@color/skiarkt_header_bg"
+            android:background="@color/btlrckt_header_bg"
             android:orientation="vertical"
             android:padding="6dp"
             android:visibility="gone">
@@ -39,14 +39,14 @@
                 android:id="@+id/ez_draw_hint"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:textColor="@color/skiarkt_text" />
+                android:textColor="@color/btlrckt_text" />
 
             <TextView
                 android:id="@+id/ez_draw_count"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:paddingTop="4dp"
-                android:textColor="@color/skiarkt_accent" />
+                android:textColor="@color/btlrckt_accent" />
 
             <LinearLayout
                 android:layout_width="match_parent"
@@ -121,7 +121,7 @@
                 android:layout_height="wrap_content"
                 android:paddingTop="8dp"
                 android:text="@string/ez_list_header"
-                android:textColor="@color/skiarkt_accent"
+                android:textColor="@color/btlrckt_accent"
                 android:textStyle="bold" />
 
             <TextView
@@ -129,7 +129,7 @@
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:text="@string/ez_list_empty"
-                android:textColor="@color/skiarkt_text_dim" />
+                android:textColor="@color/btlrckt_text_dim" />
 
             <LinearLayout
                 android:id="@+id/ez_list"
@@ -143,7 +143,7 @@
                 android:layout_height="wrap_content"
                 android:paddingTop="14dp"
                 android:text="@string/ez_intercept_header"
-                android:textColor="@color/skiarkt_accent"
+                android:textColor="@color/btlrckt_accent"
                 android:textStyle="bold" />
 
             <TextView
@@ -151,7 +151,7 @@
                 android:layout_height="wrap_content"
                 android:paddingTop="4dp"
                 android:text="@string/ez_intercept_source"
-                android:textColor="@color/skiarkt_text_dim" />
+                android:textColor="@color/btlrckt_text_dim" />
 
             <Spinner
                 android:id="@+id/ez_intercept_source"
@@ -180,14 +180,14 @@
                         android:id="@+id/ez_spacing_label"
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
-                        android:textColor="@color/skiarkt_text_dim" />
+                        android:textColor="@color/btlrckt_text_dim" />
 
                     <EditText
                         android:id="@+id/ez_spacing"
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
                         android:inputType="numberDecimal"
-                        android:textColor="@color/skiarkt_text" />
+                        android:textColor="@color/btlrckt_text" />
                 </LinearLayout>
 
                 <LinearLayout
@@ -200,14 +200,14 @@
                         android:id="@+id/ez_buffer_label"
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
-                        android:textColor="@color/skiarkt_text_dim" />
+                        android:textColor="@color/btlrckt_text_dim" />
 
                     <EditText
                         android:id="@+id/ez_buffer"
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
                         android:inputType="numberDecimal"
-                        android:textColor="@color/skiarkt_text" />
+                        android:textColor="@color/btlrckt_text" />
                 </LinearLayout>
             </LinearLayout>
 
@@ -216,7 +216,7 @@
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:text="@string/ez_intercept_show_map"
-                android:textColor="@color/skiarkt_text" />
+                android:textColor="@color/btlrckt_text" />
 
             <Button
                 android:id="@+id/ez_btn_compute"
@@ -231,7 +231,7 @@
                 android:layout_height="wrap_content"
                 android:paddingTop="4dp"
                 android:text="@string/ez_intercept_none"
-                android:textColor="@color/skiarkt_text"
+                android:textColor="@color/btlrckt_text"
                 android:textIsSelectable="true" />
 
             <TextView
@@ -239,7 +239,7 @@
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:paddingTop="4dp"
-                android:textColor="@color/skiarkt_text_dim"
+                android:textColor="@color/btlrckt_text_dim"
                 android:textSize="12sp" />
         </LinearLayout>
     </LinearLayout>

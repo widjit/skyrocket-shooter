@@ -30,8 +30,8 @@ if (atakSdkMode == 'stubs' && !project.hasProperty('allowStubs')) {
 // Signing
 //   debug   : local debug keystore (developer ATAK builds only).
 //   release : YOUR key, never the debug key. Read from keystore.properties (git-ignored)
-//             or env vars SKIARKT_KEYSTORE / SKIARKT_KEYSTORE_PASSWORD / SKIARKT_KEY_ALIAS /
-//             SKIARKT_KEY_PASSWORD. If none is configured the release APK is left UNSIGNED -
+//             or env vars BTLRCKT_KEYSTORE / BTLRCKT_KEYSTORE_PASSWORD / BTLRCKT_KEY_ALIAS /
+//             BTLRCKT_KEY_PASSWORD. If none is configured the release APK is left UNSIGNED -
 //             which is exactly what the TAK.gov third-party pipeline expects (it signs for you).
 // ---------------------------------------------------------------------------
 def loadProps = { String name ->
@@ -43,7 +43,7 @@ def localProps = loadProps('local.properties')
 def ksProps = loadProps('keystore.properties')
 def prop = { String key, String dflt -> localProps.getProperty(key, dflt) }
 def rel = { String key, String env -> ksProps.getProperty(key) ?: System.getenv(env) }
-def relStore = rel('storeFile', 'SKIARKT_KEYSTORE')
+def relStore = rel('storeFile', 'BTLRCKT_KEYSTORE')
 def hasReleaseKey = relStore != null && rootProject.file(relStore).exists()
 if (relStore != null && !hasReleaseKey) {
     throw new GradleException("Release keystore not found: ${relStore}")
@@ -53,11 +53,11 @@ if (hasReleaseKey && rootProject.file(relStore).name == 'debug.keystore') {
 }
 
 android {
-    namespace 'com.skiarkt.shooter'
+    namespace 'com.btlrckt.bottlerocket'
     compileSdk 34
 
     defaultConfig {
-        applicationId 'com.skiarkt.shooter'
+        applicationId 'com.btlrckt.bottlerocket'
         minSdk 21
         targetSdk 34
         versionCode rootProject.ext.pluginVersionCode
@@ -76,9 +76,9 @@ android {
         if (hasReleaseKey) {
             release {
                 storeFile rootProject.file(relStore)
-                storePassword rel('storePassword', 'SKIARKT_KEYSTORE_PASSWORD')
-                keyAlias rel('keyAlias', 'SKIARKT_KEY_ALIAS')
-                keyPassword rel('keyPassword', 'SKIARKT_KEY_PASSWORD') ?: rel('storePassword', 'SKIARKT_KEYSTORE_PASSWORD')
+                storePassword rel('storePassword', 'BTLRCKT_KEYSTORE_PASSWORD')
+                keyAlias rel('keyAlias', 'BTLRCKT_KEY_ALIAS')
+                keyPassword rel('keyPassword', 'BTLRCKT_KEY_PASSWORD') ?: rel('storePassword', 'BTLRCKT_KEYSTORE_PASSWORD')
                 enableV1Signing true
                 enableV2Signing true
             }

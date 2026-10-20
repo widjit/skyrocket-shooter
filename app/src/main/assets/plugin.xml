@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <!--
-    BOTTLE ROCKET (BTL RCKT, formerly SKIARKT) - ATAK 5.x plugin descriptor (IPlugin model, ATAK-CIV 5.6.0 SDK).
+    BOTTLE ROCKET (BTL RCKT, formerly SKY ROCKET SHOOTER / SKIARKT) - ATAK 5.x plugin descriptor (IPlugin model, ATAK-CIV 5.6.0 SDK).
     name: BOTTLE ROCKET (BTL RCKT)   version: see pluginVersionName in build.gradle
     ATAK instantiates PluginLifecycle reflectively via its (IServiceController) constructor;
     the tool-menu button is added via IHostUIService.addToolbarItem (per the 5.6 SDK template).
@@ -12,6 +12,6 @@
 <plugin>
     <extension
         type="gov.tak.api.plugin.IPlugin"
-        impl="com.skiarkt.shooter.plugin.PluginLifecycle"
+        impl="com.btlrckt.bottlerocket.plugin.PluginLifecycle"
         singleton="true" />
 </plugin>

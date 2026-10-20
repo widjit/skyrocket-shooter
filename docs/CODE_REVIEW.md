@@ -1,6 +1,6 @@
 # Code Review & Cleanup Pass — 1.0.8 (Oct 2026)
 
-Scope: the whole `app/src/main/java/com/skiarkt/shooter` tree (~14.5k lines) plus resources.
+Scope: the whole `app/src/main/java/com/btlrckt/bottlerocket` tree (~14.5k lines) plus resources.
 Goal: remove duplication and wasted work **without changing behaviour** for users.
 
 Off limits on purpose: `plugin.xml` (the `<plugin>` tag stays attribute-free), the manifest

@@ -4,8 +4,8 @@ Read this first when picking up the project in a new workspace. It captures cont
 outside the code.
 
 ## Product
-- **BOTTLE ROCKET (BTL RCKT)** (Base Trial Layout Required Coverage Knowledge Tool; formerly SKY ROCKET SHOOTER / SKIARKT), an ATAK-CIV 5.6.0 plugin for planning point defense against small drones. Only the display name changed; the internal IDs below still say "skiarkt" for compatibility.
-- Package / applicationId: `com.skiarkt.shooter`. CoT type prefix: `b-m-p-skiarkt-`.
+- **BOTTLE ROCKET (BTL RCKT)** (Base Tactical Layout Required Coverage Knowledge Tool; formerly SKY ROCKET SHOOTER / SKIARKT), an ATAK-CIV 5.6.0 plugin for planning point defense against small drones. Renamed fully (internal IDs included) in 1.0.10; 1.0.9 and earlier use `com.skiarkt.shooter` / `b-m-p-skiarkt-`.
+- Package / applicationId: `com.btlrckt.bottlerocket`. CoT type prefix: `b-m-p-btlrckt-`.
 - Repo: `widjit/skyrocket-shooter` (private).
 
 ## Standing rules from the owner
@@ -69,4 +69,4 @@ Build and test:
 ./gradlew :app:assembleCivDebug :app:test
 ```
 The APK is written to `app/build/outputs/apk/civ/debug/app-civ-debug.apk`; release copies are named
-`SKIARKT-<version>-civ-5.6.0-debug.apk`.
+`BTLRCKT-<version>-civ-5.6.0-debug.apk` (`SKIARKT-` up to 1.0.9).
