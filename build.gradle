@@ -1,4 +1,4 @@
-// Top-level build file for the SKY ROCKET SHOOTER ATAK plugin.
+// Top-level build file for the BOTTLE ROCKET (BTL RCKT) ATAK plugin.
 plugins {
     id 'com.android.application' version '8.2.2' apply false
     id 'com.android.library' version '8.2.2' apply false
@@ -13,6 +13,6 @@ ext {
     atakVersion = project.findProperty('atakVersion') ?: '5.6.0'
     atakFlavor = project.findProperty('atakFlavor') ?: 'CIV'
     atakApiVersion = "com.atakmap.app@${atakVersion}.${atakFlavor}" // informational; per-flavour value is set in app/build.gradle
-    pluginVersionName = '1.0.9'
-    pluginVersionCode = 10
+    pluginVersionName = '1.0.10'
+    pluginVersionCode = 11
 }

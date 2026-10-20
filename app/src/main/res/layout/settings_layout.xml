@@ -20,7 +20,7 @@
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:text="@string/settings_units"
-            android:textColor="@color/skiarkt_accent"
+            android:textColor="@color/btlrckt_accent"
             android:textStyle="bold" />
 
         <RadioGroup
@@ -53,7 +53,7 @@
             android:layout_height="wrap_content"
             android:paddingTop="6dp"
             android:text="@string/settings_precision"
-            android:textColor="@color/skiarkt_accent"
+            android:textColor="@color/btlrckt_accent"
             android:textStyle="bold" />
 
         <RadioGroup
@@ -85,14 +85,14 @@
             android:id="@+id/unit_preview"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:textColor="@color/skiarkt_text_dim" />
+            android:textColor="@color/btlrckt_text_dim" />
 
         <TextView
             android:id="@+id/heatmap_transparency_label"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:paddingTop="8dp"
-            android:textColor="@color/skiarkt_text" />
+            android:textColor="@color/btlrckt_text" />
 
         <SeekBar
             android:id="@+id/heatmap_transparency"
@@ -105,7 +105,7 @@
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:paddingTop="8dp"
-            android:textColor="@color/skiarkt_text" />
+            android:textColor="@color/btlrckt_text" />
 
         <SeekBar
             android:id="@+id/zone_transparency"
@@ -118,7 +118,7 @@
             android:layout_height="wrap_content"
             android:paddingTop="10dp"
             android:text="@string/settings_rf_header"
-            android:textColor="@color/skiarkt_accent"
+            android:textColor="@color/btlrckt_accent"
             android:textStyle="bold" />
 
         <TextView
@@ -127,14 +127,14 @@
             android:layout_height="wrap_content"
             android:paddingTop="4dp"
             android:text="@string/settings_rf_frequency"
-            android:textColor="@color/skiarkt_text_dim" />
+            android:textColor="@color/btlrckt_text_dim" />
 
         <EditText
             android:id="@+id/rf_frequency"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:inputType="numberDecimal"
-            android:textColor="@color/skiarkt_text" />
+            android:textColor="@color/btlrckt_text" />
 
         <TextView
             android:id="@+id/rf_threshold_label"
@@ -142,14 +142,14 @@
             android:layout_height="wrap_content"
             android:paddingTop="4dp"
             android:text="@string/settings_rf_threshold"
-            android:textColor="@color/skiarkt_text_dim" />
+            android:textColor="@color/btlrckt_text_dim" />
 
         <EditText
             android:id="@+id/rf_threshold"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:inputType="numberDecimal|numberSigned"
-            android:textColor="@color/skiarkt_text" />
+            android:textColor="@color/btlrckt_text" />
 
         <TextView
             android:id="@+id/rf_terrain_loss_label"
@@ -157,14 +157,14 @@
             android:layout_height="wrap_content"
             android:paddingTop="4dp"
             android:text="@string/settings_rf_terrain_loss"
-            android:textColor="@color/skiarkt_text_dim" />
+            android:textColor="@color/btlrckt_text_dim" />
 
         <EditText
             android:id="@+id/rf_terrain_loss"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:inputType="numberDecimal"
-            android:textColor="@color/skiarkt_text" />
+            android:textColor="@color/btlrckt_text" />
 
         <TextView
             android:id="@+id/los_range_step_label"
@@ -172,14 +172,14 @@
             android:layout_height="wrap_content"
             android:paddingTop="4dp"
             
-            android:textColor="@color/skiarkt_text_dim" />
+            android:textColor="@color/btlrckt_text_dim" />
 
         <EditText
             android:id="@+id/los_range_step"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:inputType="numberDecimal"
-            android:textColor="@color/skiarkt_text" />
+            android:textColor="@color/btlrckt_text" />
 
         <TextView
             android:id="@+id/los_angular_step_label"
@@ -187,14 +187,14 @@
             android:layout_height="wrap_content"
             android:paddingTop="4dp"
             android:text="@string/settings_los_angular_step"
-            android:textColor="@color/skiarkt_text_dim" />
+            android:textColor="@color/btlrckt_text_dim" />
 
         <EditText
             android:id="@+id/los_angular_step"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:inputType="numberDecimal"
-            android:textColor="@color/skiarkt_text" />
+            android:textColor="@color/btlrckt_text" />
 
         <TextView
             android:id="@+id/los_target_agl_label"
@@ -202,21 +202,21 @@
             android:layout_height="wrap_content"
             android:paddingTop="4dp"
             
-            android:textColor="@color/skiarkt_text_dim" />
+            android:textColor="@color/btlrckt_text_dim" />
 
         <EditText
             android:id="@+id/los_target_agl"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:inputType="numberDecimal"
-            android:textColor="@color/skiarkt_text" />
+            android:textColor="@color/btlrckt_text" />
 
         <TextView
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:paddingTop="10dp"
             android:text="@string/sp_header"
-            android:textColor="@color/skiarkt_accent"
+            android:textColor="@color/btlrckt_accent"
             android:textStyle="bold" />
 
         <LinearLayout
@@ -230,7 +230,7 @@
             android:layout_height="wrap_content"
             android:paddingTop="10dp"
             android:text="@string/settings_plan_header"
-            android:textColor="@color/skiarkt_accent"
+            android:textColor="@color/btlrckt_accent"
             android:textStyle="bold" />
 
         <EditText
@@ -258,7 +258,7 @@
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:text="@string/settings_cot_stale"
-            android:textColor="@color/skiarkt_text_dim" />
+            android:textColor="@color/btlrckt_text_dim" />
 
         <EditText
             android:id="@+id/cot_stale_days"

@@ -1,6 +1,6 @@
-# SKY ROCKET SHOOTER (SKIARKT) — Roadmap
+# BOTTLE ROCKET (BTL RCKT) — Roadmap
 
-Current build: **1.0.9** (ATAK-CIV 5.6.0, debug pre-release, shared for feedback). Feature summary
+Current build: **1.0.10** (ATAK-CIV 5.6.0, debug pre-release, shared for feedback). Feature summary
 and install steps are in the [README](../README.md).
 
 Items below are planned, not implemented, unless marked **Implemented**. Everything new is saved and shared as CoT, like the
@@ -170,7 +170,7 @@ designator position(s) for each launcher. Results feed into the engagement timel
 - Zones are created from an exclusion zone, a defended asset, or a drawn boundary. Each has a type,
   label, signed buffer (positive = outward, negative = inward, ±100 km max), color, fill opacity,
   dashed outline and remarks. Linked zones follow later edits to their base; the base outline is
-  also stored as a snapshot so a zone shared over CoT (`b-m-p-skiarkt-authzone`) still works on a
+  also stored as a snapshot so a zone shared over CoT (`b-m-p-btlrckt-authzone`) still works on a
   device that lacks the base item.
 - Containment is exact (signed distance to the base perimeter vs. buffer). The map ring is a
   round-joined offset outline; on highly concave shapes the drawn ring is approximate.
@@ -255,7 +255,7 @@ directly, so it doesn't need it). Three input modes:
   or dips is modelled point by point. The height between points is interpolated along the line.
 - Fields: label, kind (tree line / building / berm / other), height per point, safety margin
   above the top (default 2 m), colour.
-- Shared as CoT (type `b-m-p-skiarkt-wall`) and saved with the plan like every other object.
+- Shared as CoT (type `b-m-p-btlrckt-wall`) and saved with the plan like every other object.
 
 ### R8c. "Never through it" engagement rule
 For each effector, a wall casts a **masking shadow** on the far side:
@@ -278,7 +278,7 @@ For each effector, a wall casts a **masking shadow** on the far side:
 **Status (1.0.7):** eye button on every row (sensors, NK, kinetic, exclusion zones, authority
 zones); tap toggles, long-press solos / restores. Per-type Show all / Hide all, per-site toggle,
 greyed rows with "(hidden)", hidden counts in list and plan header, and a *Show everything* button
-in the main menu. `VisibilityStore` saves to `visibility.skiarkt.json` beside the autosave; never
+in the main menu. `VisibilityStore` saves to `visibility.btlrckt.json` beside the autosave; never
 in CoT or the plan JSON. Only the overlay consults it, so analysis still counts hidden items.
 PNG export asks whether to include hidden assets in the schematic and notes the hidden count in
 the header. The live map capture always shows what is currently drawn. PACE PDF does not exist
@@ -324,7 +324,7 @@ The planner can show or hide each asset's map drawing individually.
 JSON, merged picker in SensorPanel.
 - Settings → *Sensor presets*: one row per preset with Edit, Reset (built-in, enabled when edited)
   or Delete (custom), and an Add button.
-- Saved in `sensor_presets.skiarkt.json` beside the autosave: overrides keyed by built-in id plus
+- Saved in `sensor_presets.btlrckt.json` beside the autosave: overrides keyed by built-in id plus
   the custom list. Built-ins are never deleted, only reset.
 - The sensor panel's preset picker shows built-ins (with overrides applied) followed by customs.
 

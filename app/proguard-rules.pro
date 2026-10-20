@@ -1,8 +1,8 @@
 # ATAK loads the plugin lifecycle reflectively from assets/plugin.xml.
--keep class com.skiarkt.shooter.plugin.PluginLifecycle { *; }
--keep class com.skiarkt.shooter.plugin.PointDefenseTool { *; }
+-keep class com.btlrckt.bottlerocket.plugin.PluginLifecycle { *; }
+-keep class com.btlrckt.bottlerocket.plugin.PointDefenseTool { *; }
 # Gson-serialised models
--keep class com.skiarkt.shooter.model.** { *; }
+-keep class com.btlrckt.bottlerocket.model.** { *; }
 -dontwarn com.atakmap.**
 -dontwarn com.atak.**
 -dontwarn gov.tak.**

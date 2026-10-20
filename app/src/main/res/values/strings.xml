@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <string name="app_name">SKY ROCKET SHOOTER (SKIARKT)</string>
+    <string name="app_name">BOTTLE ROCKET (BTL RCKT)</string>
     <string name="app_desc">Counter-sUAS point / base defense planning: exclusion zones, sensors, kinetic and non-kinetic effectors, threat corridors, gap analysis, engagement timeline, MSA and PACE.</string>
 
     <string name="plan_summary_fmt">%1$s  |  %2$s  |  %3$d items</string>

@@ -20,7 +20,7 @@
             android:id="@+id/section_title"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:textColor="@color/skiarkt_accent"
+            android:textColor="@color/btlrckt_accent"
             android:textSize="17sp"
             android:textStyle="bold" />
 
@@ -29,14 +29,14 @@
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:paddingTop="4dp"
-            android:textColor="@color/skiarkt_text" />
+            android:textColor="@color/btlrckt_text" />
 
         <TextView
             android:id="@+id/section_phase"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:paddingTop="6dp"
-            android:textColor="@color/skiarkt_text_dim"
+            android:textColor="@color/btlrckt_text_dim"
             android:textStyle="italic" />
 
         <TextView
@@ -44,6 +44,6 @@
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:paddingTop="10dp"
-            android:textColor="@color/skiarkt_text" />
+            android:textColor="@color/btlrckt_text" />
     </LinearLayout>
 </ScrollView>

@@ -13,7 +13,7 @@
             android:id="@+id/ez_edit_title"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:textColor="@color/skiarkt_accent"
+            android:textColor="@color/btlrckt_accent"
             android:textSize="17sp"
             android:textStyle="bold" />
 
@@ -21,7 +21,7 @@
             android:id="@+id/ez_geometry"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:textColor="@color/skiarkt_text_dim" />
+            android:textColor="@color/btlrckt_text_dim" />
 
         <TextView
             android:id="@+id/ez_warning"
@@ -43,35 +43,35 @@
             android:layout_height="wrap_content"
             android:paddingTop="6dp"
             android:text="@string/ez_label"
-            android:textColor="@color/skiarkt_text_dim" />
+            android:textColor="@color/btlrckt_text_dim" />
 
         <EditText
             android:id="@+id/ez_label"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:inputType="text"
-            android:textColor="@color/skiarkt_text" />
+            android:textColor="@color/btlrckt_text" />
 
         <TextView
             android:id="@+id/ez_height_label"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:paddingTop="6dp"
-            android:textColor="@color/skiarkt_text_dim" />
+            android:textColor="@color/btlrckt_text_dim" />
 
         <EditText
             android:id="@+id/ez_height"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:inputType="numberDecimal"
-            android:textColor="@color/skiarkt_text" />
+            android:textColor="@color/btlrckt_text" />
 
         <TextView
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:paddingTop="6dp"
             android:text="@string/ez_fill_color"
-            android:textColor="@color/skiarkt_text_dim" />
+            android:textColor="@color/btlrckt_text_dim" />
 
         <LinearLayout
             android:id="@+id/ez_fill_swatches"
@@ -84,7 +84,7 @@
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:paddingTop="6dp"
-            android:textColor="@color/skiarkt_text_dim" />
+            android:textColor="@color/btlrckt_text_dim" />
 
         <SeekBar
             android:id="@+id/ez_fill_opacity"
@@ -97,7 +97,7 @@
             android:layout_height="wrap_content"
             android:paddingTop="6dp"
             android:text="@string/ez_stroke_color"
-            android:textColor="@color/skiarkt_text_dim" />
+            android:textColor="@color/btlrckt_text_dim" />
 
         <LinearLayout
             android:id="@+id/ez_stroke_swatches"
@@ -110,7 +110,7 @@
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:paddingTop="6dp"
-            android:textColor="@color/skiarkt_text_dim" />
+            android:textColor="@color/btlrckt_text_dim" />
 
         <SeekBar
             android:id="@+id/ez_stroke_width"
@@ -123,14 +123,14 @@
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:text="@string/ez_stroke_dashed"
-            android:textColor="@color/skiarkt_text" />
+            android:textColor="@color/btlrckt_text" />
 
         <TextView
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:paddingTop="6dp"
             android:text="@string/ez_remarks"
-            android:textColor="@color/skiarkt_text_dim" />
+            android:textColor="@color/btlrckt_text_dim" />
 
         <EditText
             android:id="@+id/ez_remarks"
@@ -138,7 +138,7 @@
             android:layout_height="wrap_content"
             android:inputType="textMultiLine"
             android:minLines="2"
-            android:textColor="@color/skiarkt_text" />
+            android:textColor="@color/btlrckt_text" />
 
         <LinearLayout
             android:layout_width="match_parent"

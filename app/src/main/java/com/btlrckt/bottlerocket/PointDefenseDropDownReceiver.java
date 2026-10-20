@@ -1,0 +1,438 @@
+package com.btlrckt.bottlerocket;
+
+import android.app.AlertDialog;
+import android.content.Context;
+import android.content.DialogInterface;
+import android.content.Intent;
+import android.view.View;
+import android.view.ViewGroup;
+import android.widget.Button;
+import android.widget.CheckBox;
+import android.widget.LinearLayout;
+import android.widget.TextView;
+import android.widget.Toast;
+
+import com.atak.plugins.impl.PluginLayoutInflater;
+import com.atakmap.android.dropdown.DropDown;
+import com.atakmap.android.dropdown.DropDownReceiver;
+import com.atakmap.android.maps.MapView;
+import com.btlrckt.bottlerocket.data.PointDefenseRepository;
+import com.btlrckt.bottlerocket.export.PngExporter;
+import com.btlrckt.bottlerocket.model.BasePlanItem;
+import com.btlrckt.bottlerocket.model.ItemKind;
+import com.btlrckt.bottlerocket.model.PointDefensePlan;
+import com.btlrckt.bottlerocket.overlay.OverlayManager;
+import com.btlrckt.bottlerocket.settings.SettingsManager;
+import com.btlrckt.bottlerocket.ui.ExclusionZonePanel;
+import com.btlrckt.bottlerocket.ui.FeatureSection;
+import com.btlrckt.bottlerocket.ui.AuthorityPanel;
+import com.btlrckt.bottlerocket.ui.KineticPanel;
+import com.btlrckt.bottlerocket.ui.NonKineticPanel;
+import com.btlrckt.bottlerocket.ui.SensorPanel;
+import com.btlrckt.bottlerocket.ui.SettingsPanel;
+import com.btlrckt.bottlerocket.util.DtedHelper;
+
+import java.io.File;
+import java.io.IOException;
+import java.util.HashSet;
+import java.util.Set;
+
+/**
+ * Main side panel. Shows the plan header, a navigation menu for every feature area and
+ * swaps section views in-place (with Back navigation). Feature sections are stubs
+ * until their roadmap phase; Settings is fully functional.
+ */
+public class PointDefenseDropDownReceiver extends DropDownReceiver
+        implements DropDown.OnStateListener, PointDefenseRepository.PlanChangeListener {
+
+    public static final String SHOW_PLUGIN = "com.btlrckt.bottlerocket.SHOW_PLUGIN";
+    /** Optional intent extra: open directly on a {@link FeatureSection} name. */
+    public static final String EXTRA_SECTION = "section";
+    /** PNG exports go under the plugin storage dir. */
+    public static final String EXPORT_SUBDIR = "exports";
+
+    private final Context pluginContext;
+    private final SettingsManager settings;
+    private final PointDefenseRepository repository;
+    private final DtedHelper dtedHelper;
+    private final OverlayManager overlayManager;
+    private ExclusionZonePanel exclusionZonePanel;
+    private SensorPanel sensorPanel;
+    private NonKineticPanel nonKineticPanel;
+    private KineticPanel kineticPanel;
+    private AuthorityPanel authorityPanel;
+
+    private final View rootView;
+    private final TextView planSummary;
+    private final ViewGroup contentContainer;
+    private FeatureSection currentSection;
+
+    public PointDefenseDropDownReceiver(MapView mapView, Context pluginContext, SettingsManager settings,
+            PointDefenseRepository repository, DtedHelper dtedHelper, OverlayManager overlayManager) {
+        super(mapView);
+        this.overlayManager = overlayManager;
+        this.pluginContext = pluginContext;
+        this.settings = settings;
+        this.repository = repository;
+        this.dtedHelper = dtedHelper;
+
+        rootView = PluginLayoutInflater.inflate(pluginContext, R.layout.main_layout, null);
+        planSummary = rootView.findViewById(R.id.plan_summary);
+        contentContainer = rootView.findViewById(R.id.content_container);
+        repository.addListener(this);
+    }
+
+    @Override
+    public void onReceive(Context context, Intent intent) {
+        if (intent == null || !SHOW_PLUGIN.equals(intent.getAction())) return;
+        FeatureSection target = null;
+        String sectionName = intent.getStringExtra(EXTRA_SECTION);
+        if (sectionName != null) {
+            try {
+                target = FeatureSection.valueOf(sectionName);
+            } catch (IllegalArgumentException ignored) {
+                // fall through to main menu
+            }
+        }
+        if (target != null) showSection(target);
+        else showMainMenu();
+
+        if (isClosed()) {
+            showDropDown(rootView, HALF_WIDTH, FULL_HEIGHT, FULL_WIDTH, HALF_HEIGHT, this);
+        }
+    }
+
+    // ------------------------------------------------------------ navigation
+
+    private void showMainMenu() {
+        hidePanels(null);
+        currentSection = null;
+        updatePlanSummary();
+        View menu = PluginLayoutInflater.inflate(pluginContext, R.layout.main_menu, null);
+        LinearLayout list = menu.findViewById(R.id.section_list);
+        for (final FeatureSection section : FeatureSection.values()) {
+            Button b = new Button(pluginContext);
+            b.setText(menuLabel(section));
+            b.setAllCaps(false);
+            b.setOnClickListener(new View.OnClickListener() {
+                @Override
+                public void onClick(View v) {
+                    showSection(section);
+                }
+            });
+            list.addView(b, new LinearLayout.LayoutParams(
+                    LinearLayout.LayoutParams.MATCH_PARENT, LinearLayout.LayoutParams.WRAP_CONTENT));
+        }
+        final int hidden = repository.getVisibility().hiddenCount(allUids());
+        if (hidden > 0) {
+            Button showAll = new Button(pluginContext);
+            showAll.setText(pluginContext.getString(R.string.vis_show_everything)
+                    + pluginContext.getString(R.string.vis_plan_hidden_fmt, hidden));
+            showAll.setAllCaps(false);
+            showAll.setOnClickListener(new View.OnClickListener() {
+                @Override
+                public void onClick(View v) {
+                    repository.getVisibility().showAll();
+                }
+            });
+            list.addView(showAll, new LinearLayout.LayoutParams(
+                    LinearLayout.LayoutParams.MATCH_PARENT, LinearLayout.LayoutParams.WRAP_CONTENT));
+        }
+        menu.findViewById(R.id.btn_save_plan).setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                savePlan();
+            }
+        });
+        menu.findViewById(R.id.btn_share_plan).setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                sharePlan();
+            }
+        });
+        menu.findViewById(R.id.btn_export_png).setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                exportPng(v);
+            }
+        });
+        menu.findViewById(R.id.btn_new_plan).setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                repository.newPlan(null, settings.getDefaultAuthor(), settings.getDefaultClassification());
+                toast(pluginContext.getString(R.string.msg_new_plan));
+            }
+        });
+        setContent(menu);
+    }
+
+    private String menuLabel(FeatureSection section) {
+        String title = pluginContext.getString(section.titleRes);
+        if (section.kind != null) {
+            return title + " (" + repository.getPlan().count(section.kind) + ")";
+        }
+        return title;
+    }
+
+    private void showSection(FeatureSection section) {
+        currentSection = section;
+        updatePlanSummary();
+        hidePanels(section);
+        View view;
+        if (section == FeatureSection.EXCLUSION_ZONES) {
+            if (exclusionZonePanel == null) {
+                exclusionZonePanel = new ExclusionZonePanel(pluginContext, getMapView(), settings, repository,
+                        dtedHelper, overlayManager, new Runnable() {
+                            @Override
+                            public void run() {
+                                showMainMenu();
+                            }
+                        });
+            }
+            view = exclusionZonePanel.createView();
+        } else if (section == FeatureSection.SENSORS) {
+            if (sensorPanel == null) {
+                sensorPanel = new SensorPanel(pluginContext, getMapView(), settings, repository, overlayManager,
+                        backToMenu());
+            }
+            view = sensorPanel.createView();
+        } else if (section == FeatureSection.NON_KINETIC) {
+            if (nonKineticPanel == null) {
+                nonKineticPanel = new NonKineticPanel(pluginContext, getMapView(), settings, repository,
+                        overlayManager, backToMenu());
+            }
+            view = nonKineticPanel.createView();
+        } else if (section == FeatureSection.KINETIC) {
+            if (kineticPanel == null) {
+                kineticPanel = new KineticPanel(pluginContext, getMapView(), settings, repository,
+                        overlayManager, backToMenu());
+            }
+            view = kineticPanel.createView();
+        } else if (section == FeatureSection.AUTHORITY) {
+            if (authorityPanel == null) {
+                authorityPanel = new AuthorityPanel(pluginContext, getMapView(), settings, repository,
+                        overlayManager, backToMenu());
+            }
+            view = authorityPanel.createView();
+        } else if (section == FeatureSection.SETTINGS) {
+            view = new SettingsPanel(pluginContext, settings, repository, new Runnable() {
+                @Override
+                public void run() {
+                    showMainMenu();
+                }
+            }).createView();
+        } else {
+            view = createPlaceholder(section);
+        }
+        setContent(view);
+    }
+
+    private Runnable backToMenu() {
+        return new Runnable() {
+            @Override
+            public void run() {
+                showMainMenu();
+            }
+        };
+    }
+
+    /** Leaves placement / draw modes of every panel except the one for {@code keep}. */
+    private void hidePanels(FeatureSection keep) {
+        if (keep != FeatureSection.EXCLUSION_ZONES && exclusionZonePanel != null) exclusionZonePanel.onHidden();
+        if (keep != FeatureSection.SENSORS && sensorPanel != null) sensorPanel.onHidden();
+        if (keep != FeatureSection.NON_KINETIC && nonKineticPanel != null) nonKineticPanel.onHidden();
+        if (keep != FeatureSection.KINETIC && kineticPanel != null) kineticPanel.onHidden();
+        if (keep != FeatureSection.AUTHORITY && authorityPanel != null) authorityPanel.onHidden();
+    }
+
+    private View createPlaceholder(FeatureSection section) {
+        View v = PluginLayoutInflater.inflate(pluginContext, R.layout.section_placeholder, null);
+        ((TextView) v.findViewById(R.id.section_title)).setText(section.titleRes);
+        ((TextView) v.findViewById(R.id.section_description)).setText(section.descriptionRes);
+        ((TextView) v.findViewById(R.id.section_phase)).setText(
+                pluginContext.getString(R.string.section_phase_fmt, section.phase));
+        TextView items = v.findViewById(R.id.section_items);
+        items.setText(describeItems(section.kind));
+        v.findViewById(R.id.btn_back).setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                showMainMenu();
+            }
+        });
+        return v;
+    }
+
+    private String describeItems(ItemKind kind) {
+        if (kind == null) {
+            return pluginContext.getString(R.string.section_analysis_summary,
+                    repository.getPlan().totalItems());
+        }
+        StringBuilder sb = new StringBuilder();
+        for (BasePlanItem item : repository.getItems(kind)) {
+            sb.append("\u2022 ").append(item.label);
+            if (item.getAnchor() != null) {
+                double elev = dtedHelper.getElevationHae(item.getAnchor());
+                sb.append("  [terrain ").append(settings.formatDistance(elev)).append(" HAE]");
+            }
+            sb.append('\n');
+        }
+        return sb.length() == 0 ? pluginContext.getString(R.string.section_no_items) : sb.toString();
+    }
+
+    private void setContent(View v) {
+        contentContainer.removeAllViews();
+        contentContainer.addView(v, new ViewGroup.LayoutParams(
+                ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.MATCH_PARENT));
+    }
+
+    private void updatePlanSummary() {
+        PointDefensePlan plan = repository.getPlan();
+        String text = pluginContext.getString(R.string.plan_summary_fmt,
+                plan.name, plan.classification, plan.totalItems());
+        int hidden = repository.getVisibility().hiddenCount(allUids());
+        if (hidden > 0) text += pluginContext.getString(R.string.vis_plan_hidden_fmt, hidden);
+        planSummary.setText(text);
+    }
+
+    /** UIDs of every item in the current plan (hidden counts ignore stale entries). */
+    private Set<String> allUids() {
+        Set<String> uids = new HashSet<>();
+        for (BasePlanItem it : repository.getPlan().getAllItems()) uids.add(it.uid);
+        return uids;
+    }
+
+    // --------------------------------------------------------------- actions
+
+    private void savePlan() {
+        File file = repository.defaultPlanFile();
+        if (file == null) {
+            toast(pluginContext.getString(R.string.msg_no_storage));
+            return;
+        }
+        try {
+            repository.saveToFile(file);
+            toast(pluginContext.getString(R.string.msg_saved, file.getName()));
+        } catch (IOException e) {
+            toast(pluginContext.getString(R.string.msg_save_failed, e.getMessage()));
+        }
+    }
+
+    private void exportPng(final View button) {
+        final Set<String> hidden = new HashSet<>();
+        for (String uid : allUids()) if (repository.getVisibility().isHidden(uid)) hidden.add(uid);
+        if (hidden.isEmpty()) {
+            doExportPng(button, hidden, false);
+            return;
+        }
+        final CheckBox include = new CheckBox(getMapView().getContext());
+        include.setText(pluginContext.getString(R.string.png_include_hidden));
+        include.setChecked(false);
+        new AlertDialog.Builder(getMapView().getContext())
+                .setTitle(pluginContext.getString(R.string.png_options_title))
+                .setMessage(pluginContext.getString(R.string.vis_hidden_count_fmt, hidden.size()))
+                .setView(include)
+                .setPositiveButton(pluginContext.getString(R.string.png_export), new DialogInterface.OnClickListener() {
+                    @Override
+                    public void onClick(DialogInterface d, int which) {
+                        doExportPng(button, hidden, include.isChecked());
+                    }
+                })
+                .setNegativeButton(pluginContext.getString(R.string.pt_cancel), null)
+                .show();
+    }
+
+    private void doExportPng(final View button, Set<String> hidden, boolean includeHidden) {
+        File dir = repository.getStorageDir();
+        if (dir == null) {
+            toast(pluginContext.getString(R.string.msg_no_storage));
+            return;
+        }
+        button.setEnabled(false);
+        toast(pluginContext.getString(R.string.msg_export_started));
+        // Deep copy: the image is composed on a background thread.
+        PointDefensePlan snapshot = repository.parseJson(repository.toJson());
+        new PngExporter(getMapView(), snapshot, settings.getUnitSystem(), settings.getPrecision(),
+                new File(dir, EXPORT_SUBDIR)).setHiddenUids(hidden, includeHidden).export(new PngExporter.Callback() {
+            @Override
+            public void onExported(File file, boolean usedMapCapture) {
+                button.setEnabled(true);
+                toast(pluginContext.getString(usedMapCapture ? R.string.msg_exported
+                        : R.string.msg_exported_schematic, file.getAbsolutePath()));
+            }
+
+            @Override
+            public void onFailed(String reason) {
+                button.setEnabled(true);
+                toast(pluginContext.getString(R.string.msg_export_failed, reason));
+            }
+        });
+    }
+
+    private void sharePlan() {
+        int sent = repository.sharePlan();
+        toast(pluginContext.getString(R.string.msg_shared, sent));
+    }
+
+    private void toast(String msg) {
+        Toast.makeText(getMapView().getContext(), msg, Toast.LENGTH_SHORT).show();
+    }
+
+    // ------------------------------------------------------------- callbacks
+
+    @Override
+    public void onPlanChanged(PointDefenseRepository.ChangeType type, BasePlanItem item) {
+        getMapView().post(new Runnable() {
+            @Override
+            public void run() {
+                if (currentSection == null) showMainMenu();
+                else if (currentSection == FeatureSection.EXCLUSION_ZONES) {
+                    // Panel refreshes itself and never clobbers an open edit form / draw session.
+                    updatePlanSummary();
+                    if (exclusionZonePanel != null) exclusionZonePanel.refresh();
+                } else if (currentSection == FeatureSection.SENSORS) {
+                    updatePlanSummary();
+                    if (sensorPanel != null) sensorPanel.refresh();
+                } else if (currentSection == FeatureSection.NON_KINETIC) {
+                    updatePlanSummary();
+                    if (nonKineticPanel != null) nonKineticPanel.refresh();
+                } else if (currentSection == FeatureSection.KINETIC) {
+                    updatePlanSummary();
+                    if (kineticPanel != null) kineticPanel.refresh();
+                } else if (currentSection == FeatureSection.AUTHORITY) {
+                    updatePlanSummary();
+                    if (authorityPanel != null) authorityPanel.refresh();
+                } else if (currentSection != FeatureSection.SETTINGS) showSection(currentSection);
+                else updatePlanSummary();
+            }
+        });
+    }
+
+    @Override
+    protected void disposeImpl() {
+        repository.removeListener(this);
+        if (exclusionZonePanel != null) exclusionZonePanel.dispose();
+        if (sensorPanel != null) sensorPanel.dispose();
+        if (nonKineticPanel != null) nonKineticPanel.dispose();
+        if (kineticPanel != null) kineticPanel.dispose();
+        if (authorityPanel != null) authorityPanel.dispose();
+    }
+
+    @Override
+    public void onDropDownSelectionRemoved() {
+    }
+
+    @Override
+    public void onDropDownClose() {
+        // Leave draw mode so map taps regain their default behaviour.
+        hidePanels(null);
+    }
+
+    @Override
+    public void onDropDownSizeChanged(double width, double height) {
+    }
+
+    @Override
+    public void onDropDownVisible(boolean v) {
+        if (v) updatePlanSummary();
+    }
+}

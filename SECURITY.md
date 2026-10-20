@@ -1,12 +1,12 @@
 # Security Policy
 
 ## Scope and intended use
-SKY ROCKET SHOOTER (SKIARKT) is a **planning and visualization tool only**. It does not control sensors, effectors or
+BOTTLE ROCKET (BTL RCKT, formerly SKY ROCKET SHOOTER / SKIARKT) is a **planning and visualization tool only**. It does not control sensors, effectors or
 weapons. Its coverage, RF-effectiveness and intercept-altitude results are planning estimates. Their accuracy depends
 on DTED quality and simplified propagation models. Do not use them as the only basis for engagement decisions.
 
 ## Operational and classified use
-- Using SKIARKT operationally, including on classified or otherwise controlled networks, is **solely the
+- Using BTL RCKT operationally, including on classified or otherwise controlled networks, is **solely the
   responsibility of the deploying user and organization**. That responsibility covers accreditation, data handling,
   classification marking and compliance with applicable policy.
 - The plugin shares plans as Cursor-on-Target (CoT) over whatever transport ATAK is configured to use (TAK Server, mesh). Check what your network will

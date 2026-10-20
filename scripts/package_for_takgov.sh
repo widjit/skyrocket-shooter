@@ -4,9 +4,9 @@
 # for Play Store / release ATAK. Contains only committed files: no SDK, no keys, no build output.
 set -euo pipefail
 cd "$(dirname "$0")/.."
-OUT="${1:-../skiarkt-shooter-src-$(git rev-parse --short HEAD).zip}"
+OUT="${1:-../btlrckt-src-$(git rev-parse --short HEAD).zip}"
 git diff --quiet || echo "WARNING: uncommitted changes are NOT included in the zip"
-git archive --format=zip --prefix=skiarkt-shooter/ -o "$OUT" HEAD
+git archive --format=zip --prefix=btlrckt/ -o "$OUT" HEAD
 if unzip -l "$OUT" | grep -Eq '\.(jks|keystore)$|keystore\.properties|sdk/.*\.(jar|aar)$'; then
   echo "ERROR: secrets/SDK found in archive"; rm -f "$OUT"; exit 1
 fi
