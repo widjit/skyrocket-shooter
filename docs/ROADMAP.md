@@ -15,8 +15,8 @@ thing I want feedback on.
 |---|---|---|---|
 | 1 | Foundation | ✅ Done (1.0.0–1.0.3) | Plugin framework, data model, CoT schema, settings, DTED helper, polygon exclusion zones, minimum safe intercept altitude, sensors with terrain masking, RF jammer heat maps |
 | 2 | Assets and planning workflow | ✅ Done (1.0.4–1.0.8) | Kinetic effectors, directed energy (R7), multi-band RF (R1), zone shapes (R3), engagement authority (R6), sites and linking (R0), visibility (R9), sensor types and fields (R2, partial), preset catalog (R10) |
-| 3 | **Detection and intercept analysis** | ⏭️ Next | Drone detection simulation (R12), detection-floor probe and heat maps (R13), kinetic / non-kinetic intercept heat maps (R14), sensor gap analysis, type-aware filters (rest of R2: night / IR-only coverage) |
-| 4 | Sensors in depth and obstacles | Planned | Optics/IR definition and DRI rings (R11), field-measured walls and "never through it" masking (R8) |
+| 3 | **Detection and intercept analysis** | ⏭️ Next | Drone detection simulation (R12), detection-floor probe and heat maps (R13), kinetic / non-kinetic intercept heat maps (R14), 3-D altitude coverage layers (R16), sensor gap analysis, type-aware filters (rest of R2: night / IR-only coverage) |
+| 4 | Sensors in depth and obstacles | Planned | Optics/IR definition and DRI rings (R11), field-measured walls and "never through it" masking (R8), terrain quality indicator (R17) |
 | 5 | Laser-guided engagements | Planned | Laser-guided rocket with designator pairing (R4), laser-masking analysis (R5) |
 | 6 | Engagement decision support | Planned | Engagement timeline (detect → decide → defeat), best-effector recommendation, friendly-fire deconfliction, MSA rings, dynamic frag cylinder along the threat vector |
 | 7 | Briefing, sharing and release | Planned | PACE plan PDF, KMZ / KML export (R15), full-plan import/export (CoT / data package), WinTAK push/pull, decision-maker briefing export, TAK.gov-signed release build |
@@ -452,6 +452,86 @@ in Google Earth, ArcGIS, QGIS and other GIS tools, and handed to people without 
 
 ---
 
+## R16. 3-D altitude coverage layers  *(pending)*
+Visualise how sensor detection coverage and kinetic / non-kinetic engagement envelopes change with
+target altitude, using an altitude slider on the ATAK map that works without the plugin panel open.
+
+### Asset selection
+Before activating the layers the user picks which sensors and effectors contribute to the slice: a
+scrollable list of plan assets with per-type select-all / select-none toggles and a Show-all button,
+matching the cross-type picker used elsewhere. Items not selected are excluded from the altitude
+computation for that session; the underlying plan data is unchanged.
+
+### Altitude slider
+- A thin widget pinned to one edge of the ATAK map (a `View` added directly to `MapView`, not
+  inside the `DropDownReceiver` panel). It persists whether the plugin panel is closed, partially
+  open, or fully open.
+- Activated by a dedicated toolbar button when at least one analysis layer (R13 / R14) exists for
+  the selected assets.
+- The widget shows: a vertical `SeekBar`, the current altitude label in metres AGL, and a small ×
+  to dismiss; it takes a thin strip (~48 dp wide) along one edge without obstructing ATAK's
+  toolbar, compass, or GPS bar.
+- Each tick = **10 m AGL**. The user sets the ceiling in Settings (default 200 m AGL; range 50–500 m).
+- As the user drags, the active analysis layers (detection heat map, intercept heat map, or both)
+  redraw to show coverage at that altitude slice. All other map content (zones, placemarks, walls)
+  is unchanged.
+
+### Altitude slices — data model
+- The same grid / altitude engine used by R13 / R14 is extended to pre-compute layers at each 10 m
+  step up to the configured ceiling for the selected assets, and cache them.
+- Computation runs in the background with a progress indicator; the slider is disabled until the
+  first layer is ready. The user can cancel and change the asset selection or ceiling.
+- Layers are view-only and local to the device; they are not shared via CoT.
+- The engine respects all existing masking rules: exclusion-zone heights, protected-asset exclusion
+  heights, terrain masks, and wall occlusion (R8c) once R8 lands.
+
+### Dependencies
+R16 requires R13 (detection heat maps) and / or R14 (intercept heat maps) — the slider has nothing
+to display until at least one of those is built. Reuses the R13 / R14 grid / altitude engine,
+the R2 elevation-angle fields, and the existing LOS mask; gains R8 wall occlusion when R8 lands.
+The floating-widget infrastructure (View attachment, toolbar button) is independent and can be
+scaffolded as part of Phase 4 / Phase 5 prep.
+
+---
+
+## R17. Terrain quality indicator  *(pending)*
+Surface a small, unobtrusive warning when the terrain data for the current analysis appears to be
+missing or internally inconsistent, so the operator knows when analysis results may be less certain.
+The indicator is **off by default** and enabled in Settings.
+
+### What it checks
+- **Coverage gaps:** any analysis sweep (sensor mask, RF heat map, R16 altitude layer) that
+  accumulates missing elevation samples above a configurable threshold (default 5 %) triggers the
+  indicator. The `missingSamples` count in `LosSweep.Result` and `TerrainProfile.isComplete()` in
+  `InterceptAltitudeCalculator` are already tracked; this feature wires them to the UI.
+- **Elevation jumps:** consecutive terrain-profile samples that differ by more than a configurable
+  amount (default 100 m per 30 m horizontal) are flagged as likely artefacts — noisy data or a
+  mismatched tile boundary.
+- **Resolution mismatch:** if the elevation query resolution is finer than the data's reported
+  post spacing (available from ATAK's `ElevationManager`), the indicator notes reduced confidence.
+
+### Indicator
+- A small icon in a map corner (corner and icon size configurable; default bottom-left beneath the
+  coordinate display). Traffic-light colour: green (complete and consistent), amber (minor gaps or
+  one suspect jump), red (significant gaps or multiple inconsistencies).
+- Tapping it opens a one-line summary: percentage of missing samples, any flagged jumps, and the
+  reported resolution, with a *Details* link to the terrain-quality Settings section.
+
+### Settings
+- **Show terrain quality indicator:** on / off (default off).
+- **Missing-sample warning threshold:** percentage at which the indicator turns amber (default 5 %)
+  or red (default 20 %).
+- **Elevation-jump threshold:** maximum plausible elevation change per sample (default 100 m per
+  30 m horizontal).
+- **Indicator position:** map corner (bottom-left / bottom-right / top-left / top-right).
+
+### Dependencies
+Builds on `LosSweep.Result.missingSamples` and `TerrainProfile.isComplete()` (both already
+implemented). The elevation-jump check is added to `DtedHelper.getTerrainProfile`. No analysis
+features depend on R17; it is informational only.
+
+---
+
 ### Items without an R-number
 These are listed under their phase in the [Phases](#phases) table: sensor gap analysis (Phase 3);
 engagement timeline (detect → jam → kinetic), best-effector designation, friendly-fire
@@ -484,3 +564,9 @@ R8 (walls) arrives in Phase 4. Until then, R14 respects exclusion-zone heights, 
 the same clearance check when R8 lands.
 R15 (KMZ / KML export) is independent. It reuses the overlay geometry and R9 visibility, and adds
 R13/R14 heat maps as ground overlays once they exist.
+R16 (3-D altitude coverage layers) requires R13 and/or R14 for its data; reuses the R13/R14
+grid/altitude engine, R2 elevation-angle fields and the LOS mask; gains R8 wall occlusion when
+R8 lands. The floating-widget infrastructure (MapView overlay, toolbar button) can be scaffolded
+earlier.
+R17 (terrain quality indicator) is informational only; it builds on the existing `missingSamples`
+count and `isComplete()` flag and adds a jump-check to `DtedHelper`. No other feature depends on it.
