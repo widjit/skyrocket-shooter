@@ -52,10 +52,10 @@ public class PointDefenseMapComponent extends DropDownMapComponent {
         dropDown = new PointDefenseDropDownReceiver(view, pluginContext, settings, repository, dtedHelper,
                 overlayManager);
         DocumentedIntentFilter filter = new DocumentedIntentFilter();
-        filter.addAction(PointDefenseDropDownReceiver.SHOW_PLUGIN, "Open the SKY ROCKET SHOOTER panel");
+        filter.addAction(PointDefenseDropDownReceiver.SHOW_PLUGIN, "Open the BOTTLE ROCKET (BTL RCKT) panel");
         registerDropDownReceiver(dropDown, filter);
 
-        Log.d(TAG, "SKY ROCKET SHOOTER " + BuildConfig.VERSION_NAME + " loaded (SDK mode "
+        Log.d(TAG, "BTL RCKT " + BuildConfig.VERSION_NAME + " loaded (SDK mode "
                 + BuildConfig.ATAK_SDK_MODE + ")");
     }
 
@@ -66,7 +66,7 @@ public class PointDefenseMapComponent extends DropDownMapComponent {
         if (repository != null) repository.flushAutosave();
         // DropDownMapComponent unregisters and disposes registered drop-down receivers.
         super.onDestroyImpl(context, view);
-        Log.d(TAG, "SKY ROCKET SHOOTER unloaded");
+        Log.d(TAG, "BTL RCKT unloaded");
     }
 
     public SettingsManager getSettings() {

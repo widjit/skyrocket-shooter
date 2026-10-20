@@ -173,7 +173,7 @@ public class CoverageEngine {
                         work.run();
                     } catch (RuntimeException ex) {
                         // keep the worker alive; the item simply renders without terrain data
-                        System.err.println("SKIARKT coverage computation failed for " + uid + ": " + ex);
+                        System.err.println("BTL RCKT coverage computation failed for " + uid + ": " + ex);
                     } finally {
                         pending.remove(pk);
                     }

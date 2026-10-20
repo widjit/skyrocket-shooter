@@ -1,17 +1,17 @@
-# SKIARKT — Project Handoff
+# BTL RCKT (formerly SKIARKT) — Project Handoff
 
 Read this first when picking up the project in a new workspace. It captures context that lives
 outside the code.
 
 ## Product
-- **SKY ROCKET SHOOTER (SKIARKT)**, an ATAK-CIV 5.6.0 plugin for planning point defense against small drones.
+- **BOTTLE ROCKET (BTL RCKT)** (Base Trial Layout Required Coverage Knowledge Tool; formerly SKY ROCKET SHOOTER / SKIARKT), an ATAK-CIV 5.6.0 plugin for planning point defense against small drones. Only the display name changed; the internal IDs below still say "skiarkt" for compatibility.
 - Package / applicationId: `com.skiarkt.shooter`. CoT type prefix: `b-m-p-skiarkt-`.
 - Repo: `widjit/skyrocket-shooter` (private).
 
 ## Standing rules from the owner
 - No chess references anywhere (the project was originally called ROOK; that name is retired).
 - Every acronym letter must stand for a meaningful word.
-- "SHOOTER" and "bottle rocket" are the core branding anchors.
+- "Bottle rocket" is the core brand; "Shooter" lives on in the tagline ("Be a Shooter too") and the Shooters user group.
 - Never sign release builds with the debug keystore. Release signing uses the owner's external
   credentials (`scripts/make_release_keystore.sh`, `scripts/package_for_takgov.sh`).
 - Engagement logic must never shoot through or at protected assets; account for their exclusion height.

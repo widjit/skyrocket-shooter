@@ -1,10 +1,12 @@
 <p align="center">
-  <img src="assets/skiarkt_logo_bw.png" alt="SKY ROCKET SHOOTER (SKIARKT) logo" width="320"/>
+  <img src="assets/skiarkt_logo_bw.png" alt="BOTTLE ROCKET (BTL RCKT) logo" width="320"/>
 </p>
 
-# SKY ROCKET SHOOTER (SKIARKT)
+# BOTTLE ROCKET (BTL RCKT)
 
-**S**hooters **K**nown **I**ntercepter **A**TAK **R**apid **K**nowledge **T**ool
+**B**ase **T**rial **L**ayout · **R**equired **C**overage **K**nowledge **T**ool
+
+*Formerly SKY ROCKET SHOOTER (SKIARKT).*
 
 > 🚀 ***Be a Shooter too.** Find your limits, and know your blindspots.*
 
@@ -13,7 +15,7 @@
 ![Status](https://img.shields.io/badge/status-debug_pre--release-orange.svg)
 ![Version](https://img.shields.io/badge/version-1.0.9-lightgrey.svg)
 
-SKIARKT is an ATAK-CIV plugin for **counter-small-UAS (C-sUAS) point defense**. It is used by three
+BTL RCKT is an ATAK-CIV plugin for **counter-small-UAS (C-sUAS) point defense**. It is used by three
 groups:
 
 - **Planners** see what is actually covered before any asset is employed, and build courses of
@@ -26,7 +28,12 @@ groups:
 The plugin shows terrain-masked sensor coverage, models RF jammer effectiveness, works out safe
 intercept altitudes, and shares the whole plan with other ATAK / WinTAK users as Cursor-on-Target (CoT).
 
-***Shooters Known Intercepter ATAK Rapid Knowledge Tool***
+***Base Trial Layout Required Coverage Knowledge Tool***
+
+> **About the name:** the display name changed from SKIARKT to BTL RCKT. The internal IDs did not
+> change, so existing installs upgrade normally and saved plans and shared CoT keep working. These
+> IDs still use "skiarkt": the package `com.skiarkt.shooter`, the `b-m-p-skiarkt-*` CoT types, the
+> `skiarkt_shooter` folder, and the release-signing variable names.
 
 > **Planning and visualization tool only.** It is not a fire-control system. Ranges come from public
 > datasheets or what the operator enters. See [SECURITY.md](SECURITY.md) before any operational use.
@@ -148,12 +155,13 @@ off by default.
 2. Download the APK from [Releases](https://github.com/widjit/skyrocket-shooter/releases) and run
    `adb install -r SKIARKT-1.0.9-civ-5.6.0-debug.apk`.
 3. In ATAK go to **☰ → Plugins**. Tap the sync arrows if the list is empty, tick
-   **SKY ROCKET SHOOTER (SKIARKT)** and choose **Load**.
-4. Open **☰ → SKY ROCKET SHOOTER**. For logs, run `adb logcat | grep -i skiarkt`.
+   **BOTTLE ROCKET (BTL RCKT)** and choose **Load**. (Builds 1.0.9 and earlier still show the old name,
+   **SKY ROCKET SHOOTER (SKIARKT)**.)
+4. Open **☰ → BOTTLE ROCKET (BTL RCKT)**. For logs, run `adb logcat | grep -i skiarkt`.
 
 **Play Store / release ATAK** (CIV, MIL, GOV) only loads plugins signed through the TAK.gov
 third-party pipeline. That is part of Phase 7; see [Release builds](#release-builds-and-takgov) below.
-**WinTAK:** the APK is Android-only. WinTAK sees SKIARKT plans through the shared CoT types.
+**WinTAK:** the APK is Android-only. WinTAK sees BTL RCKT plans through the shared CoT types.
 
 ---
 
@@ -217,7 +225,7 @@ process; see [SECURITY.md](SECURITY.md).
 
 - Common attributes: `how="h-g-i-g-o"`, stale time 30 days by default (configurable), label in
   `<contact callsign>`, free text in `<remarks>`.
-- SKIARKT-specific attributes are in a custom detail element. New attributes are optional, so older
+- Plugin-specific attributes are in a custom detail element. New attributes are optional, so older
   peers still parse newer events.
 - Polygons use standard `<link point="lat,lon[,hae]"/>` elements plus `fillColor` / `strokeColor` /
   `strokeWeight` / `height`, so stock TAK viewers can draw them.
@@ -248,6 +256,6 @@ process; see [SECURITY.md](SECURITY.md).
 - TAK Product Center, SDK and plugin signing: [tak.gov](https://tak.gov)
 
 ## License
-Licensed under the [Apache License 2.0](LICENSE). Copyright 2026 SKIARKT Contributors.
+Licensed under the [Apache License 2.0](LICENSE). Copyright 2026 BTL RCKT (formerly SKIARKT) Contributors.
 
 ATAK, WinTAK and the TAK SDK belong to their respective owners and are not covered by this license.

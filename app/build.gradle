@@ -18,7 +18,7 @@ def atakSdkJar = project.hasProperty('atakSdkJar') ? rootProject.file(project.pr
         rootProject.file("sdk/${atakVer}/main.jar")
 def useMavenSdk = project.hasProperty('atakSdkMaven') && project.property('atakSdkMaven').toString().toBoolean()
 def atakSdkMode = atakSdkJar.exists() ? 'jar' : (useMavenSdk ? 'maven' : 'stubs')
-logger.lifecycle("SKY ROCKET SHOOTER: ATAK ${atakVer} - compiling against SDK via '${atakSdkMode}'" +
+logger.lifecycle("BTL RCKT: ATAK ${atakVer} - compiling against SDK via '${atakSdkMode}'" +
         (atakSdkMode == 'jar' ? " (${atakSdkJar})" : ''))
 if (atakSdkMode == 'stubs' && !project.hasProperty('allowStubs')) {
     throw new GradleException("ATAK ${atakVer} requested but no SDK found at ${atakSdkJar}. " +

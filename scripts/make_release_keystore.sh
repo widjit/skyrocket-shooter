@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# Creates YOUR private release signing key for SKY ROCKET SHOOTER (SKIARKT) and a
+# Creates YOUR private release signing key for BOTTLE ROCKET (BTL RCKT) and a
 # git-ignored keystore.properties pointing at it. Back the keystore up: if it is lost,
 # installed copies can never be updated with the same signature.
 #   usage: scripts/make_release_keystore.sh ["CN=Your Org, O=Your Org, C=US"]

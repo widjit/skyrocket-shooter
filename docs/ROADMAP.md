@@ -1,4 +1,4 @@
-# SKY ROCKET SHOOTER (SKIARKT) — Roadmap
+# BOTTLE ROCKET (BTL RCKT) — Roadmap
 
 Current build: **1.0.9** (ATAK-CIV 5.6.0, debug pre-release, shared for feedback). Feature summary
 and install steps are in the [README](../README.md).

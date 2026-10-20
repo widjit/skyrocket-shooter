@@ -2,7 +2,7 @@ package com.skiarkt.shooter.cot;
 
 import com.skiarkt.shooter.model.ItemKind;
 
-/** CoT type strings and detail element names used by SKY ROCKET SHOOTER. */
+/** CoT type strings and detail element names used by BTL RCKT (the "skiarkt" names are kept for compatibility). */
 public final class CotTypes {
     private CotTypes() {
     }

@@ -240,7 +240,7 @@ public final class PngExporter {
         text.setFakeBoldText(false);
         text.setTextSize(22 * k);
         text.setColor(0xFFB0B8C0);
-        String meta = "SKY ROCKET SHOOTER (SKIARKT)  |  " + PngExportModel.dtg(System.currentTimeMillis())
+        String meta = "BOTTLE ROCKET (BTL RCKT)  |  " + PngExportModel.dtg(System.currentTimeMillis())
                 + (plan.author == null || plan.author.isEmpty() ? "" : "  |  " + plan.author)
                 + "  |  " + plan.totalItems() + " items"
                 + (map == null ? "  |  SCHEMATIC (map imagery not captured)" : "")

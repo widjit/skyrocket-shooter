@@ -33,7 +33,7 @@ import java.util.Map;
 import java.util.Set;
 
 /**
- * Owns the plugin's map layers. Creates a root "SKY ROCKET SHOOTER" {@link MapGroup}
+ * Owns the plugin's map layers. Creates a root "BOTTLE ROCKET (BTL RCKT)" {@link MapGroup}
  * with one child group per item kind; ATAK's GL pipeline renders every map item placed
  * in these groups (GLMapItem2 renderers are bound automatically), and the groups appear
  * in Overlay Manager for visibility toggling.
@@ -49,7 +49,7 @@ import java.util.Set;
 public class OverlayManager implements PointDefenseRepository.PlanChangeListener,
         SharedPreferences.OnSharedPreferenceChangeListener {
     private static final String TAG = "SkiarktOverlayManager";
-    public static final String ROOT_GROUP_NAME = "SKY ROCKET SHOOTER";
+    public static final String ROOT_GROUP_NAME = "BOTTLE ROCKET (BTL RCKT)";
     public static final String DRAWING_GROUP_NAME = "Drawing";
     public static final String ANALYSIS_GROUP_NAME = "Analysis";
     public static final String SITES_GROUP_NAME = "Sites";

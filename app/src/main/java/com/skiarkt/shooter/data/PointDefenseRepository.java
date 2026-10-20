@@ -359,7 +359,7 @@ public final class PointDefenseRepository {
             p.ensureLists();
             return p;
         } catch (JsonParseException | IOException e) {
-            throw new IllegalArgumentException("Invalid SKIARKT plan JSON: " + e.getMessage(), e);
+            throw new IllegalArgumentException("Invalid BTL RCKT plan JSON: " + e.getMessage(), e);
         }
     }
 
