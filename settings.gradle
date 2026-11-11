@@ -28,6 +28,6 @@ dependencyResolutionManagement {
 
 rootProject.name = 'btlrckt'
 include ':app'
-// Compile-only mirror of the ATAK 4.8 SDK API surface used by this plugin.
-// Used automatically when the real ATAK SDK (sdk/main.jar) is not present.
+// JVM mirror of the ATAK 5.x API surface used by this plugin. Always used by the unit tests;
+// used for APK compilation only with -PallowStubs (compile check, not a runnable APK).
 include ':atak-sdk-stubs'

@@ -170,7 +170,7 @@ third-party pipeline. That is part of Phase 7; see [Release builds](#release-bui
 - JDK 17
 - Android SDK with `platforms;android-34` and `build-tools;34.0.0`
 - `local.properties` containing `sdk.dir=/path/to/Android/Sdk` (git-ignored)
-- The ATAK-CIV 5.6.0 SDK `main.jar` copied to `sdk/5.6.0/main.jar` (not committed; see [sdk/README.md](sdk/README.md))
+- Either artifacts.tak.gov credentials, or `atak-gradle-takdev.jar`, `main.jar` and `android_keystore` from the ATAK-CIV 5.6.0 SDK zip in `sdk/5.6.0/` (not committed; see [sdk/README.md](sdk/README.md))
 - A debug keystore at `keystores/debug.keystore` for developer builds (never committed; see [keystores/README.md](keystores/README.md))
 
 ### Commands
@@ -178,18 +178,21 @@ third-party pipeline. That is part of Phase 7; see [Release builds](#release-bui
 ./gradlew assembleCivDebug                       # developer build -> app/build/outputs/apk/civ/debug/app-civ-debug.apk
 ./gradlew testCivDebugUnitTest                   # JVM unit tests
 ./gradlew assembleCivRelease                     # signed with your release key, or UNSIGNED if none configured
-./gradlew assembleCivRelease -PatakVersion=5.5.0 # another 5.x host; needs sdk/5.5.0/main.jar
+./gradlew assembleCivRelease -PatakVersion=5.5.0 # another 5.x host; needs the 5.5.0 SDK files in sdk/5.5.0/
 ```
 The `civ` / `mil` / `gov` flavours match the TAK plugin template and set `plugin-api` to `com.atakmap.app@<ver>.CIV|MIL|GOV`.
 
 ### ATAK SDK sources
-| Priority | Source | How |
-|---|---|---|
-| 1 | ATAK-CIV SDK jar | `-PatakSdkJar=<path>`, else `sdk/<atakVersion>/main.jar` (default `sdk/5.6.0/main.jar`) |
-| 2 | TAK Maven AAR | `-PatakSdkMaven=true -PtakRepoUrl=... -PtakRepoUser=... -PtakRepoPassword=...` |
-| 3 | Bundled `:atak-sdk-stubs` | Only with `-PallowStubs`. API signatures only, enough to compile without tak.gov access. Always used for unit tests |
+The SDK comes only through TAK.gov's `atak-gradle-takdev` plugin, as in the 5.6.0 SDK template (details in [sdk/README.md](sdk/README.md)):
 
-Build anything you install in the field against the real SDK (option 1 or 2), not the stubs.
+| Mode | How |
+|---|---|
+| Remote | `-Ptakrepo.force=true -Ptakrepo.url=https://artifacts.tak.gov/artifactory/maven -Ptakrepo.user=<user> -Ptakrepo.password=<pass>`, or the `takrepo.*` keys in `local.properties` (git-ignored). Uses `atak-gradle-takdev:3.+` |
+| Offline | `atak-gradle-takdev.jar`, `main.jar` and `android_keystore` from the SDK zip in `sdk/<atakVersion>/` |
+| Stubs | Only with `-PallowStubs`. API signatures only, compile check without tak.gov access. Always used for unit tests |
+
+Build anything you install in the field remotely or offline, never with the stubs.
+Release builds shrink and repackage the code into `atakplugin.btlrckt` (template ProGuard rules); `PluginLifecycle` keeps its name.
 
 ### Release builds and TAK.gov
 The build **refuses to sign a release with the debug keystore**. Use your own release key:

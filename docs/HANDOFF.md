@@ -58,8 +58,9 @@ outside the code.
 
 ## Setting up a fresh workspace
 These files are git-ignored and must be supplied separately:
-1. **ATAK-CIV 5.6.0 SDK**: extract `main.jar` from the SDK zip to `sdk/5.6.0/main.jar` (see `sdk/README.md`).
-   Unit tests run without it (they use `atak-sdk-stubs`); APK builds need it.
+1. **ATAK-CIV 5.6.0 SDK**: either artifacts.tak.gov credentials (`takrepo.url` / `takrepo.user` /
+   `takrepo.password` in `local.properties`), or copy `atak-gradle-takdev.jar`, `main.jar` and `android_keystore`
+   from the SDK zip into `sdk/5.6.0/` (see `sdk/README.md`). Unit tests run without it (they use `atak-sdk-stubs`).
 2. **Debug keystore**: `keystores/debug.keystore`. Reuse the existing one so new builds install as
    updates over 1.0.x on test devices. A new keystore means uninstalling the plugin on every device first.
 3. `local.properties`: `sdk.dir=<Android SDK path>`.
