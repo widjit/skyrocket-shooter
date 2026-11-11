@@ -25,3 +25,5 @@ keystore.properties
 *.jks
 sdk/*/
 !sdk/README.md
+app/proguard-gradle-repackage.txt
+.takdev/

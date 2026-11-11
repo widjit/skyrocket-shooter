@@ -7,7 +7,7 @@ cd "$(dirname "$0")/.."
 OUT="${1:-../btlrckt-src-$(git rev-parse --short HEAD).zip}"
 git diff --quiet || echo "WARNING: uncommitted changes are NOT included in the zip"
 git archive --format=zip --prefix=btlrckt/ -o "$OUT" HEAD
-if unzip -l "$OUT" | grep -Eq '\.(jks|keystore)$|keystore\.properties|sdk/.*\.(jar|aar)$'; then
+if unzip -l "$OUT" | grep -Eq '\.(jks|keystore)$|keystore\.properties|android_keystore|local\.properties|sdk/.*\.(jar|aar)$'; then
   echo "ERROR: secrets/SDK found in archive"; rm -f "$OUT"; exit 1
 fi
 echo "Wrote $OUT"; unzip -l "$OUT" | tail -1
